@@ -1,0 +1,79 @@
+# CompreFace — Face Recognition Service
+# Requires: Docker Desktop with virtualization enabled in BIOS
+# Usage: docker compose up -d
+# UI: http://localhost:8000
+# API key: create in CompreFace UI → Applications → Create app → get API key
+#
+# After starting:
+#   1. Open http://localhost:8000
+#   2. Create account
+#   3. Create application "home-lab"
+#   4. Create subject "Thomas", "Nils", "Hugo", "Anna"
+#   5. Upload training photos (min 5 per person)
+#   6. Copy API key to Double Take config
+
+version: "3.9"
+
+services:
+  compreface-postgres-db:
+    image: exadel-inc/compreface-postgres-db:1.2.0
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: compreface
+      POSTGRES_PASSWORD: compreface
+      POSTGRES_DB: frs
+    volumes:
+      - compreface-postgres-data:/var/lib/postgresql/data
+
+  compreface-admin:
+    image: exadel-inc/compreface-admin:1.2.0
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: compreface
+      POSTGRES_PASSWORD: compreface
+      POSTGRES_URL: jdbc:postgresql://compreface-postgres-db:5432/frs
+      SPRING_PROFILES_ACTIVE: dev
+      ENABLE_EMAIL_SERVER: "false"
+      EMAIL_HOST: smtp.gmail.com
+      EMAIL_USERNAME: ""
+      EMAIL_PASSWORD: ""
+      ADMIN_JAVA_OPTS: -Xmx512m
+    depends_on:
+      - compreface-postgres-db
+    ports:
+      - "8081:8080"
+
+  compreface-api:
+    image: exadel-inc/compreface-api:1.2.0
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: compreface
+      POSTGRES_PASSWORD: compreface
+      POSTGRES_URL: jdbc:postgresql://compreface-postgres-db:5432/frs
+      SPRING_PROFILES_ACTIVE: dev
+      ADMIN_JAVA_OPTS: -Xmx512m
+      API_JAVA_OPTS: -Xmx512m
+    depends_on:
+      - compreface-postgres-db
+
+  compreface-fe:
+    image: exadel-inc/compreface-fe:1.2.0
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    environment:
+      CLIENT_MAX_BODY_SIZE: 10M
+      PROXY_READ_TIMEOUT: 60000ms
+      PROXY_CONNECT_TIMEOUT: 10000ms
+    depends_on:
+      - compreface-api
+      - compreface-admin
+
+  compreface-core:
+    image: exadel-inc/compreface-core:1.2.0
+    restart: unless-stopped
+    environment:
+      ML_PORT: 3000
+
+volumes:
+  compreface-postgres-data:
