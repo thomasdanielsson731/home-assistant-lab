@@ -1,0 +1,40 @@
+mqtt:
+  host: localhost
+  port: 1883
+  topics:
+    frigate: frigate
+    matches: double_take/matches
+    cameras: double_take/cameras
+
+frigate:
+  url: http://localhost:5000
+  # Cameras to watch (leave empty to watch all)
+  cameras: []
+
+# Face recognizer — uncomment the one you use
+# Option A: CompreFace (self-hosted, recommended)
+# compreface:
+#   url: http://localhost:8000
+#   api_key: !secret compreface_api_key
+#   det_prob_threshold: 0.8
+
+# Option B: DeepStack
+# deepstack:
+#   url: http://localhost:80
+#   api_key: !secret deepstack_api_key
+#   min_confidence: 0.67
+
+time:
+  timezone: Europe/Stockholm
+
+detect:
+  match:
+    save: true
+    base64: false
+    confidence: 60
+    purge: 168  # hours to keep match images
+  unknown:
+    save: true
+    base64: false
+    confidence: 40
+    purge: 24

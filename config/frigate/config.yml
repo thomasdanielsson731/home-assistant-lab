@@ -1,0 +1,147 @@
+# Frigate NVR — Home Lab
+# Template — credentials replaced with !secret on host
+# Deploy: ./scripts/sync-config.sh  (excludes secrets.yaml automatically)
+# Real config lives at /config/frigate/config.yml on the HA host with actual IPs/passwords
+
+mqtt:
+  enabled: true
+  host: core-mosquitto
+  port: 1883
+
+detectors:
+  default:
+    type: cpu
+    num_threads: 2
+
+ffmpeg:
+  global_args: -hide_banner -loglevel warning -threads 1
+  hwaccel_args: preset-vaapi
+  input_args: preset-rtsp-restream
+
+record:
+  enabled: true
+  retain:
+    days: 7
+    mode: motion
+  events:
+    retain:
+      default: 14
+      mode: motion
+
+snapshots:
+  enabled: true
+  retain:
+    default: 10
+
+objects:
+  track:
+    - person
+    - car
+  filters:
+    person:
+      min_score: 0.60
+      threshold: 0.70
+    car:
+      min_score: 0.60
+      threshold: 0.70
+
+cameras:
+
+  front:
+    ffmpeg:
+      inputs:
+        - path: rtsp://!secret front_camera_user:!secret front_camera_password@!secret front_camera_ip/axis-media/media.amp
+          roles: [record]
+        - path: rtsp://!secret front_camera_user:!secret front_camera_password@!secret front_camera_ip/axis-media/media.amp?videocodec=h264&resolution=640x360
+          roles: [detect]
+    detect:
+      enabled: true
+      width: 640
+      height: 360
+      fps: 5
+    objects:
+      track:
+        - person
+        - car
+
+  driveway_wide:
+    ffmpeg:
+      inputs:
+        - path: rtsp://!secret driveway_wide_camera_user:!secret driveway_wide_camera_password@!secret driveway_wide_camera_ip/axis-media/media.amp
+          roles: [record]
+        - path: rtsp://!secret driveway_wide_camera_user:!secret driveway_wide_camera_password@!secret driveway_wide_camera_ip/axis-media/media.amp?videocodec=h264&resolution=640x360
+          roles: [detect]
+    detect:
+      enabled: true
+      width: 640
+      height: 360
+      fps: 5
+    objects:
+      track:
+        - person
+        - car
+
+  driveway_id:
+    ffmpeg:
+      inputs:
+        - path: rtsp://!secret driveway_id_camera_user:!secret driveway_id_camera_password@!secret driveway_id_camera_ip/axis-media/media.amp
+          roles: [record]
+        - path: rtsp://!secret driveway_id_camera_user:!secret driveway_id_camera_password@!secret driveway_id_camera_ip/axis-media/media.amp?videocodec=h264&resolution=640x360
+          roles: [detect]
+    detect:
+      enabled: true
+      width: 640
+      height: 360
+      fps: 5
+    objects:
+      track:
+        - person
+        - car
+
+  backyard:
+    ffmpeg:
+      inputs:
+        - path: rtsp://!secret backyard_camera_user:!secret backyard_camera_password@!secret backyard_camera_ip/axis-media/media.amp
+          roles: [record]
+        - path: rtsp://!secret backyard_camera_user:!secret backyard_camera_password@!secret backyard_camera_ip/axis-media/media.amp?videocodec=h264&resolution=640x360
+          roles: [detect]
+    detect:
+      enabled: true
+      width: 640
+      height: 360
+      fps: 5
+    objects:
+      track:
+        - person
+
+  storage_ext:
+    ffmpeg:
+      inputs:
+        - path: rtsp://!secret storage_ext_camera_user:!secret storage_ext_camera_password@!secret storage_ext_camera_ip/axis-media/media.amp
+          roles: [record]
+        - path: rtsp://!secret storage_ext_camera_user:!secret storage_ext_camera_password@!secret storage_ext_camera_ip/axis-media/media.amp?videocodec=h264&resolution=640x360
+          roles: [detect]
+    detect:
+      enabled: true
+      width: 640
+      height: 360
+      fps: 2
+    objects:
+      track:
+        - person
+
+  storage_int:
+    ffmpeg:
+      inputs:
+        - path: rtsp://!secret storage_int_camera_user:!secret storage_int_camera_password@!secret storage_int_camera_ip/axis-media/media.amp
+          roles: [record]
+        - path: rtsp://!secret storage_int_camera_user:!secret storage_int_camera_password@!secret storage_int_camera_ip/axis-media/media.amp?videocodec=h264&resolution=640x360
+          roles: [detect]
+    detect:
+      enabled: true
+      width: 640
+      height: 360
+      fps: 2
+    objects:
+      track:
+        - person

@@ -1,0 +1,533 @@
+title: Home Lab
+views:
+
+  # ═══════════════════════════════════════════════════════════════
+  # VIEW 1 — HOME
+  # ═══════════════════════════════════════════════════════════════
+  - title: Home
+    path: home
+    icon: mdi:home
+    type: sections
+    max_columns: 1
+    sections:
+
+      # ── Greeting ─────────────────────────────────────────────
+      - cards:
+          - type: custom:mushroom-template-card
+            primary: >-
+              {% set h = now().hour %}
+              {% if h < 12 %}Good morning
+              {% elif h < 17 %}Good afternoon
+              {% else %}Good evening{% endif %}, Thomas
+            secondary: "{{ now().strftime('%A') }} · {{ now().day }} {{ now().strftime('%B') }}"
+            icon: mdi:home
+            icon_color: blue
+            tap_action:
+              action: none
+
+      # ── Who's Home ───────────────────────────────────────────
+      - title: WHO'S HOME
+        cards:
+          - type: custom:mushroom-person-card
+            entity: person.thomasx
+            layout: horizontal
+            secondary_info: last_changed
+          - type: custom:mushroom-person-card
+            entity: person.nils_2
+            layout: horizontal
+            secondary_info: last_changed
+          - type: custom:mushroom-person-card
+            entity: person.hugo
+            layout: horizontal
+            secondary_info: last_changed
+          - type: custom:mushroom-person-card
+            entity: person.anna
+            layout: horizontal
+            secondary_info: last_changed
+
+      # ── Quick Status ─────────────────────────────────────────
+      - title: QUICK STATUS
+        cards:
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: entity
+                entity: alarm_control_panel.home_alarm
+                icon_color: red
+              - type: template
+                icon: mdi:car
+                content: Driveway
+                icon_color: >-
+                  {{ 'red' if is_state('binary_sensor.driveway_wide_motion', 'on')
+                     or is_state('binary_sensor.driveway_id_person_occupancy', 'on')
+                     else 'green' }}
+                tap_action:
+                  action: navigate
+                  navigation_path: /lovelace/cameras
+              - type: template
+                icon: mdi:home-account
+                content: >-
+                  {{ states('person.thomasx') | title }}
+                icon_color: >-
+                  {{ 'green' if is_state('person.thomasx', 'home') else 'grey' }}
+              - type: template
+                icon: mdi:weather-cloudy
+                content: "{{ states('weather.forecast_hem') | title }}"
+                icon_color: blue
+
+      # ── Recent Events ────────────────────────────────────────
+      - title: RECENT EVENTS
+        cards:
+          - type: logbook
+            hours_to_show: 6
+            entities:
+              - binary_sensor.front_motion
+              - binary_sensor.front_person_occupancy
+              - binary_sensor.driveway_wide_motion
+              - binary_sensor.driveway_wide_car_occupancy
+              - binary_sensor.driveway_id_motion
+              - binary_sensor.driveway_id_person_occupancy
+              - binary_sensor.backyard_motion
+              - binary_sensor.backyard_person_occupancy
+              - binary_sensor.storage_ext_motion
+              - binary_sensor.storage_int_motion
+
+      # ── Lights On Now ────────────────────────────────────────
+      - title: LIGHTS ON NOW
+        cards:
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: entity
+                entity: light.anna_och_thomas_sovrum
+              - type: entity
+                entity: light.hugos_rum
+              - type: entity
+                entity: light.living_room
+              - type: entity
+                entity: light.fonsterlampor
+
+
+  # ═══════════════════════════════════════════════════════════════
+  # VIEW 2 — CAMERAS
+  # custom:advanced-camera-card with Frigate integration
+  # ═══════════════════════════════════════════════════════════════
+  - title: Cameras
+    path: cameras
+    icon: mdi:cctv
+    type: sections
+    max_columns: 2
+    sections:
+
+      # ── Driveway — full width ────────────────────────────────
+      - title: DRIVEWAY
+        column_span: 2
+        cards:
+          - type: custom:advanced-camera-card
+            cameras:
+              - camera_entity: camera.driveway_wide
+                title: Driveway Wide (Q3558-LVE)
+            dimensions:
+              aspect_ratio: 16/9
+          - type: horizontal-stack
+            cards:
+              - type: custom:advanced-camera-card
+                cameras:
+                  - camera_entity: camera.driveway_id
+                    title: Driveway ID (M2036)
+                dimensions:
+                  aspect_ratio: 16/9
+              - type: custom:mushroom-template-card
+                primary: Uppfart
+                secondary: >-
+                  {% if is_state('binary_sensor.driveway_wide_motion', 'on') %}Rörelse
+                  {% elif is_state('binary_sensor.driveway_id_person_occupancy', 'on') %}Person
+                  {% else %}Lugnt{% endif %}
+                icon: mdi:car-arrow-right
+                icon_color: >-
+                  {{ 'red' if is_state('binary_sensor.driveway_wide_motion', 'on')
+                     or is_state('binary_sensor.driveway_id_person_occupancy', 'on') else 'grey' }}
+                layout: vertical
+                tap_action:
+                  action: none
+
+      # ── Front — full width ───────────────────────────────────
+      - title: FRONT
+        column_span: 2
+        cards:
+          - type: custom:advanced-camera-card
+            cameras:
+              - camera_entity: camera.front
+                title: Front (P3288)
+            dimensions:
+              aspect_ratio: 16/9
+
+      # ── Backyard ─────────────────────────────────────────────
+      - title: BACKYARD
+        cards:
+          - type: custom:advanced-camera-card
+            cameras:
+              - camera_entity: camera.backyard
+                title: Backyard (Q1656)
+            dimensions:
+              aspect_ratio: 16/9
+
+      # ── Storage ──────────────────────────────────────────────
+      - title: STORAGE
+        cards:
+          - type: custom:advanced-camera-card
+            cameras:
+              - camera_entity: camera.storage_ext
+                title: Storage Exterior (Q1656)
+            dimensions:
+              aspect_ratio: 16/9
+          - type: custom:advanced-camera-card
+            cameras:
+              - camera_entity: camera.storage_int
+                title: Storage Interior (M1055)
+            dimensions:
+              aspect_ratio: 16/9
+
+
+  # ═══════════════════════════════════════════════════════════════
+  # VIEW 3 — SECURITY
+  # ═══════════════════════════════════════════════════════════════
+  - title: Security
+    path: security
+    icon: mdi:shield-home
+    type: sections
+    max_columns: 1
+    sections:
+
+      # ── Alarm Status ─────────────────────────────────────────
+      - title: STATUS
+        cards:
+          - type: custom:mushroom-alarm-control-panel-card
+            entity: alarm_control_panel.home_alarm
+            name: Security
+            show_keypad: true
+            states:
+              - armed_home
+              - armed_away
+              - armed_night
+              - disarmed
+
+      # ── Live Detections ──────────────────────────────────────
+      - title: LIVE DETECTIONS
+        cards:
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: template
+                icon: mdi:cctv
+                content: Front
+                icon_color: >-
+                  {{ 'red' if is_state('binary_sensor.front_person_occupancy', 'on')
+                     or is_state('binary_sensor.front_motion', 'on') else 'grey' }}
+                tap_action:
+                  action: navigate
+                  navigation_path: /lovelace/cameras
+              - type: template
+                icon: mdi:cctv
+                content: Driveway
+                icon_color: >-
+                  {{ 'red' if is_state('binary_sensor.driveway_wide_motion', 'on')
+                     or is_state('binary_sensor.driveway_id_person_occupancy', 'on')
+                     or is_state('binary_sensor.driveway_wide_car_occupancy', 'on') else 'grey' }}
+                tap_action:
+                  action: navigate
+                  navigation_path: /lovelace/cameras
+              - type: template
+                icon: mdi:cctv
+                content: Backyard
+                icon_color: >-
+                  {{ 'red' if is_state('binary_sensor.backyard_person_occupancy', 'on')
+                     or is_state('binary_sensor.backyard_motion', 'on') else 'grey' }}
+              - type: template
+                icon: mdi:cctv
+                content: Stor Ext
+                icon_color: >-
+                  {{ 'red' if is_state('binary_sensor.storage_ext_person_occupancy', 'on')
+                     or is_state('binary_sensor.storage_ext_motion', 'on') else 'grey' }}
+              - type: template
+                icon: mdi:cctv
+                content: Stor Int
+                icon_color: >-
+                  {{ 'red' if is_state('binary_sensor.storage_int_person_occupancy', 'on')
+                     or is_state('binary_sensor.storage_int_motion', 'on') else 'grey' }}
+
+      # ── Object Counts ─────────────────────────────────────────
+      - title: OBJECT COUNTS (24H)
+        cards:
+          - type: entities
+            entities:
+              - entity: sensor.front_person_count
+                name: Front — persons
+              - entity: sensor.driveway_wide_car_count
+                name: Driveway — cars
+              - entity: sensor.driveway_id_person_count
+                name: Driveway ID — persons
+              - entity: sensor.backyard_person_count
+                name: Backyard — persons
+              - entity: sensor.storage_ext_person_count
+                name: Storage Ext — persons
+
+      # ── Face Recognition ─────────────────────────────────────
+      - title: FACE RECOGNITION
+        cards:
+          - type: custom:mushroom-template-card
+            primary: Not yet active
+            secondary: Double Take + CompreFace — Phase 4
+            icon: mdi:face-recognition
+            icon_color: grey
+            tap_action:
+              action: none
+
+      # ── Event Log ────────────────────────────────────────────
+      - title: EVENT LOG
+        cards:
+          - type: logbook
+            hours_to_show: 24
+            entities:
+              - binary_sensor.front_motion
+              - binary_sensor.front_person_occupancy
+              - binary_sensor.driveway_wide_motion
+              - binary_sensor.driveway_wide_car_occupancy
+              - binary_sensor.driveway_wide_person_occupancy
+              - binary_sensor.driveway_id_motion
+              - binary_sensor.driveway_id_person_occupancy
+              - binary_sensor.backyard_motion
+              - binary_sensor.backyard_person_occupancy
+              - binary_sensor.storage_ext_motion
+              - binary_sensor.storage_ext_person_occupancy
+              - binary_sensor.storage_int_motion
+              - binary_sensor.storage_int_person_occupancy
+
+
+  # ═══════════════════════════════════════════════════════════════
+  # VIEW 4 — ROOMS
+  # Lights and devices by area
+  # ═══════════════════════════════════════════════════════════════
+  - title: Rooms
+    path: rooms
+    icon: mdi:floor-plan
+    type: sections
+    max_columns: 2
+    sections:
+
+      # ── Ground Floor ─────────────────────────────────────────
+      - title: KITCHEN / LIVING ROOM
+        cards:
+          - type: custom:mushroom-entity-card
+            entity: light.living_room
+            name: Living Room
+            icon: mdi:ceiling-light
+            layout: horizontal
+          - type: custom:mushroom-entity-card
+            entity: light.fonsterlampor
+            name: Fönsterlampor
+            icon: mdi:lamp
+            layout: horizontal
+
+      - title: BEDROOM
+        cards:
+          - type: custom:mushroom-entity-card
+            entity: light.anna_och_thomas_sovrum
+            name: Anna & Thomas sovrum
+            icon: mdi:ceiling-light
+            layout: horizontal
+
+      # ── Upper Floor ──────────────────────────────────────────
+      - title: HUGO'S ROOM
+        cards:
+          - type: custom:mushroom-entity-card
+            entity: light.hugos_rum
+            name: Hugo's rum
+            icon: mdi:ceiling-light
+            layout: horizontal
+
+      # ── Household Devices ────────────────────────────────────
+      - title: DEVICES
+        column_span: 2
+        cards:
+          - type: horizontal-stack
+            cards:
+              - type: custom:mushroom-entity-card
+                entity: vacuum.hoover
+                name: Hoover
+                icon: mdi:robot-vacuum
+                layout: vertical
+              - type: custom:mushroom-entity-card
+                entity: sensor.hoover_batteri
+                name: Batteri
+                icon: mdi:battery
+                layout: vertical
+              - type: custom:mushroom-entity-card
+                entity: sensor.hoover_status
+                name: Status
+                icon: mdi:information
+                layout: vertical
+          - type: custom:mushroom-template-card
+            primary: >-
+              {% if is_state('vacuum.hoover', 'cleaning') %}Städar — {{ states('sensor.hoover_nuvarande_rum') }}
+              {% elif is_state('vacuum.hoover', 'docked') %}Dockad & laddad
+              {% else %}{{ states('vacuum.hoover') | title }}{% endif %}
+            secondary: "Totalt städat: {{ states('sensor.hoover_totalt_stadad_area') | round(0) }} m²"
+            icon: mdi:robot-vacuum
+            icon_color: >-
+              {{ 'green' if is_state('vacuum.hoover', 'docked') else 'blue' }}
+            tap_action:
+              action: more-info
+              entity: vacuum.hoover
+
+
+  # ═══════════════════════════════════════════════════════════════
+  # VIEW 5 — OPERATIONS
+  # ═══════════════════════════════════════════════════════════════
+  - title: Operations
+    path: ops
+    icon: mdi:cog
+    type: sections
+    max_columns: 2
+    sections:
+
+      # ── System ───────────────────────────────────────────────
+      - title: SYSTEM
+        column_span: 2
+        cards:
+          - type: custom:mushroom-entity-card
+            entity: update.home_assistant_core_update
+            name: Home Assistant Core
+            icon: mdi:home-assistant
+            layout: horizontal
+          - type: custom:mushroom-entity-card
+            entity: update.home_assistant_supervisor_update
+            name: Supervisor
+            icon: mdi:update
+            layout: horizontal
+          - type: custom:mushroom-entity-card
+            entity: update.home_assistant_operating_system_update
+            name: HAOS
+            icon: mdi:layers
+            layout: horizontal
+
+      # ── Add-ons ──────────────────────────────────────────────
+      - title: ADD-ONS
+        column_span: 2
+        cards:
+          - type: horizontal-stack
+            cards:
+              - type: custom:mushroom-entity-card
+                entity: update.frigate_full_access_uppdatering
+                name: Frigate
+                icon: mdi:cctv
+                layout: vertical
+              - type: custom:mushroom-entity-card
+                entity: update.double_take_uppdatering
+                name: Double Take
+                icon: mdi:face-recognition
+                layout: vertical
+              - type: custom:mushroom-entity-card
+                entity: update.matter_server_uppdatering
+                name: Matter
+                icon: mdi:chip
+                layout: vertical
+              - type: custom:mushroom-entity-card
+                entity: update.advanced_ssh_web_terminal_uppdatering
+                name: SSH
+                icon: mdi:console
+                layout: vertical
+
+      # ── Network ──────────────────────────────────────────────
+      - title: NETWORK
+        cards:
+          - type: custom:mushroom-entity-card
+            entity: binary_sensor.m9plus_wan_status
+            name: WAN
+            icon: mdi:wan
+            layout: horizontal
+          - type: custom:mushroom-entity-card
+            entity: sensor.m9plus_nedladdningshastighet
+            name: Down
+            icon: mdi:download
+            layout: horizontal
+          - type: custom:mushroom-entity-card
+            entity: sensor.m9plus_uppladdningshastighet
+            name: Up
+            icon: mdi:upload
+            layout: horizontal
+
+      # ── Backup ───────────────────────────────────────────────
+      - title: BACKUP
+        cards:
+          - type: custom:mushroom-entity-card
+            entity: sensor.backup_backup_manager_state
+            name: State
+            icon: mdi:backup-restore
+            layout: horizontal
+          - type: custom:mushroom-entity-card
+            entity: sensor.backup_last_successful_automatic_backup
+            name: Last Backup
+            icon: mdi:clock-check
+            layout: horizontal
+
+      # ── Quick Actions ────────────────────────────────────────
+      - title: QUICK ACTIONS
+        column_span: 2
+        cards:
+          - type: custom:mushroom-template-card
+            primary: Restart HA
+            icon: mdi:restart
+            icon_color: amber
+            tap_action:
+              action: call-service
+              service: homeassistant.restart
+              confirmation:
+                text: Restart Home Assistant?
+          - type: custom:mushroom-template-card
+            primary: Backup Now
+            icon: mdi:backup-restore
+            icon_color: blue
+            tap_action:
+              action: call-service
+              service: backup.create
+              confirmation:
+                text: Create a full backup?
+
+      # ── Camera Connectivity ──────────────────────────────────
+      - title: CAMERA CONNECTIVITY
+        column_span: 2
+        cards:
+          - type: entities
+            entities:
+              - entity: camera.front
+                name: front (P3288)
+              - entity: camera.driveway_wide
+                name: driveway_wide (Q3558-LVE)
+              - entity: camera.driveway_id
+                name: driveway_id (M2036)
+              - entity: camera.backyard
+                name: backyard (Q1656)
+              - entity: camera.storage_ext
+                name: storage_ext (Q1656)
+              - entity: camera.storage_int
+                name: storage_int (M1055)
+          - type: horizontal-stack
+            cards:
+              - type: custom:mushroom-entity-card
+                entity: switch.front_recordings
+                name: front rec
+                layout: vertical
+              - type: custom:mushroom-entity-card
+                entity: switch.driveway_wide_recordings
+                name: drwy rec
+                layout: vertical
+              - type: custom:mushroom-entity-card
+                entity: switch.backyard_recordings
+                name: back rec
+                layout: vertical
+              - type: custom:mushroom-entity-card
+                entity: switch.storage_ext_recordings
+                name: stor ext
+                layout: vertical
+              - type: custom:mushroom-entity-card
+                entity: switch.storage_int_recordings
+                name: stor int
+                layout: vertical

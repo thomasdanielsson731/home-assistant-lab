@@ -1,0 +1,32 @@
+homeassistant:
+  name: Home
+  latitude: !secret home_latitude
+  longitude: !secret home_longitude
+  elevation: !secret home_elevation
+  unit_system: metric
+  currency: SEK
+  country: SE
+
+# Load default config set
+default_config:
+
+# HTTP
+http:
+  use_x_forwarded_for: true
+  trusted_proxies:
+    - 127.0.0.1
+
+# Logging
+logger:
+  default: warning
+  logs:
+    custom_components.frigate: info
+
+# Automations, scripts, scenes split into separate files
+automation: !include_dir_merge_list automations/
+script: !include_dir_merge_named scripts/
+
+# MQTT (managed by Mosquitto add-on)
+mqtt:
+  broker: localhost
+  port: 1883

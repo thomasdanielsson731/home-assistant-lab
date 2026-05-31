@@ -1,0 +1,29 @@
+# Secrets — never commit
+config/home-assistant/secrets.yaml
+**/.env
+**/.env.*
+!**/.env.example
+
+# HA-generated files
+config/home-assistant/.storage/
+config/home-assistant/home-assistant.log
+config/home-assistant/home-assistant_v2.db
+config/home-assistant/home-assistant_v2.db-shm
+config/home-assistant/home-assistant_v2.db-wal
+config/home-assistant/.cloud/
+config/home-assistant/deps/
+
+# Frigate
+config/frigate/clips/
+config/frigate/recordings/
+config/frigate/exports/
+
+# Double Take
+config/double-take/.storage/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.bak
+.vscode/settings.json
+.env
