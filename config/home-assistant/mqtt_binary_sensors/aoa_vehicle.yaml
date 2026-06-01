@@ -1,10 +1,10 @@
 # AOA Vehicle Classification — driveway cameras only
-# Scenario name on camera: VehicleOccupancy
+# Scenario name on camera: VehicleOcc
 # Topic prefix: axis/<zone_id>
 
 - name: "driveway_wide aoa vehicle"
   unique_id: "aoa_driveway_wide_vehicle_occupancy"
-  state_topic: "axis/driveway_wide/event/ObjectAnalytics/ScenarioOccupancy/VehicleOccupancy/Active"
+  state_topic: "axis/driveway_wide/event/ObjectAnalytics/ScenarioOccupancy/VehicleOcc/Active"
   value_template: "{{ 'on' if value_json.Data.active else 'off' }}"
   payload_on: "on"
   payload_off: "off"
@@ -13,7 +13,7 @@
 
 - name: "driveway_id aoa vehicle"
   unique_id: "aoa_driveway_id_vehicle_occupancy"
-  state_topic: "axis/driveway_id/event/ObjectAnalytics/ScenarioOccupancy/VehicleOccupancy/Active"
+  state_topic: "axis/driveway_id/event/ObjectAnalytics/ScenarioOccupancy/VehicleOcc/Active"
   value_template: "{{ 'on' if value_json.Data.active else 'off' }}"
   payload_on: "on"
   payload_off: "off"
@@ -22,7 +22,7 @@
 
 - name: "front aoa vehicle"
   unique_id: "aoa_front_vehicle_occupancy"
-  state_topic: "axis/front/event/ObjectAnalytics/ScenarioOccupancy/VehicleOccupancy/Active"
+  state_topic: "axis/front/event/ObjectAnalytics/ScenarioOccupancy/VehicleOcc/Active"
   value_template: "{{ 'on' if value_json.Data.active else 'off' }}"
   payload_on: "on"
   payload_off: "off"

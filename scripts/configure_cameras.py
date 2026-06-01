@@ -48,18 +48,13 @@ AOA_SCENARIOS = [
                     "backyard", "storage_ext", "storage_int"],
     },
     {
-        "name":    "VehicleOccupancy",
+        "name":    "VehicleOcc",   # max 15 chars
         "type":    "occupancyInArea",
         "classes": ["vehicle"],
         "zones":   ["front", "driveway_wide", "driveway_id"],
     },
-    {
-        "name":           "Loitering",
-        "type":           "loitering",
-        "classes":        ["human"],
-        "minTimeMs":      10000,
-        "zones":          ["front", "driveway_wide", "driveway_id"],
-    },
+    # Loitering: type "loitering" not supported in current AOA firmware.
+    # Configure manually via camera UI as a Motion scenario with time filter.
 ]
 
 # ---------------------------------------------------------------------------
@@ -152,26 +147,37 @@ def create_aoa_scenario(ip, scenario_def, existing, current_data):
         return True
 
     print(f"  [AOA] Creating {name} ({scenario_def['type']}) ...")
+    existing_ids = {s.get("id", 0) for s in current_data.get("scenarios", [])}
+    new_id = max(existing_ids) + 1 if existing_ids else 1
+
     new_scenario = {
+        "id":      new_id,
         "name":    name,
         "type":    scenario_def["type"],
         "devices": [{"id": 1}],
         "objectClassifications": [{"type": c} for c in scenario_def["classes"]],
         "triggers": [{"type": "includeArea", "vertices": FULL_FRAME}],
         "filters": [],
-        "eventInterval":  {"enabled": False},
+        "eventInterval":   {"enabled": False},
         "metadataOverlay": None,
+        "thresholdConfiguration": {
+            "enabled":      False,
+            "thresholds":   [{"level": 0, "type": "moreThan"}],
+            "triggerDelay": 0,
+        },
     }
     if scenario_def.get("minTimeMs"):
         new_scenario["presetLoiteringTime"] = scenario_def["minTimeMs"]
 
-    # setConfiguration replaces the full scenario list — append and write back
-    updated_data = dict(current_data)
-    updated_data["scenarios"] = list(current_data.get("scenarios", [])) + [new_scenario]
+    updated_params = {
+        "devices":         current_data.get("devices", [{"id": 1}]),
+        "metadataOverlay": current_data.get("metadataOverlay", []),
+        "scenarios":       list(current_data.get("scenarios", [])) + [new_scenario],
+    }
 
     r = vapix(ip, "/local/objectanalytics/control.cgi",
               {"apiVersion": "1.0", "method": "setConfiguration",
-               "params": updated_data})
+               "params": updated_params})
 
     err = r.get("error")
     if err and isinstance(err, dict) and err.get("code", 0) != 0:
