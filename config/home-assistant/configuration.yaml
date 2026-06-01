@@ -1,8 +1,5 @@
 homeassistant:
   name: Home
-  latitude: !secret home_latitude
-  longitude: !secret home_longitude
-  elevation: !secret home_elevation
   unit_system: metric
   currency: SEK
   country: SE
@@ -26,7 +23,6 @@ logger:
 automation: !include_dir_merge_list automations/
 script: !include_dir_merge_named scripts/
 
-# MQTT (managed by Mosquitto add-on)
+# MQTT entities (broker configured via UI — stored in .storage/core.config_entries)
 mqtt:
-  broker: localhost
-  port: 1883
+  binary_sensor: !include_dir_merge_list mqtt_binary_sensors/

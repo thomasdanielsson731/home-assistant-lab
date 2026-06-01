@@ -9,13 +9,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | Host | Dell Latitude 3120 (x86-64) |
 | OS | Home Assistant OS (HAOS) — not Container mode |
 | Storage | External 1 TB SSD at `/media/frigate` (Frigate recordings) |
-| SSH | `root@<HA_HOST> -p 22222` (SSH add-on) |
+| HA URL | `http://192.168.68.175:8123` |
+| SSH | `root@192.168.68.175 -p 22222` (SSH add-on) |
 
 ## Development Environment
 
 | Detail | Value |
 |---|---|
-| Workstation | Windows PC |
+| Workstation | Windows PC at 192.168.68.118 |
 | Editors | VS Code, Cursor |
 | AI | Claude Code (you), Ollama + Qwen (local LLM) |
 
@@ -23,10 +24,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 | Add-on | Port | Status |
 |---|---|---|
-| Frigate | 5000 (UI), 8554 (RTSP re-stream) | Planned |
-| Double Take | 3000 | Planned |
-| Mosquitto | 1883 | Planned |
-| SSH & Web Terminal | 22222 | In use |
+| Frigate 0.17.1 | 5000 (UI), 8554 (RTSP re-stream) | Running |
+| Double Take 1.13.1 | 3000 | Running |
+| Mosquitto | 1883 | Running |
+| SSH & Web Terminal | 22222 | Running |
 
 ## Camera Zone IDs
 
@@ -48,13 +49,27 @@ These are canonical — use them verbatim in all config, entities, and filenames
 **Upper Floor:** TV Room · Nils' Room · Hugo's Room · Hall (Upper Floor) · Office · Bathroom (Upper Floor)
 **Outdoor:** Front · Driveway · Backyard · Storage Building
 
-**Persons:** Thomas · Nils · Hugo
+**Persons:** Thomas · Nils · Hugo · Anna
 
 ## Naming Conventions
 
 - See `docs/naming-conventions.md` — follow it for every entity, file, and script
 - Zone-first, snake_case for YAML/entities, kebab-case for doc files
-- HA entities: `camera.frigate_<zone_id>`, `binary_sensor.frigate_<zone_id>_<object>`
+
+**Live Frigate entity IDs** (Frigate HA integration names entities after the camera name in `config.yml`):
+
+| Zone | Camera | Motion sensor | Person sensor |
+|---|---|---|---|
+| `front` | `camera.front` | `binary_sensor.front_motion` | `binary_sensor.front_person_occupancy` |
+| `driveway_wide` | `camera.driveway_wide` | `binary_sensor.driveway_wide_motion` | `binary_sensor.driveway_wide_person_occupancy` |
+| `driveway_id` | `camera.driveway_id` | `binary_sensor.driveway_id_motion` | `binary_sensor.driveway_id_person_occupancy` |
+| `backyard` | `camera.backyard` | `binary_sensor.backyard_motion` | `binary_sensor.backyard_person_occupancy` |
+| `storage_ext` | `camera.storage_ext` | `binary_sensor.storage_ext_motion` | `binary_sensor.storage_ext_person_occupancy` |
+| `storage_int` | `camera.storage_int` | `binary_sensor.storage_int_motion` | `binary_sensor.storage_int_person_occupancy` |
+
+Note: `docs/naming-conventions.md` specifies `camera.frigate_<zone_id>` as the intended pattern, but the Frigate integration creates entities directly from the camera name in `config.yml`. Current entities omit the `frigate_` prefix.
+
+**Double Take entity pattern** (Phase 4): `sensor.dt_<person_name>_confidence`, `binary_sensor.dt_<person_name>_present`
 
 ## Commands
 
@@ -65,7 +80,16 @@ These are canonical — use them verbatim in all config, entities, and filenames
 ./scripts/sync-config.sh --dry-run   # preview only
 ```
 
-Requires a `.env` file (copy `.env.example` and set `HA_HOST`). The script excludes `secrets.yaml`, `.storage/`, `*.db`, and `*.log` from sync. It pushes HA config, Frigate config, and Double Take config in three separate rsync passes.
+Requires a `.env` file (copy `.env.example` and fill in values):
+
+```
+HA_HOST=192.168.68.175
+HA_USER=root
+HA_SSH_PORT=22222
+HA_CONFIG_PATH=/config
+```
+
+The script excludes `secrets.yaml`, `.storage/`, `*.db`, and `*.log` from sync. It pushes HA config, Frigate config, and Double Take config in three separate rsync passes.
 
 ### YAML Lint
 
@@ -80,7 +104,7 @@ The CI rule: max line length 120 (warning), truthy values must be `true`/`false`
 ### SSH to Host
 
 ```bash
-ssh root@<HA_HOST> -p 22222
+ssh root@192.168.68.175 -p 22222
 ```
 
 ## Config Directory Layout
@@ -90,15 +114,21 @@ config/
   home-assistant/       → rsync'd to HAOS /config/
     configuration.yaml
     automations/        → merged via !include_dir_merge_list automations/
-      <domain>/
-        <action>.yaml   # e.g. security/frigate_person_alert.yaml
+      security/         # e.g. frigate_person_alert.yaml, aoa_person_present.yaml
+      notifications/
+      presence/
+    mqtt_binary_sensors/ → merged via !include_dir_merge_list mqtt_binary_sensors/
+      aoa_occupancy.yaml  # AOA Person Occupancy sensors (one per camera, Phase 5)
     dashboards/
-      home-lab.yaml
+      home-lab.yaml     # 5 views: Home, Cameras, Security, Rooms, Operations
     secrets.yaml.example  # shape only — real secrets.yaml lives on host, never committed
   frigate/
     config.yml          → rsync'd to HAOS /config/frigate/config.yml
   double-take/
     config.yml          → rsync'd to HAOS /config/double-take/config.yml
+docker/
+  compreface/
+    docker-compose.yml  # CompreFace face recognition (Phase 4 Option B)
 ```
 
 Automations are split by domain directory under `automations/`. `configuration.yaml` picks them all up with `!include_dir_merge_list automations/`.
@@ -122,36 +152,38 @@ Main (record):   rtsp://<user>:<pass>@<ip>/axis-media/media.amp
 Sub (detect):    rtsp://<user>:<pass>@<ip>/axis-media/media.amp?videocodec=h264&resolution=640x360
 ```
 
-## Current Dashboard Entity IDs (Phase 1)
-
-`config/home-assistant/dashboards/home-lab.yaml` currently references Axis native integration entity IDs (e.g. `camera.q3558_lve_0`, `binary_sensor.0_object_analytics_uppfart_in`). These will be replaced with `camera.frigate_<zone_id>` and `binary_sensor.frigate_<zone_id>_<object>` entity IDs in Phase 2. Inline `# Phase 2:` comments in the dashboard file mark each replacement point.
-
-## Known Config Issues
-
-- `config/frigate/config.yml` uses camera name `front_door` — must be renamed to `front` before Phase 2 to match naming conventions and HA entity ID patterns.
-
 ## Git Workflow
 
 - Never commit directly to `main` — use PRs from `dev` or a feature branch
+- Branch naming: `feature/<name>`, `fix/<name>`, `docs/<name>`
 - Commit format: `<type>: <short summary>` — types: `feat`, `fix`, `docs`, `config`, `refactor`, `chore`
 
 ## Phase Status
 
 | Phase | Focus | Status |
 |---|---|---|
-| 1 | Foundation — naming, areas, MQTT, backups | In progress |
-| 2 | Cameras + Frigate | Planned |
-| 3 | Dashboard | Planned |
-| 4 | Face recognition (Double Take + CompreFace) | Planned |
+| 1 | Foundation — naming, areas, MQTT, backups | Done |
+| 2 | Cameras + Frigate — 6 cameras, recording, HA integration (99 entities) | Done |
+| 3 | Dashboard — 5 views live at `/lovelace/home-lab` | Done |
+| 4 | Face recognition (Double Take + recognizer) | Blocked — see below |
 | 5 | Axis analytics (ACAP + MQTT) | Planned |
 | 6 | AI integration (Ollama + Qwen) | Future |
+
+### Phase 4 Blocker: Face Recognizer Selection
+
+Double Take is running and configured. Needs a recognizer backend:
+
+**Option A — CodeProject.AI** (easier): Native Windows installer, no Docker, port 32168. Double Take config already points to `192.168.68.118:32168`. Install from codeproject.ai, then restart Double Take.
+
+**Option B — CompreFace** (better accuracy): Requires enabling Intel VT-x in BIOS → Docker Desktop → `docker compose up -d` in `docker/compreface/` → update `config/double-take/config.yml` with the CompreFace API key.
+
+After either option: upload training photos for Thomas/Nils/Hugo/Anna via the Double Take UI at `http://192.168.68.175:3000`.
 
 ## Key Docs
 
 - `docs/naming-conventions.md` — authoritative naming reference
 - `docs/roadmap.md` — phase milestones with checkboxes
 - `docs/backlog.md` — prioritized work items (Now/Next/Later/Future)
-- `docs/cleanup-plan.md` — Phase 1 step-by-step checklist
 - `docs/architecture/overview.md` — system diagrams with Mermaid
 - `docs/architecture-review.md` — known risks and revised v1 design
 - `docs/hardware/cameras.md` — per-camera specs, HA roles, Frigate roles
