@@ -1,0 +1,31 @@
+# AOA Loitering Detection — driveway and front cameras
+# Scenario name on camera: Loitering
+# AOA scenario type: "Object in area" with minimum time threshold (e.g. 10s)
+# Topic prefix: axis/<zone_id>
+
+- name: "front aoa loitering"
+  unique_id: "aoa_front_loitering"
+  state_topic: "axis/front/event/ObjectAnalytics/ScenarioLoitering/Loitering/Active"
+  value_template: "{{ 'on' if value_json.Data.active else 'off' }}"
+  payload_on: "on"
+  payload_off: "off"
+  device_class: motion
+  expire_after: 120
+
+- name: "driveway_wide aoa loitering"
+  unique_id: "aoa_driveway_wide_loitering"
+  state_topic: "axis/driveway_wide/event/ObjectAnalytics/ScenarioLoitering/Loitering/Active"
+  value_template: "{{ 'on' if value_json.Data.active else 'off' }}"
+  payload_on: "on"
+  payload_off: "off"
+  device_class: motion
+  expire_after: 120
+
+- name: "driveway_id aoa loitering"
+  unique_id: "aoa_driveway_id_loitering"
+  state_topic: "axis/driveway_id/event/ObjectAnalytics/ScenarioLoitering/Loitering/Active"
+  value_template: "{{ 'on' if value_json.Data.active else 'off' }}"
+  payload_on: "on"
+  payload_off: "off"
+  device_class: motion
+  expire_after: 120

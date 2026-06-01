@@ -1,0 +1,19 @@
+- id: "aoa_loitering_detected"
+  alias: "AOA — loitering detected"
+  description: >
+    Fires when a person lingers in a camera zone longer than the AOA loitering
+    threshold (configured per camera, recommended 10-15 seconds).
+  trigger:
+    - platform: state
+      entity_id:
+        - binary_sensor.front_aoa_loitering
+        - binary_sensor.driveway_wide_aoa_loitering
+        - binary_sensor.driveway_id_aoa_loitering
+      to: "on"
+  action:
+    - service: notify.mobile_app_thomas_iphone_15
+      data:
+        title: "Loitering alert"
+        message: >
+          Person lingering at
+          {{ trigger.to_state.name | replace(' aoa loitering', '') | title }}

@@ -1,0 +1,16 @@
+- id: "aoa_vehicle_detected_driveway"
+  alias: "AOA — vehicle detected in driveway"
+  trigger:
+    - platform: state
+      entity_id:
+        - binary_sensor.driveway_wide_aoa_vehicle
+        - binary_sensor.driveway_id_aoa_vehicle
+        - binary_sensor.front_aoa_vehicle
+      to: "on"
+  action:
+    - service: notify.mobile_app_thomas_iphone_15
+      data:
+        title: "Vehicle detected"
+        message: >
+          {{ trigger.to_state.name | replace(' aoa vehicle', '') | title }}
+          — on-camera detection
