@@ -70,68 +70,55 @@ def vapix(ip, path, payload):
         return {"_raw": r.text[:200]}
 
 
+def get_serial(ip):
+    r = vapix(ip, "/axis-cgi/basicdeviceinfo.cgi",
+              {"apiVersion": "1.0", "method": "getAllProperties"})
+    return r.get("data", {}).get("propertyList", {}).get("SerialNumber", "UNKNOWN")
+
+
 def configure_mqtt(ip, zone):
+    # Use configureClient (API 1.5) — discovered by reading the camera web UI JS source.
+    # The public VAPIX docs only mention updateClient (removed in 1.6), but the UI uses
+    # configureClient (added in 1.5) which requires the camera's serial-derived clientId.
+    serial    = get_serial(ip)
+    client_id = f"client_{serial}"
+    print(f"  [MQTT] configureClient -> {MQTT_BROKER}:{MQTT_PORT}  prefix=axis/{zone}")
+
+    result = vapix(ip, "/axis-cgi/mqtt/client.cgi", {
+        "apiVersion": "1.5",
+        "method": "configureClient",
+        "params": {
+            "clientId":          client_id,
+            "server":            {"protocol": "tcp", "host": MQTT_BROKER, "port": MQTT_PORT},
+            "username":          MQTT_USER,
+            "password":          MQTT_PASS_VAL,
+            "deviceTopicPrefix": f"axis/{zone}",
+            "keepAliveInterval": 60,
+            "connectTimeout":    60,
+            "cleanSession":      True,
+            "autoReconnect":     True,
+            "keepExistingPassword": False,
+        }
+    })
+    err = result.get("error", {})
+    if isinstance(err, dict) and err.get("code"):
+        print(f"    FAIL configureClient: {err.get('message')}")
+        return False
+
+    result2 = vapix(ip, "/axis-cgi/mqtt/client.cgi",
+                    {"apiVersion": "1.5", "method": "activateClient"})
+    err2 = result2.get("error", {})
+    if isinstance(err2, dict) and err2.get("code"):
+        print(f"    FAIL activateClient: {err2.get('message')}")
+
+    time.sleep(5)
     status = vapix(ip, "/axis-cgi/mqtt/client.cgi",
                    {"apiVersion": "1.6", "method": "getClientStatus"})
-    cfg  = status.get("data", {}).get("config", {})
-    host = cfg.get("server", {}).get("host", "?")
     conn = status.get("data", {}).get("status", {}).get("connectionStatus", "?")
-
-    if conn == "connected" and host == MQTT_BROKER:
-        print(f"  [MQTT] Already connected to {MQTT_BROKER} -- OK")
-        # Ensure topic prefix is correct
-        prefix = cfg.get("deviceTopicPrefix", "")
-        if prefix != f"axis/{zone}":
-            print(f"  [MQTT] WARN: topic prefix is '{prefix}', expected 'axis/{zone}'")
-            print(f"         Fix via camera UI: System -> MQTT -> Client -> Topic prefix")
-        return True
-
-    if host != MQTT_BROKER:
-        # Try to update via activateClient (works on some firmware 12.x builds)
-        r = vapix(ip, "/axis-cgi/mqtt/client.cgi", {
-            "apiVersion": "1.6",
-            "method": "activateClient",
-            "params": {
-                "server": {"protocol": "tcp", "host": MQTT_BROKER, "port": MQTT_PORT},
-                "username": MQTT_USER,
-                "password": MQTT_PASS_VAL,
-                "deviceTopicPrefix": f"axis/{zone}",
-                "keepAliveInterval": 60,
-                "connectTimeout": 60,
-                "cleanSession": True,
-                "autoReconnect": True,
-            }
-        })
-        time.sleep(4)
-        status2 = vapix(ip, "/axis-cgi/mqtt/client.cgi",
-                        {"apiVersion": "1.6", "method": "getClientStatus"})
-        host2 = status2.get("data", {}).get("config", {}).get("server", {}).get("host", "?")
-        conn2 = status2.get("data", {}).get("status", {}).get("connectionStatus", "?")
-
-        if conn2 == "connected":
-            print(f"  [MQTT] Connected to {host2} -- OK")
-            return True
-        elif host2 == MQTT_BROKER:
-            print(f"  [MQTT] Broker set to {host2} but not yet connected (state={conn2})")
-            return True
-        else:
-            print(f"  [MQTT] MANUAL STEP NEEDED:")
-            print(f"         Open http://{ip} -> System -> MQTT -> Client")
-            print(f"         Set: Host={MQTT_BROKER}  Port={MQTT_PORT}")
-            print(f"         Username={MQTT_USER}  Password=frithomfrithom")
-            print(f"         Topic prefix: axis/{zone}")
-            print(f"         Then click Save and Activate")
-            return False
-    else:
-        # Broker is correct but not connected — just activate
-        vapix(ip, "/axis-cgi/mqtt/client.cgi",
-              {"apiVersion": "1.6", "method": "activateClient"})
-        time.sleep(3)
-        status2 = vapix(ip, "/axis-cgi/mqtt/client.cgi",
-                        {"apiVersion": "1.6", "method": "getClientStatus"})
-        conn2 = status2.get("data", {}).get("status", {}).get("connectionStatus", "?")
-        print(f"  [MQTT] Activated -- connection={conn2}")
-        return conn2 == "connected"
+    host = status.get("data", {}).get("config", {}).get("server", {}).get("host", "?")
+    ok   = conn == "connected"
+    print(f"    {'OK' if ok else 'WARN'} host={host} connection={conn}")
+    return ok
 
 
 def get_aoa_scenarios(ip):
