@@ -1,0 +1,98 @@
+# Axis Scene Metadata — live detection counts and object presence
+# Source: com.axis.scene.frame.v1 published via analytics-mqtt API
+# Topics: axis/<zone>/scene/frame  (updates at ~5 fps when objects present)
+#
+# frame payload with detections:
+#   {"channel_id":1,"timestamp":"...","detections":[
+#     {"bounding_box":{...},"object_track_id":"uuid","type":"Human","score":0.95}
+#   ]}
+#
+# Classification types: Human, Car, Bus, Truck, Vehicle, VehicleOther, Bike
+
+# ── Front ────────────────────────────────────────────────────────────────────
+
+- name: "front scene detections"
+  unique_id: "scene_front_detections"
+  state_topic: "axis/front/scene/frame"
+  value_template: >
+    {{ value_json.detections | default([]) | length }}
+  unit_of_measurement: "obj"
+  icon: mdi:motion-sensor
+  expire_after: 10
+
+- name: "front scene persons"
+  unique_id: "scene_front_persons"
+  state_topic: "axis/front/scene/frame"
+  value_template: >
+    {{ value_json.detections | default([])
+       | selectattr('type', 'defined')
+       | selectattr('type', 'eq', 'Human') | list | length }}
+  unit_of_measurement: "pers"
+  icon: mdi:account-multiple
+  expire_after: 10
+
+- name: "front scene vehicles"
+  unique_id: "scene_front_vehicles"
+  state_topic: "axis/front/scene/frame"
+  value_template: >
+    {{ value_json.detections | default([])
+       | selectattr('type', 'defined')
+       | selectattr('type', 'in', ['Car','Bus','Truck','Vehicle','VehicleOther']) | list | length }}
+  unit_of_measurement: "fordon"
+  icon: mdi:car
+  expire_after: 10
+
+# ── Driveway Wide ─────────────────────────────────────────────────────────────
+
+- name: "driveway wide scene detections"
+  unique_id: "scene_driveway_wide_detections"
+  state_topic: "axis/driveway_wide/scene/frame"
+  value_template: >
+    {{ value_json.detections | default([]) | length }}
+  unit_of_measurement: "obj"
+  icon: mdi:motion-sensor
+  expire_after: 10
+
+- name: "driveway wide scene persons"
+  unique_id: "scene_driveway_wide_persons"
+  state_topic: "axis/driveway_wide/scene/frame"
+  value_template: >
+    {{ value_json.detections | default([])
+       | selectattr('type', 'defined')
+       | selectattr('type', 'eq', 'Human') | list | length }}
+  unit_of_measurement: "pers"
+  icon: mdi:account-multiple
+  expire_after: 10
+
+- name: "driveway wide scene vehicles"
+  unique_id: "scene_driveway_wide_vehicles"
+  state_topic: "axis/driveway_wide/scene/frame"
+  value_template: >
+    {{ value_json.detections | default([])
+       | selectattr('type', 'defined')
+       | selectattr('type', 'in', ['Car','Bus','Truck','Vehicle','VehicleOther']) | list | length }}
+  unit_of_measurement: "fordon"
+  icon: mdi:car
+  expire_after: 10
+
+# ── Driveway ID ───────────────────────────────────────────────────────────────
+
+- name: "driveway id scene detections"
+  unique_id: "scene_driveway_id_detections"
+  state_topic: "axis/driveway_id/scene/frame"
+  value_template: >
+    {{ value_json.detections | default([]) | length }}
+  unit_of_measurement: "obj"
+  icon: mdi:motion-sensor
+  expire_after: 10
+
+- name: "driveway id scene persons"
+  unique_id: "scene_driveway_id_persons"
+  state_topic: "axis/driveway_id/scene/frame"
+  value_template: >
+    {{ value_json.detections | default([])
+       | selectattr('type', 'defined')
+       | selectattr('type', 'eq', 'Human') | list | length }}
+  unit_of_measurement: "pers"
+  icon: mdi:account-multiple
+  expire_after: 10

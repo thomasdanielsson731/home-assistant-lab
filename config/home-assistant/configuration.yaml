@@ -22,6 +22,16 @@ logger:
 frontend:
   themes: !include_dir_merge_named themes
 
+lovelace:
+  dashboards:
+    home-lab:
+      mode: yaml
+      filename: dashboards/home-lab.yaml
+      title: Home Lab
+      icon: mdi:home-assistant
+      show_in_sidebar: true
+      require_admin: false
+
 # Automations, scripts, scenes split into separate files
 automation: !include_dir_merge_list automations/
 script: !include_dir_merge_named scripts/
@@ -29,3 +39,5 @@ script: !include_dir_merge_named scripts/
 # MQTT entities (broker configured via UI — stored in .storage/core.config_entries)
 mqtt:
   binary_sensor: !include_dir_merge_list mqtt_binary_sensors/
+  sensor: !include_dir_merge_list mqtt_sensors/
+  image: !include_dir_merge_list mqtt_images/

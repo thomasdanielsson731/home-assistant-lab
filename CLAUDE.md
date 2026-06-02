@@ -105,6 +105,12 @@ HA_HOST=192.168.68.175
 HA_USER=root
 HA_SSH_PORT=22222
 HA_CONFIG_PATH=/config
+
+# Also needed by configure_cameras.py:
+CAM_USER=homeassistant
+CAM_PASS=change-me
+MQTT_USER=frigate
+MQTT_PASS=change-me
 ```
 
 The script excludes `secrets.yaml`, `.storage/`, `*.db`, and `*.log` from sync. It pushes HA config, Frigate config, and Double Take config in three separate rsync passes.
@@ -125,7 +131,9 @@ The CI rule: max line length 120 (warning), truthy values must be `true`/`false`
 python scripts/configure_cameras.py
 ```
 
-Connects to each camera via VAPIX, configures the MQTT client to publish to Mosquitto, and creates AOA scenarios (PersonOccupancy, VehicleOcc). Safe to re-run — skips scenarios that already exist. Camera IPs and credentials are hardcoded at the top of the script (not in `.env`).
+Connects to each camera via VAPIX, configures the MQTT client to publish to Mosquitto, and creates AOA scenarios (PersonOccupancy, VehicleOcc). Safe to re-run — skips scenarios that already exist. Camera IPs are hardcoded in the script; credentials (`CAM_USER`, `CAM_PASS`, `MQTT_USER`, `MQTT_PASS`) are read from `.env`.
+
+**Loitering scenarios cannot be created via script** — the `loitering` AOA type is not supported in current firmware. Configure them manually in each camera's web UI as an "Object in area" scenario named exactly `Loitering` with a minimum time threshold (e.g. 10 s). See `docs/runbooks/aoa-setup.md`.
 
 ### SSH to Host
 
@@ -159,9 +167,17 @@ config/
 docker/
   compreface/
     docker-compose.yml  # CompreFace face recognition (Phase 4 Option B)
+integrations/            # Design notes for planned integrations (not synced to host)
+  axis-analytics/
+  face-recognition/
+  ai/
 ```
 
 Automations are split by domain directory under `automations/`. `configuration.yaml` picks them all up with `!include_dir_merge_list automations/`.
+
+**MQTT broker** is configured via the HA UI (Settings → Integrations), stored in `.storage/core.config_entries` — not in `configuration.yaml`. The `mqtt:` key in `configuration.yaml` only declares the sensor entities; the broker connection itself is UI-managed.
+
+**Frigate MQTT host** is `core-mosquitto` (add-on internal DNS name), not the HA IP address. This is set in `config/frigate/config.yml` and must stay as `core-mosquitto` for add-on-to-add-on communication inside HAOS.
 
 ## Secrets Pattern
 
@@ -239,6 +255,7 @@ After either option: upload training photos for Thomas/Nils/Hugo/Anna via the Do
 - `docs/hardware/cameras.md` — per-camera specs, HA roles, Frigate roles
 - `docs/dashboard-design.md` — visual layout for all 5 dashboard views
 - `docs/decisions/` — Architecture Decision Records (ADRs)
+- `docs/runbooks/` — step-by-step operational procedures (initial-setup, frigate-setup, aoa-setup, d6210-setup, double-take-setup)
 
 ## User Context
 

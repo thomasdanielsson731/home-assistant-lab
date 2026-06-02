@@ -251,6 +251,76 @@ views:
                      else 'amber' if is_state('binary_sensor.storage_int_motion', 'on')
                      else 'grey' }}
 
+      # ── Scene Metadata — live räknare ───────────────────────────
+      - title: LIVE SCENE DATA
+        cards:
+          - type: horizontal-stack
+            cards:
+              - type: custom:mushroom-template-card
+                primary: "{{ states('sensor.front_scene_persons') }}"
+                secondary: Entrén · pers
+                icon: mdi:account-multiple
+                icon_color: >-
+                  {% set n = states('sensor.front_scene_persons') | int(0) %}
+                  {{ 'red' if n > 0 else 'grey' }}
+                layout: vertical
+                fill_container: true
+                tap_action:
+                  action: navigate
+                  navigation_path: /lovelace/cameras
+              - type: custom:mushroom-template-card
+                primary: "{{ states('sensor.front_scene_vehicles') }}"
+                secondary: Entrén · fordon
+                icon: mdi:car
+                icon_color: >-
+                  {% set n = states('sensor.front_scene_vehicles') | int(0) %}
+                  {{ 'amber' if n > 0 else 'grey' }}
+                layout: vertical
+                fill_container: true
+              - type: custom:mushroom-template-card
+                primary: "{{ states('sensor.driveway_wide_scene_persons') }}"
+                secondary: Uppfart · pers
+                icon: mdi:account-multiple
+                icon_color: >-
+                  {% set n = states('sensor.driveway_wide_scene_persons') | int(0) %}
+                  {{ 'red' if n > 0 else 'grey' }}
+                layout: vertical
+                fill_container: true
+                tap_action:
+                  action: navigate
+                  navigation_path: /lovelace/cameras
+              - type: custom:mushroom-template-card
+                primary: "{{ states('sensor.driveway_wide_scene_vehicles') }}"
+                secondary: Uppfart · fordon
+                icon: mdi:car
+                icon_color: >-
+                  {% set n = states('sensor.driveway_wide_scene_vehicles') | int(0) %}
+                  {{ 'amber' if n > 0 else 'grey' }}
+                layout: vertical
+                fill_container: true
+
+      # ── Latest detection snapshots ───────────────────────────
+      - title: SENASTE BILDER
+        column_span: 2
+        cards:
+          - type: horizontal-stack
+            cards:
+              - type: image
+                entity: image.front_latest_detection
+                title: Entrén
+                tap_action:
+                  action: more-info
+              - type: image
+                entity: image.driveway_wide_latest_detection
+                title: Uppfart bred
+                tap_action:
+                  action: more-info
+              - type: image
+                entity: image.driveway_id_latest_detection
+                title: Uppfart nära
+                tap_action:
+                  action: more-info
+
       # ── Object Counts ─────────────────────────────────────────
       - title: OBJECT COUNTS (24H)
         cards:
@@ -329,52 +399,165 @@ views:
     max_columns: 2
     sections:
 
-      # ── Ground Floor ─────────────────────────────────────────
-      - title: KITCHEN / LIVING ROOM
+      # ── Master light control ──────────────────────────────────
+      - column_span: 2
         cards:
-          - type: custom:mushroom-entity-card
-            entity: light.living_room
-            name: Living Room
-            icon: mdi:ceiling-light
+          - type: custom:mushroom-template-card
+            primary: Belysning
+            secondary: >-
+              {% set on = states.light
+                | selectattr('state', 'eq', 'on')
+                | rejectattr('entity_id', 'search', 'ir_light|whitelight')
+                | list %}
+              {% if on | count == 0 %}Alla lampor släckta
+              {% elif on | count == 1 %}1 lampa tänd
+              {% else %}{{ on | count }} lampor tända{% endif %}
+            icon: mdi:lightbulb-group
+            icon_color: >-
+              {% set on = states.light
+                | selectattr('state', 'eq', 'on')
+                | rejectattr('entity_id', 'search', 'ir_light|whitelight')
+                | list %}
+              {{ 'amber' if on | count > 0 else 'disabled' }}
+            fill_container: true
+            tap_action:
+              action: none
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: action
+                icon: mdi:lightbulb-off-outline
+                content: Släck allt
+                tap_action:
+                  action: call-service
+                  service: light.turn_off
+                  target:
+                    entity_id:
+                      - light.living_room
+                      - light.fonsterlampor
+                      - light.anna_och_thomas_sovrum
+                      - light.hugos_rum
+                      - light.matplats
+                      - light.spottar
+                      - light.underskapsbelysning
+
+      # ── Kök ──────────────────────────────────────────────────
+      - title: KÖK
+        cards:
+          - type: custom:mushroom-light-card
+            entity: light.spottar
+            name: Spottar
+            show_brightness_control: true
+            collapsible_controls: false
             layout: horizontal
             fill_container: true
-          - type: custom:mushroom-entity-card
-            entity: light.fonsterlampor
-            name: Fönsterlampor
-            icon: mdi:lamp
+          - type: custom:mushroom-light-card
+            entity: light.matplats
+            name: Matplats
+            show_brightness_control: true
+            collapsible_controls: false
+            layout: horizontal
+            fill_container: true
+          - type: custom:mushroom-light-card
+            entity: light.underskapsbelysning
+            name: Underskåp
+            show_brightness_control: true
+            collapsible_controls: false
             layout: horizontal
             fill_container: true
 
-      - title: BEDROOM
+      # ── Vardagsrum ───────────────────────────────────────────
+      - title: VARDAGSRUM
         cards:
-          - type: custom:mushroom-entity-card
+          - type: custom:mushroom-light-card
+            entity: light.living_room
+            name: Vardagsrum
+            show_brightness_control: true
+            show_color_temp_control: true
+            collapsible_controls: false
+            layout: horizontal
+            fill_container: true
+          - type: custom:mushroom-light-card
+            entity: light.taklampa
+            name: Taklampa
+            show_brightness_control: true
+            collapsible_controls: false
+            layout: horizontal
+            fill_container: true
+
+      # ── Fönsterlampor ────────────────────────────────────────
+      - title: FÖNSTERLAMPOR
+        cards:
+          - type: custom:mushroom-light-card
+            entity: light.fonsterlampor
+            name: Alla fönster
+            show_brightness_control: true
+            collapsible_controls: false
+            layout: horizontal
+            fill_container: true
+          - type: horizontal-stack
+            cards:
+              - type: custom:mushroom-light-card
+                entity: light.fonster_vanster
+                name: Vänster
+                show_brightness_control: true
+                collapsible_controls: true
+                fill_container: true
+              - type: custom:mushroom-light-card
+                entity: light.fonster_hoger
+                name: Höger
+                show_brightness_control: true
+                collapsible_controls: true
+                fill_container: true
+
+      # ── Sovrum ───────────────────────────────────────────────
+      - title: SOVRUM
+        cards:
+          - type: custom:mushroom-light-card
             entity: light.anna_och_thomas_sovrum
             name: Sovrum
-            icon: mdi:ceiling-light
+            show_brightness_control: true
+            show_color_temp_control: true
+            collapsible_controls: false
             layout: horizontal
             fill_container: true
-          - type: custom:mushroom-entity-card
+          - type: custom:mushroom-light-card
             entity: light.sovrumstaklampa
             name: Taklampa
-            icon: mdi:ceiling-light-outline
+            show_brightness_control: true
+            collapsible_controls: false
             layout: horizontal
             fill_container: true
 
-      # ── Upper Floor ──────────────────────────────────────────
-      - title: HUGO'S ROOM
+      # ── Hugos rum ────────────────────────────────────────────
+      - title: HUGOS RUM
         cards:
-          - type: custom:mushroom-entity-card
+          - type: custom:mushroom-light-card
             entity: light.hugos_rum
-            name: Hugo's rum
-            icon: mdi:ceiling-light
+            name: Hugos rum
+            show_brightness_control: true
+            show_color_temp_control: true
+            collapsible_controls: false
             layout: horizontal
             fill_container: true
-          - type: custom:mushroom-entity-card
+          - type: custom:mushroom-light-card
             entity: light.hugos_taklampa
             name: Taklampa
-            icon: mdi:ceiling-light-outline
+            show_brightness_control: true
+            collapsible_controls: false
             layout: horizontal
             fill_container: true
+
+      # ── Nils rum ─────────────────────────────────────────────
+      - title: NILS RUM
+        cards:
+          - type: custom:mushroom-template-card
+            primary: Nils rum
+            secondary: Inga lampor inkopplade ännu
+            icon: mdi:lightbulb-off-outline
+            icon_color: disabled
+            fill_container: true
+            tap_action:
+              action: none
 
       # ── Household Devices ────────────────────────────────────
       - title: DEVICES

@@ -1,0 +1,60 @@
+# Axis Scene Metadata — binary presence sensors
+# Derived from frame detections — expire after 10s (faster than AOA sensors)
+
+- name: "front scene object present"
+  unique_id: "scene_front_object_present"
+  state_topic: "axis/front/scene/frame"
+  value_template: >
+    {{ 'on' if value_json.detections | default([]) | length > 0 else 'off' }}
+  payload_on: "on"
+  payload_off: "off"
+  device_class: motion
+  expire_after: 10
+
+- name: "driveway wide scene object present"
+  unique_id: "scene_driveway_wide_object_present"
+  state_topic: "axis/driveway_wide/scene/frame"
+  value_template: >
+    {{ 'on' if value_json.detections | default([]) | length > 0 else 'off' }}
+  payload_on: "on"
+  payload_off: "off"
+  device_class: motion
+  expire_after: 10
+
+- name: "driveway id scene object present"
+  unique_id: "scene_driveway_id_object_present"
+  state_topic: "axis/driveway_id/scene/frame"
+  value_template: >
+    {{ 'on' if value_json.detections | default([]) | length > 0 else 'off' }}
+  payload_on: "on"
+  payload_off: "off"
+  device_class: motion
+  expire_after: 10
+
+- name: "backyard scene object present"
+  unique_id: "scene_backyard_object_present"
+  state_topic: "axis/backyard/scene/track"
+  value_template: >
+    {{ 'on' if value_json.duration | default(0) < 2 else 'off' }}
+  payload_on: "on"
+  payload_off: "off"
+  device_class: motion
+  expire_after: 30
+
+- name: "storage ext scene object present"
+  unique_id: "scene_storage_ext_object_present"
+  state_topic: "axis/storage_ext/scene/track"
+  value_template: "on"
+  payload_on: "on"
+  payload_off: "off"
+  device_class: motion
+  expire_after: 30
+
+- name: "storage int scene object present"
+  unique_id: "scene_storage_int_object_present"
+  state_topic: "axis/storage_int/scene/track"
+  value_template: "on"
+  payload_on: "on"
+  payload_off: "off"
+  device_class: motion
+  expire_after: 30

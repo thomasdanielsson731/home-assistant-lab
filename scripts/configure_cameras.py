@@ -76,7 +76,12 @@ AOA_SCENARIOS = [
 
 def vapix(ip, path, payload):
     auth = HTTPDigestAuth(CAM_USER, CAM_PASS)
-    r = requests.post(f"http://{ip}{path}", json=payload, auth=auth, timeout=10)
+    try:
+        r = requests.post(f"http://{ip}{path}", json=payload, auth=auth, timeout=10)
+    except requests.exceptions.ConnectionError:
+        return {"_error": "connection refused"}
+    except requests.exceptions.Timeout:
+        return {"_error": "timeout"}
     if r.status_code not in (200, 201):
         return {"_error": f"HTTP {r.status_code}"}
     try:
@@ -134,6 +139,39 @@ def configure_mqtt(ip, zone):
     ok   = conn == "connected"
     print(f"    {'OK' if ok else 'WARN'} host={host} connection={conn}")
     return ok
+
+
+def configure_event_publication(ip, zone):
+    # includeTopicNamespaces=True (default) adds ONVIF namespace prefixes, e.g.
+    # axis/<zone>/event/tns1:Analytics/tnsaxis:ObjectAnalytics/...
+    # HA sensors expect clean paths without namespaces:
+    # axis/<zone>/event/ObjectAnalytics/ScenarioOccupancy/PersonOccupancy/Active
+    print(f"  [MQTT-EVT] setEventPublicationConfig  includeTopicNamespaces=false")
+    result = vapix(ip, "/axis-cgi/mqtt/event.cgi", {
+        "apiVersion": "1.0",
+        "method": "setEventPublicationConfig",
+        "params": {
+            "eventPublicationConfig": {
+                "topicPrefix":                "default",
+                "customTopicPrefix":          "",
+                "appendEventTopic":           True,
+                "includeTopicNamespaces":     False,
+                "includeSerialNumberInPayload": False,
+                "eventFilterList": [
+                    {"topicFilter": "tns1:Analytics/tnsaxis:ObjectAnalytics/ScenarioOccupancy",
+                     "qos": 0, "retain": "none"},
+                    {"topicFilter": "tns1:Analytics/tnsaxis:ObjectAnalytics/ScenarioLoitering",
+                     "qos": 0, "retain": "none"},
+                ],
+            }
+        }
+    })
+    err = result.get("error", {})
+    if isinstance(err, dict) and err.get("code"):
+        print(f"    FAIL: {err.get('message')}")
+        return False
+    print(f"    OK")
+    return True
 
 
 def get_aoa_scenarios(ip):
@@ -214,11 +252,16 @@ def main():
 
         info  = vapix(ip, "/axis-cgi/basicdeviceinfo.cgi",
                       {"apiVersion": "1.0", "method": "getAllProperties"})
+        if "_error" in info:
+            print(f"  SKIP — camera unreachable ({info['_error']})")
+            results[zone] = {"mqtt": False, "aoa": {}, "skip": True}
+            continue
         props = info.get("data", {}).get("propertyList", {})
         print(f"  {props.get('ProdShortName','?')}  FW:{props.get('Version','?')}"
               f"  SoC:{props.get('Soc','?')}")
 
         mqtt_ok = configure_mqtt(ip, zone)
+        configure_event_publication(ip, zone)
 
         current_cfg  = vapix(ip, "/local/objectanalytics/control.cgi",
                              {"apiVersion": "1.0", "method": "getConfiguration"})
@@ -237,6 +280,10 @@ def main():
     print(f"{'='*60}")
     all_ok = True
     for zone, r in results.items():
+        if r.get("skip"):
+            print(f"  {zone:15s}  SKIP (unreachable)")
+            all_ok = False
+            continue
         mqtt = "OK  " if r["mqtt"] else "MANUAL"
         aoa  = "  ".join(f"{k}={'OK' if v else 'FAIL'}" for k, v in r["aoa"].items())
         print(f"  {zone:15s}  MQTT:{mqtt}  AOA: {aoa or 'none'}")
