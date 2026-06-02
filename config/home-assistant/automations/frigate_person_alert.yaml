@@ -1,19 +1,22 @@
 - id: frigate_person_detected
-  alias: "Frigate — Person detected"
-  description: "Notify when Frigate detects a person and no one is home"
+  alias: "Frigate — Person detected at entry"
+  description: >
+    Notify when Frigate detects a new person event at an entry camera.
+    Uses frigate/events (not state topic) so the snapshot ID is available.
   trigger:
     - platform: mqtt
-      topic: "frigate/front_door/person"
-      payload: "1"
+      topic: "frigate/events"
   condition:
-    - condition: state
-      entity_id: group.household
-      state: "not_home"
+    - condition: template
+      value_template: >
+        {{ trigger.payload_json.type == 'new'
+           and trigger.payload_json.after.label == 'person'
+           and trigger.payload_json.after.camera in ['front', 'driveway_id', 'driveway_wide'] }}
   action:
-    - service: notify.mobile_app
+    - service: notify.mobile_app_thomas_iphone_15
       data:
         title: "Person detected"
-        message: "Someone is at the front door."
+        message: "{{ trigger.payload_json.after.camera | replace('_', ' ') | title }}"
         data:
           image: /api/frigate/notifications/{{ trigger.payload_json.after.id }}/snapshot.jpg
   mode: single

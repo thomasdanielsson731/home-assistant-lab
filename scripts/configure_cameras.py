@@ -14,18 +14,33 @@ AOA note: Uses /local/objectanalytics/control.cgi (ACAP path, firmware-independe
 Axis coordinate system: top-left=(-1,-1), bottom-right=(1,1).
 """
 
-import sys, time, json
+import os, sys, time, json
+from pathlib import Path
 import requests
 from requests.auth import HTTPDigestAuth
 
-# ---------------------------------------------------------------------------
-MQTT_BROKER   = "192.168.68.175"
-MQTT_PORT     = 1883
-MQTT_USER     = "frigate"
-MQTT_PASS_VAL = "frithomfrithom"
+# Load .env from repo root (two levels up from scripts/)
+_env_path = Path(__file__).parent.parent / ".env"
+if _env_path.exists():
+    for _line in _env_path.read_text().splitlines():
+        if _line.strip() and not _line.startswith("#") and "=" in _line:
+            _k, _v = _line.split("=", 1)
+            os.environ.setdefault(_k.strip(), _v.strip())
 
-CAM_USER = "homeassistant"
-CAM_PASS = "frithomfrithom"
+def _require(key):
+    v = os.environ.get(key)
+    if not v:
+        sys.exit(f"ERROR: {key} not set — add it to .env (see .env.example)")
+    return v
+
+# ---------------------------------------------------------------------------
+MQTT_BROKER   = os.environ.get("HA_HOST", "192.168.68.175")
+MQTT_PORT     = 1883
+MQTT_USER     = _require("MQTT_USER")
+MQTT_PASS_VAL = _require("MQTT_PASS")
+
+CAM_USER = _require("CAM_USER")
+CAM_PASS = _require("CAM_PASS")
 
 CAMERAS = [
     {"zone": "front",         "ip": "192.168.68.200"},

@@ -69,6 +69,19 @@ These are canonical — use them verbatim in all config, entities, and filenames
 
 Note: `docs/naming-conventions.md` specifies `camera.frigate_<zone_id>` as the intended pattern, but the Frigate integration creates entities directly from the camera name in `config.yml`. Current entities omit the `frigate_` prefix.
 
+**AOA entity IDs** (Phase 5 — live in `config/home-assistant/mqtt_binary_sensors/`):
+
+| Zone | Person occupancy | Vehicle occupancy | Loitering |
+|---|---|---|---|
+| `front` | `binary_sensor.front_aoa_person` | `binary_sensor.front_aoa_vehicle` | `binary_sensor.front_aoa_loitering` |
+| `driveway_wide` | `binary_sensor.driveway_wide_aoa_person` | `binary_sensor.driveway_wide_aoa_vehicle` | `binary_sensor.driveway_wide_aoa_loitering` |
+| `driveway_id` | `binary_sensor.driveway_id_aoa_person` | `binary_sensor.driveway_id_aoa_vehicle` | `binary_sensor.driveway_id_aoa_loitering` |
+| `backyard` | `binary_sensor.backyard_aoa_person` | — | — |
+| `storage_ext` | `binary_sensor.storage_ext_aoa_person` | — | — |
+| `storage_int` | `binary_sensor.storage_int_aoa_person` | — | — |
+
+D6210 radar (via M2036 I/O): `binary_sensor.driveway_env_radar_motion`, `binary_sensor.driveway_env_radar_presence`
+
 **Double Take entity pattern** (Phase 4): `sensor.dt_<person_name>_confidence`, `binary_sensor.dt_<person_name>_present`
 
 ## Commands
@@ -76,8 +89,13 @@ Note: `docs/naming-conventions.md` specifies `camera.frigate_<zone_id>` as the i
 ### Config Sync
 
 ```bash
+# Linux/macOS
 ./scripts/sync-config.sh             # sync to HAOS host
 ./scripts/sync-config.sh --dry-run   # preview only
+
+# Windows (PowerShell)
+.\scripts\sync-config.ps1
+.\scripts\sync-config.ps1 -DryRun
 ```
 
 Requires a `.env` file (copy `.env.example` and fill in values):
@@ -101,6 +119,14 @@ yamllint config/
 
 The CI rule: max line length 120 (warning), truthy values must be `true`/`false`.
 
+### Camera VAPIX Setup (MQTT + AOA)
+
+```bash
+python scripts/configure_cameras.py
+```
+
+Connects to each camera via VAPIX, configures the MQTT client to publish to Mosquitto, and creates AOA scenarios (PersonOccupancy, VehicleOcc). Safe to re-run — skips scenarios that already exist. Camera IPs and credentials are hardcoded at the top of the script (not in `.env`).
+
 ### SSH to Host
 
 ```bash
@@ -114,11 +140,15 @@ config/
   home-assistant/       → rsync'd to HAOS /config/
     configuration.yaml
     automations/        → merged via !include_dir_merge_list automations/
-      security/         # e.g. frigate_person_alert.yaml, aoa_person_present.yaml
+      frigate_person_alert.yaml  # root-level (legacy placement)
+      security/         # aoa_person_present.yaml, aoa_vehicle_alert.yaml, aoa_loitering_alert.yaml
       notifications/
       presence/
     mqtt_binary_sensors/ → merged via !include_dir_merge_list mqtt_binary_sensors/
-      aoa_occupancy.yaml  # AOA Person Occupancy sensors (one per camera, Phase 5)
+      aoa_occupancy.yaml  # AOA Person Occupancy (all 6 cameras)
+      aoa_vehicle.yaml    # AOA Vehicle Occupancy (front, driveway_wide, driveway_id)
+      aoa_loitering.yaml  # AOA Loitering (front, driveway_wide, driveway_id)
+      d6210_radar.yaml    # D6210 radar motion + presence
     dashboards/
       home-lab.yaml     # 5 views: Home, Cameras, Security, Rooms, Operations
     secrets.yaml.example  # shape only — real secrets.yaml lives on host, never committed
@@ -152,6 +182,27 @@ Main (record):   rtsp://<user>:<pass>@<ip>/axis-media/media.amp
 Sub (detect):    rtsp://<user>:<pass>@<ip>/axis-media/media.amp?videocodec=h264&resolution=640x360
 ```
 
+## Axis MQTT Topic Schema
+
+All cameras publish under `axis/<zone_id>/` (set as `deviceTopicPrefix` in VAPIX). Topic patterns for the HA `mqtt_binary_sensors/` definitions:
+
+```
+# AOA Person Occupancy (all 6 cameras):
+axis/<zone_id>/event/ObjectAnalytics/ScenarioOccupancy/PersonOccupancy/Active
+
+# AOA Vehicle Occupancy (front, driveway_wide, driveway_id):
+axis/<zone_id>/event/ObjectAnalytics/ScenarioOccupancy/VehicleOcc/Active
+
+# AOA Loitering (front, driveway_wide, driveway_id):
+axis/<zone_id>/event/ObjectAnalytics/ScenarioLoitering/Loitering/Active
+
+# D6210 radar via M2036 I/O port:
+axis/driveway_env/radar/motion                     # payload "1"/"0"
+axis/driveway_env/event/IOPort/VirtualInput/Active # JSON {Data:{active:bool}}
+```
+
+All AOA payloads are JSON `{Data: {active: bool}}` — use `value_template: "{{ 'on' if value_json.Data.active else 'off' }}"` in HA sensors.
+
 ## Git Workflow
 
 - Never commit directly to `main` — use PRs from `dev` or a feature branch
@@ -166,7 +217,7 @@ Sub (detect):    rtsp://<user>:<pass>@<ip>/axis-media/media.amp?videocodec=h264&
 | 2 | Cameras + Frigate — 6 cameras, recording, HA integration (99 entities) | Done |
 | 3 | Dashboard — 5 views live at `/lovelace/home-lab` | Done |
 | 4 | Face recognition (Double Take + recognizer) | Blocked — see below |
-| 5 | Axis analytics (ACAP + MQTT) | Planned |
+| 5 | Axis analytics (ACAP + MQTT) | In Progress |
 | 6 | AI integration (Ollama + Qwen) | Future |
 
 ### Phase 4 Blocker: Face Recognizer Selection
@@ -182,7 +233,6 @@ After either option: upload training photos for Thomas/Nils/Hugo/Anna via the Do
 ## Key Docs
 
 - `docs/naming-conventions.md` — authoritative naming reference
-- `docs/roadmap.md` — phase milestones with checkboxes
 - `docs/backlog.md` — prioritized work items (Now/Next/Later/Future)
 - `docs/architecture/overview.md` — system diagrams with Mermaid
 - `docs/architecture-review.md` — known risks and revised v1 design

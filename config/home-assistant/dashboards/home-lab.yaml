@@ -20,8 +20,9 @@ views:
               {% elif h < 17 %}Good afternoon
               {% else %}Good evening{% endif %}, Thomas
             secondary: "{{ now().strftime('%A') }} · {{ now().day }} {{ now().strftime('%B') }}"
-            icon: mdi:home
+            icon: mdi:home-variant
             icon_color: blue
+            fill_container: true
             tap_action:
               action: none
 
@@ -31,18 +32,22 @@ views:
           - type: custom:mushroom-person-card
             entity: person.thomasx
             layout: horizontal
+            fill_container: true
             secondary_info: last_changed
           - type: custom:mushroom-person-card
             entity: person.nils_2
             layout: horizontal
+            fill_container: true
             secondary_info: last_changed
           - type: custom:mushroom-person-card
             entity: person.hugo
             layout: horizontal
+            fill_container: true
             secondary_info: last_changed
           - type: custom:mushroom-person-card
             entity: person.anna
             layout: horizontal
+            fill_container: true
             secondary_info: last_changed
 
       # ── Quick Status ─────────────────────────────────────────
@@ -50,15 +55,12 @@ views:
         cards:
           - type: custom:mushroom-chips-card
             chips:
-              - type: entity
-                entity: alarm_control_panel.home_alarm
-                icon_color: red
               - type: template
                 icon: mdi:car
                 content: Driveway
                 icon_color: >-
-                  {{ 'red' if is_state('binary_sensor.driveway_wide_motion', 'on')
-                     or is_state('binary_sensor.driveway_id_person_occupancy', 'on')
+                  {{ 'red' if is_state('binary_sensor.driveway_id_person_occupancy', 'on')
+                     else 'amber' if is_state('binary_sensor.driveway_wide_motion', 'on')
                      else 'green' }}
                 tap_action:
                   action: navigate
@@ -138,14 +140,16 @@ views:
               - type: custom:mushroom-template-card
                 primary: Uppfart
                 secondary: >-
-                  {% if is_state('binary_sensor.driveway_wide_motion', 'on') %}Rörelse
-                  {% elif is_state('binary_sensor.driveway_id_person_occupancy', 'on') %}Person
+                  {% if is_state('binary_sensor.driveway_id_person_occupancy', 'on') %}Person
+                  {% elif is_state('binary_sensor.driveway_wide_motion', 'on') %}Rörelse
                   {% else %}Lugnt{% endif %}
                 icon: mdi:car-arrow-right
                 icon_color: >-
-                  {{ 'red' if is_state('binary_sensor.driveway_wide_motion', 'on')
-                     or is_state('binary_sensor.driveway_id_person_occupancy', 'on') else 'grey' }}
+                  {{ 'red' if is_state('binary_sensor.driveway_id_person_occupancy', 'on')
+                     else 'amber' if is_state('binary_sensor.driveway_wide_motion', 'on')
+                     else 'grey' }}
                 layout: vertical
+                fill_container: true
                 tap_action:
                   action: none
 
@@ -197,20 +201,8 @@ views:
     max_columns: 1
     sections:
 
-      # ── Alarm Status ─────────────────────────────────────────
-      - title: STATUS
-        cards:
-          - type: custom:mushroom-alarm-control-panel-card
-            entity: alarm_control_panel.home_alarm
-            name: Security
-            show_keypad: true
-            states:
-              - armed_home
-              - armed_away
-              - armed_night
-              - disarmed
-
       # ── Live Detections ──────────────────────────────────────
+      # grey = clear · amber = motion only · red = person detected
       - title: LIVE DETECTIONS
         cards:
           - type: custom:mushroom-chips-card
@@ -220,7 +212,8 @@ views:
                 content: Front
                 icon_color: >-
                   {{ 'red' if is_state('binary_sensor.front_person_occupancy', 'on')
-                     or is_state('binary_sensor.front_motion', 'on') else 'grey' }}
+                     else 'amber' if is_state('binary_sensor.front_motion', 'on')
+                     else 'grey' }}
                 tap_action:
                   action: navigate
                   navigation_path: /lovelace/cameras
@@ -228,9 +221,11 @@ views:
                 icon: mdi:cctv
                 content: Driveway
                 icon_color: >-
-                  {{ 'red' if is_state('binary_sensor.driveway_wide_motion', 'on')
-                     or is_state('binary_sensor.driveway_id_person_occupancy', 'on')
-                     or is_state('binary_sensor.driveway_wide_car_occupancy', 'on') else 'grey' }}
+                  {{ 'red' if is_state('binary_sensor.driveway_id_person_occupancy', 'on')
+                     or is_state('binary_sensor.driveway_wide_person_occupancy', 'on')
+                     else 'amber' if is_state('binary_sensor.driveway_wide_motion', 'on')
+                     or is_state('binary_sensor.driveway_wide_car_occupancy', 'on')
+                     else 'grey' }}
                 tap_action:
                   action: navigate
                   navigation_path: /lovelace/cameras
@@ -239,35 +234,56 @@ views:
                 content: Backyard
                 icon_color: >-
                   {{ 'red' if is_state('binary_sensor.backyard_person_occupancy', 'on')
-                     or is_state('binary_sensor.backyard_motion', 'on') else 'grey' }}
+                     else 'amber' if is_state('binary_sensor.backyard_motion', 'on')
+                     else 'grey' }}
               - type: template
                 icon: mdi:cctv
                 content: Stor Ext
                 icon_color: >-
                   {{ 'red' if is_state('binary_sensor.storage_ext_person_occupancy', 'on')
-                     or is_state('binary_sensor.storage_ext_motion', 'on') else 'grey' }}
+                     else 'amber' if is_state('binary_sensor.storage_ext_motion', 'on')
+                     else 'grey' }}
               - type: template
                 icon: mdi:cctv
                 content: Stor Int
                 icon_color: >-
                   {{ 'red' if is_state('binary_sensor.storage_int_person_occupancy', 'on')
-                     or is_state('binary_sensor.storage_int_motion', 'on') else 'grey' }}
+                     else 'amber' if is_state('binary_sensor.storage_int_motion', 'on')
+                     else 'grey' }}
 
       # ── Object Counts ─────────────────────────────────────────
       - title: OBJECT COUNTS (24H)
         cards:
-          - type: entities
-            entities:
-              - entity: sensor.front_person_count
-                name: Front — persons
-              - entity: sensor.driveway_wide_car_count
-                name: Driveway — cars
-              - entity: sensor.driveway_id_person_count
-                name: Driveway ID — persons
-              - entity: sensor.backyard_person_count
-                name: Backyard — persons
-              - entity: sensor.storage_ext_person_count
-                name: Storage Ext — persons
+          - type: custom:mushroom-entity-card
+            entity: sensor.front_person_count
+            name: Front — persons
+            icon: mdi:account
+            layout: horizontal
+            fill_container: true
+          - type: custom:mushroom-entity-card
+            entity: sensor.driveway_wide_car_count
+            name: Driveway — cars
+            icon: mdi:car
+            layout: horizontal
+            fill_container: true
+          - type: custom:mushroom-entity-card
+            entity: sensor.driveway_id_person_count
+            name: Driveway ID — persons
+            icon: mdi:account
+            layout: horizontal
+            fill_container: true
+          - type: custom:mushroom-entity-card
+            entity: sensor.backyard_person_count
+            name: Backyard — persons
+            icon: mdi:account
+            layout: horizontal
+            fill_container: true
+          - type: custom:mushroom-entity-card
+            entity: sensor.storage_ext_person_count
+            name: Storage Ext — persons
+            icon: mdi:account
+            layout: horizontal
+            fill_container: true
 
       # ── Face Recognition ─────────────────────────────────────
       - title: FACE RECOGNITION
@@ -276,7 +292,8 @@ views:
             primary: Not yet active
             secondary: Double Take + CompreFace — Phase 4
             icon: mdi:face-recognition
-            icon_color: grey
+            icon_color: amber
+            fill_container: true
             tap_action:
               action: none
 
@@ -320,19 +337,28 @@ views:
             name: Living Room
             icon: mdi:ceiling-light
             layout: horizontal
+            fill_container: true
           - type: custom:mushroom-entity-card
             entity: light.fonsterlampor
             name: Fönsterlampor
             icon: mdi:lamp
             layout: horizontal
+            fill_container: true
 
       - title: BEDROOM
         cards:
           - type: custom:mushroom-entity-card
             entity: light.anna_och_thomas_sovrum
-            name: Anna & Thomas sovrum
+            name: Sovrum
             icon: mdi:ceiling-light
             layout: horizontal
+            fill_container: true
+          - type: custom:mushroom-entity-card
+            entity: light.sovrumstaklampa
+            name: Taklampa
+            icon: mdi:ceiling-light-outline
+            layout: horizontal
+            fill_container: true
 
       # ── Upper Floor ──────────────────────────────────────────
       - title: HUGO'S ROOM
@@ -342,6 +368,13 @@ views:
             name: Hugo's rum
             icon: mdi:ceiling-light
             layout: horizontal
+            fill_container: true
+          - type: custom:mushroom-entity-card
+            entity: light.hugos_taklampa
+            name: Taklampa
+            icon: mdi:ceiling-light-outline
+            layout: horizontal
+            fill_container: true
 
       # ── Household Devices ────────────────────────────────────
       - title: DEVICES
@@ -373,6 +406,7 @@ views:
             icon: mdi:robot-vacuum
             icon_color: >-
               {{ 'green' if is_state('vacuum.hoover', 'docked') else 'blue' }}
+            fill_container: true
             tap_action:
               action: more-info
               entity: vacuum.hoover
@@ -397,16 +431,19 @@ views:
             name: Home Assistant Core
             icon: mdi:home-assistant
             layout: horizontal
+            fill_container: true
           - type: custom:mushroom-entity-card
             entity: update.home_assistant_supervisor_update
             name: Supervisor
             icon: mdi:update
             layout: horizontal
+            fill_container: true
           - type: custom:mushroom-entity-card
             entity: update.home_assistant_operating_system_update
             name: HAOS
             icon: mdi:layers
             layout: horizontal
+            fill_container: true
 
       # ── Add-ons ──────────────────────────────────────────────
       - title: ADD-ONS
@@ -443,16 +480,19 @@ views:
             name: WAN
             icon: mdi:wan
             layout: horizontal
+            fill_container: true
           - type: custom:mushroom-entity-card
             entity: sensor.m9plus_nedladdningshastighet
             name: Down
             icon: mdi:download
             layout: horizontal
+            fill_container: true
           - type: custom:mushroom-entity-card
             entity: sensor.m9plus_uppladdningshastighet
             name: Up
             icon: mdi:upload
             layout: horizontal
+            fill_container: true
 
       # ── Backup ───────────────────────────────────────────────
       - title: BACKUP
@@ -462,11 +502,13 @@ views:
             name: State
             icon: mdi:backup-restore
             layout: horizontal
+            fill_container: true
           - type: custom:mushroom-entity-card
             entity: sensor.backup_last_successful_automatic_backup
             name: Last Backup
             icon: mdi:clock-check
             layout: horizontal
+            fill_container: true
 
       # ── Quick Actions ────────────────────────────────────────
       - title: QUICK ACTIONS
@@ -476,6 +518,7 @@ views:
             primary: Restart HA
             icon: mdi:restart
             icon_color: amber
+            fill_container: true
             tap_action:
               action: call-service
               service: homeassistant.restart
@@ -485,6 +528,7 @@ views:
             primary: Backup Now
             icon: mdi:backup-restore
             icon_color: blue
+            fill_container: true
             tap_action:
               action: call-service
               service: backup.create
@@ -517,7 +561,11 @@ views:
                 layout: vertical
               - type: custom:mushroom-entity-card
                 entity: switch.driveway_wide_recordings
-                name: drwy rec
+                name: drwy wide
+                layout: vertical
+              - type: custom:mushroom-entity-card
+                entity: switch.driveway_id_recordings
+                name: drwy id
                 layout: vertical
               - type: custom:mushroom-entity-card
                 entity: switch.backyard_recordings
