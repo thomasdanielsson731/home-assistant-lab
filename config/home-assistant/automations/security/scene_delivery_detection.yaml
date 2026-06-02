@@ -1,8 +1,12 @@
+# Scene metadata automations — smart, low-noise notifications
+# Principle: notify only when human behaviour matches a meaningful pattern.
+# Raw snapshot/frame events go to dashboard only, not push notifications.
+
 - id: "scene_delivery_detection_front"
   alias: "Scene — leverans detekterad vid entrén"
   description: >
-    Person detekteras vid entrén, stannar 15–90 sek, lämnar utan att dörren öppnas.
-    Tyder på leverans eller ej önskad besökare.
+    Person vid entrén 15–90 s utan att dörren öppnas = möjlig leverans.
+    Max 1 notis per 10 minuter.
   mode: single
   max_exceeded: silent
 
@@ -10,17 +14,11 @@
     - platform: state
       entity_id: binary_sensor.front_scene_object_present
       to: "on"
-      id: "person_arrived"
-
-  condition:
-    - condition: template
-      value_template: "{{ trigger.id == 'person_arrived' }}"
 
   action:
     - variables:
         arrived_at: "{{ now() }}"
 
-    # Vänta tills objektet försvinner (max 3 min)
     - wait_for_trigger:
         - platform: state
           entity_id: binary_sensor.front_scene_object_present
@@ -31,7 +29,6 @@
     - variables:
         dwell_seconds: "{{ (now() - arrived_at).total_seconds() | int }}"
 
-    # Skicka notis om personen stannade 15–90 sekunder (leverans-mönster)
     - choose:
         - conditions:
             - condition: template
@@ -40,38 +37,16 @@
             - service: notify.mobile_app_thomas_iphone_15
               data:
                 title: "Möjlig leverans vid entrén"
-                message: >
-                  Person stannande {{ dwell_seconds }} sekunder vid entrén.
+                message: "Person vid dörren {{ dwell_seconds }} s"
                 data:
                   image: "/api/image/proxy/image.front_latest_detection"
 
-- id: "scene_snapshot_notification_front"
-  alias: "Scene — snapshot-notis vid entrén"
-  description: >
-    Skickar object-snapshot till telefonen när ett spår > 2s detekteras vid entrén.
-    Visar faktisk bild av objektet istället för bara text.
-  mode: single
-  max_exceeded: silent
-
-  trigger:
-    - platform: mqtt
-      topic: "axis/front/scene/snapshot"
-
-  condition: []
-
-  action:
-    - service: notify.mobile_app_thomas_iphone_15
-      data:
-        title: "Objekt detekterat vid entrén"
-        message: "Se bifogad bild"
-        data:
-          image: "/api/image/proxy/image.front_latest_detection"
-          push:
-            sound: default
+    # Cooldown — blockera nästa körning i 10 min
+    - delay: "00:10:00"
 
 - id: "scene_crowd_alert_front"
   alias: "Scene — folksamling vid entrén"
-  description: "Alert om mer än 2 personer detekteras samtidigt vid entrén."
+  description: "Alert om 3+ personer samtidigt vid entrén. Max 1 notis per 5 min."
   mode: single
   max_exceeded: silent
 
@@ -79,12 +54,13 @@
     - platform: numeric_state
       entity_id: sensor.front_scene_persons
       above: 2
+      for: "00:00:05"
 
   action:
     - service: notify.mobile_app_thomas_iphone_15
       data:
         title: "Folksamling vid entrén"
-        message: >
-          {{ states('sensor.front_scene_persons') }} personer detekterade simultaneously.
+        message: "{{ states('sensor.front_scene_persons') }} personer detekterade"
         data:
-          entity_id: camera.front
+          image: "/api/image/proxy/image.front_latest_detection"
+    - delay: "00:05:00"

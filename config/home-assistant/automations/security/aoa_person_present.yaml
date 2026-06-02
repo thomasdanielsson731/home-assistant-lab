@@ -1,8 +1,15 @@
+# AOA person detection notifications — cooldown-protected
+# NOTE: AOA MQTT publication not yet verified active on cameras.
+# Automations are enabled but will only fire when cameras publish events.
+
 - id: "aoa_person_detected_entry"
   alias: "AOA — person detected at entry point"
   description: >
-    Triggers when AOA detects a person at front or driveway cameras.
-    Complements Frigate alerts with on-camera inference (lower latency, no NVR dependency).
+    Triggers when AOA detects a person at front or driveway.
+    10 min cooldown to prevent notification spam.
+  mode: single
+  max_exceeded: silent
+
   trigger:
     - platform: state
       entity_id:
@@ -10,18 +17,21 @@
         - binary_sensor.driveway_id_aoa_person
         - binary_sensor.driveway_wide_aoa_person
       to: "on"
+
   action:
     - service: notify.mobile_app_thomas_iphone_15
       data:
-        title: "Person detected"
+        title: "Person vid entrén"
         message: >
-          {{ trigger.to_state.name | replace(' aoa person', '') | title }}
-          — on-camera detection
+          {{ trigger.to_state.attributes.friendly_name | replace(' aoa person', '') | title }}
+    - delay: "00:10:00"
 
 - id: "aoa_person_detected_perimeter"
   alias: "AOA — person detected at perimeter"
-  description: >
-    Triggers when AOA detects a person at backyard or storage cameras.
+  description: "Person vid bakgård/förråd. 15 min cooldown."
+  mode: single
+  max_exceeded: silent
+
   trigger:
     - platform: state
       entity_id:
@@ -29,10 +39,12 @@
         - binary_sensor.storage_ext_aoa_person
         - binary_sensor.storage_int_aoa_person
       to: "on"
+
   action:
     - service: notify.mobile_app_thomas_iphone_15
       data:
-        title: "Perimeter alert"
+        title: "Perimetervarning"
         message: >
-          {{ trigger.to_state.name | replace(' aoa person', '') | title }}
-          — person detected
+          {{ trigger.to_state.attributes.friendly_name | replace(' aoa person', '') | title }}
+          — person detekterad
+    - delay: "00:15:00"
