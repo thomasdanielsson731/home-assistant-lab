@@ -35,13 +35,13 @@ These are canonical — use them verbatim in all config, entities, and filenames
 
 | Zone ID | Model | Location |
 |---|---|---|
-| `front` | Axis P3288 | Front entrance |
-| `driveway_wide` | Axis Q3558-LVE | Driveway — wide overview |
-| `driveway_id` | Axis M2036 | Driveway — identification point |
-| `backyard` | Axis Q1656 | Backyard perimeter |
-| `storage_ext` | Axis Q1656 | Storage building exterior |
-| `storage_int` | Axis M1055 | Storage building interior |
-| `driveway_env` | Axis D6210 | Driveway radar (via M2036 I/O port) |
+| `front` | Axis P3288-LVE | Front entrance | 192.168.68.200 |
+| `driveway_wide` | Axis Q3558-LVE | Driveway — wide overview | 192.168.68.201 |
+| `driveway_id` | Axis M2036-LE | Driveway — identification point | 192.168.68.204 |
+| `backyard` | Axis Q1656-LE | Backyard perimeter | 192.168.68.203 |
+| `storage_ext` | Axis M1055-L | Storage building exterior | 192.168.68.205 |
+| `storage_int` | Axis Q1656 | Storage building interior | 192.168.68.206 |
+| `driveway_env` | Axis D6210 | Driveway radar (via M2036 I/O port) | — |
 
 ## House Areas
 

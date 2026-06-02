@@ -43,12 +43,12 @@ CAM_USER = _require("CAM_USER")
 CAM_PASS = _require("CAM_PASS")
 
 CAMERAS = [
-    {"zone": "front",         "ip": "192.168.68.200"},
-    {"zone": "driveway_wide", "ip": "192.168.68.207"},
-    {"zone": "driveway_id",   "ip": "192.168.68.204"},
-    {"zone": "backyard",      "ip": "192.168.68.201"},
-    {"zone": "storage_ext",   "ip": "192.168.68.205"},
-    {"zone": "storage_int",   "ip": "192.168.68.206"},
+    {"zone": "front",         "ip": "192.168.68.200"},  # P3288-LVE
+    {"zone": "driveway_wide", "ip": "192.168.68.201"},  # Q3558-LVE (was wrong as .207)
+    {"zone": "driveway_id",   "ip": "192.168.68.204"},  # M2036-LE
+    {"zone": "backyard",      "ip": "192.168.68.203"},  # Q1656-LE (was wrong as .201)
+    {"zone": "storage_ext",   "ip": "192.168.68.205"},  # M1055-L
+    {"zone": "storage_int",   "ip": "192.168.68.206"},  # Q1656
 ]
 
 # Axis coordinate system: full frame = corners at (-1,-1)..(1,1)
