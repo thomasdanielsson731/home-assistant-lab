@@ -26,6 +26,7 @@ $HA_CONFIG_PATH = if ($env:HA_CONFIG_PATH) { $env:HA_CONFIG_PATH } else { "/conf
 
 $target = "${HA_USER}@${HA_HOST}"
 $sshOpts = @("-p", $HA_SSH_PORT, "-o", "StrictHostKeyChecking=no")
+$scpOpts = @("-P", $HA_SSH_PORT, "-o", "StrictHostKeyChecking=no")
 
 if ($DryRun) {
     Write-Host "[dry-run] Would sync to ${target}:${HA_CONFIG_PATH}"
@@ -62,7 +63,7 @@ function Sync-Directory {
         $rel = $file.FullName.Substring($localDir.Length).TrimStart('\').Replace('\', '/')
         $remoteFile = "$remotePath/$rel"
         Write-Host "  -> $rel"
-        scp @sshOpts $file.FullName "${target}:${remoteFile}" | Out-Null
+        scp @scpOpts $file.FullName "${target}:${remoteFile}" | Out-Null
     }
 }
 
@@ -71,11 +72,11 @@ Sync-Directory (Join-Path $repoRoot "config\home-assistant") $HA_CONFIG_PATH
 
 # Pass 2: Frigate config
 Write-Host "  -> frigate/config.yml"
-scp @sshOpts (Join-Path $repoRoot "config\frigate\config.yml") "${target}:${HA_CONFIG_PATH}/frigate/config.yml"
+scp @scpOpts (Join-Path $repoRoot "config\frigate\config.yml") "${target}:${HA_CONFIG_PATH}/frigate/config.yml"
 
 # Pass 3: Double Take config
 Write-Host "  -> double-take/config.yml"
-scp @sshOpts (Join-Path $repoRoot "config\double-take\config.yml") "${target}:${HA_CONFIG_PATH}/double-take/config.yml"
+scp @scpOpts (Join-Path $repoRoot "config\double-take\config.yml") "${target}:${HA_CONFIG_PATH}/double-take/config.yml"
 
 Write-Host ""
 Write-Host "Done. Restart affected add-ons in HA if config changed."
