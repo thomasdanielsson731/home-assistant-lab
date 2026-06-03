@@ -21,6 +21,9 @@ config/frigate/exports/
 # Double Take
 config/double-take/.storage/
 
+# Claude Code
+.claude/
+
 # OS / editor
 .DS_Store
 Thumbs.db

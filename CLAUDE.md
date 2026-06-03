@@ -84,6 +84,10 @@ D6210 radar (via M2036 I/O): `binary_sensor.driveway_env_radar_motion`, `binary_
 
 **Double Take entity pattern** (Phase 4): `sensor.dt_<person_name>_confidence`, `binary_sensor.dt_<person_name>_present`
 
+**Automation IDs**: `<domain>_<trigger>_<action>` (e.g. `security_person_detected_notify`). File placement: `automations/<domain>/<action>.yaml`. Domains: `security`, `presence`, `camera`, `notification`.
+
+**Notification service**: `notify.mobile_app_thomas_iphone_15` — used in all alert automations.
+
 ## Commands
 
 ### Config Sync
@@ -157,6 +161,13 @@ config/
       aoa_vehicle.yaml    # AOA Vehicle Occupancy (front, driveway_wide, driveway_id)
       aoa_loitering.yaml  # AOA Loitering (front, driveway_wide, driveway_id)
       d6210_radar.yaml    # D6210 radar motion + presence
+    mqtt_sensors/        → merged via !include_dir_merge_list mqtt_sensors/
+      scene_metadata.yaml # Axis scene metadata
+    mqtt_images/         → merged via !include_dir_merge_list mqtt_images/
+      scene_snapshots.yaml # Axis snapshot images — declared under top-level image: key, NOT under mqtt:
+    scripts/             → merged via !include_dir_merge_named scripts/
+    themes/              → merged via !include_dir_merge_named themes
+    lovelace/            # legacy dashboard YAML
     dashboards/
       home-lab.yaml     # 5 views: Home, Cameras, Security, Rooms, Operations
     secrets.yaml.example  # shape only — real secrets.yaml lives on host, never committed
@@ -233,7 +244,7 @@ All AOA payloads are JSON `{Data: {active: bool}}` — use `value_template: "{{ 
 | 2 | Cameras + Frigate — 6 cameras, recording, HA integration (99 entities) | Done |
 | 3 | Dashboard — 5 views live at `/lovelace/home-lab` | Done |
 | 4 | Face recognition (Double Take + recognizer) | Blocked — see below |
-| 5 | Axis analytics (ACAP + MQTT) | In Progress |
+| 5 | Axis analytics (ACAP + MQTT) | In Progress — AOA entities defined; MQTT publication from cameras not yet verified |
 | 6 | AI integration (Ollama + Qwen) | Future |
 
 ### Phase 4 Blocker: Face Recognizer Selection
