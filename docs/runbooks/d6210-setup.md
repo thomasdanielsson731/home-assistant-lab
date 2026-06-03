@@ -1,68 +1,95 @@
-# D6210 Radar Integration Runbook
+# D6210 Air Quality Sensor — Integration Runbook
 
-Integrate the Axis D6210 radar (connected to M2036 via I/O port) into Home Assistant via MQTT.
+Integrera Axis D6210 Air Quality Sensor i Home Assistant via VAPIX REST API.
 
-## Hardware connection
+## Hårdvara
 
-The D6210 is wired to the M2036's digital I/O port. When the radar detects motion/presence,
-it asserts the M2036 input, which triggers an M2036 firmware event.
+- **Modell**: Axis D6210 Air Quality Sensor (luftkvalitet — ej radar)
+- **Zon**: `driveway_env` — utomhus vid uppfart
+- **Åtkomst**: Via M2036 (driveway_id) som VAPIX-proxy på `192.168.68.204`
+- **API**: `/config/rest/airqualitymonitor/v1beta` (REST, polling, BETA)
 
-## Option A — M2036 I/O event → MQTT rule (simplest)
+## Mätvärden
 
-Configure the M2036 to publish an MQTT message when its digital input changes state.
+| Parameter | Enhet | Noteringar |
+|---|---|---|
+| Temperatur | °C | |
+| Relativ fuktighet | % | |
+| CO₂ | ppm | 0–40 000; 2 dagars kalibrering |
+| VOC | ppb | max 500; 1 h kalibrering |
+| NOx | ppb | max 500; 6 h kalibrering |
+| PM1.0 / PM2.5 / PM4.0 / PM10.0 | µg/m³ | |
+| AQI (Air Quality Index) | 0–500 | 12 h kalibrering |
+| Rök/vaping | binär event | |
 
-1. Open M2036 web UI at `http://<driveway_id_camera_ip>`
-2. **System → Events → Add rule**
-3. Trigger: **Digital Input** → Input 1 → Active
-4. Action: **Send MQTT message**
-   - Topic: `axis/driveway_env/radar/motion`
-   - Payload: `1`
-5. Add a second rule for the deactivation:
-   - Trigger: Digital Input → Input 1 → Inactive
-   - Payload: `0`
-6. Verify MQTT client is connected (System → MQTT should show "Connected")
+## Steg 1 — Utforska API:et
 
-HA entity: `binary_sensor.driveway_env_radar_motion` (device_class: motion)
+Kör mot M2036 för att se vilka sensorer som finns och JSON-strukturen:
 
-## Option B — AOA Virtual Input / ACAP event
+```bash
+# Lista sensorer och connection status
+curl -u homeassistant:<lösenord> \
+  "http://192.168.68.204/config/rest/airqualitymonitor/v1beta/sensors"
 
-If the D6210 exposes itself as a virtual I/O source in AOA or via ACAP:
+# Hämta historikdata för senaste minuten (ersätt <sensorId> med id från ovan)
+curl -u homeassistant:<lösenord> \
+  -X POST \
+  -H "Content-Type: application/json" \
+  -d '{"category":"all","startTime":"<ISO8601-1min-ago>","endTime":"<ISO8601-now>"}' \
+  "http://192.168.68.204/config/rest/airqualitymonitor/v1beta/sensors/<sensorId>/getHistoryData"
+```
 
-1. In M2036 AOA, the radar may appear as an external trigger source
-2. Configure an AOA scenario triggered by the radar input
-3. The MQTT topic will be: `axis/driveway_env/event/IOPort/VirtualInput/Active`
-4. Payload: `{"Data": {"active": true}}`
+Notera `sensorId` och exakt fältnamn för varje mätvärde i JSON-svaret.
 
-HA entity: `binary_sensor.driveway_env_radar_presence` (device_class: presence)
+## Steg 2 — HA REST-sensorer
 
-## Which entity to use
-
-Start with **Option A** (simpler, pure firmware rules). Once working:
-- Use `binary_sensor.driveway_env_radar_motion` as a **pre-trigger** for driveway cameras
-- Combine with Frigate: radar motion → start Frigate recording before the car reaches the ID camera
-- Reduces false negatives from Frigate's frame-based detection at low FPS
-
-## Automation example (add to automations/security/)
+HA integreras via `rest:` i `configuration.yaml` (polling, inte MQTT). Lägg till:
 
 ```yaml
-- id: "radar_driveway_pretrigger"
-  alias: "Radar — driveway pre-trigger"
-  trigger:
-    - platform: state
-      entity_id: binary_sensor.driveway_env_radar_motion
-      to: "on"
-  action:
-    - service: camera.record
-      target:
-        entity_id: camera.driveway_id
-      data:
-        duration: 30
-        lookback: 5
+rest:
+  - resource: "http://192.168.68.204/config/rest/airqualitymonitor/v1beta/sensors/<sensorId>/getHistoryData"
+    method: POST
+    payload: '{"category":"all","startTime":"{{ (now() - timedelta(minutes=2)).isoformat() }}","endTime":"{{ now().isoformat() }}"}'
+    headers:
+      Content-Type: application/json
+    authentication: basic
+    username: !secret driveway_id_camera_user
+    password: !secret driveway_id_camera_password
+    scan_interval: 60
+    sensor:
+      - name: "driveway_env temperature"
+        unique_id: "driveway_env_temperature"
+        value_template: "{{ value_json.data.measurement.temperature[-1] }}"
+        unit_of_measurement: "°C"
+        device_class: temperature
+        state_class: measurement
+      # ... fler sensorer baserat på faktisk JSON-struktur
 ```
+
+> **OBS**: Exakt JSON-path bekräftas i Steg 1 — fältnamn och struktur kan variera.
+
+## Steg 3 — Secrets
+
+Lägg till i `/config/secrets.yaml` på hosten om de saknas:
+
+```yaml
+driveway_id_camera_user: homeassistant
+driveway_id_camera_password: <lösenord>
+```
+
+## Steg 4 — Dashboard
+
+När sensorer är verifierade, lägg till:
+- **Home-vy**: Temperatur + CO₂ mini-graph-card
+- **Ny "Miljö"-flik**: Fullständigt luftkvalitetsdashboard med gauges och trendgrafer
+
+Se `docs/dashboard-design.md` för layoutspecifikation (uppdateras när sensorer är klara).
 
 ## Verify
 
 ```bash
-mosquitto_sub -h 192.168.68.175 -u frigate -P <mqtt_pass> -t "axis/driveway_env/#" -v
+# Verifiera att HA plockat upp sensorerna
+ha core logs --lines 100 | grep driveway_env
 ```
-Drive a car past the radar and confirm messages appear.
+
+Förväntat: inga fel, och entiteter synliga i HA Developer Tools → States.

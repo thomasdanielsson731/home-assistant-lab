@@ -41,7 +41,7 @@ These are canonical — use them verbatim in all config, entities, and filenames
 | `backyard` | Axis Q1656-LE | Backyard perimeter | 192.168.68.203 |
 | `storage_ext` | Axis M1055-L | Storage building exterior | 192.168.68.205 |
 | `storage_int` | Axis Q1656 | Storage building interior | 192.168.68.206 |
-| `driveway_env` | Axis D6210 | Driveway radar (via M2036 I/O port) | — |
+| `driveway_env` | Axis D6210 | Driveway air quality sensor (accessed via M2036 VAPIX proxy at 192.168.68.204) | — |
 
 ## House Areas
 
@@ -80,7 +80,7 @@ Note: `docs/naming-conventions.md` specifies `camera.frigate_<zone_id>` as the i
 | `storage_ext` | `binary_sensor.storage_ext_aoa_person` | — | — |
 | `storage_int` | `binary_sensor.storage_int_aoa_person` | — | — |
 
-D6210 radar (via M2036 I/O): `binary_sensor.driveway_env_radar_motion`, `binary_sensor.driveway_env_radar_presence`
+**D6210 air quality entity IDs** (Phase 5 — REST polling via M2036, see `docs/runbooks/d6210-setup.md`): `sensor.driveway_env_temperature`, `sensor.driveway_env_humidity`, `sensor.driveway_env_co2`, `sensor.driveway_env_voc`, `sensor.driveway_env_nox`, `sensor.driveway_env_pm25`, `sensor.driveway_env_aqi` — pending curl output to confirm JSON structure.
 
 **Scene frame entity IDs** (Phase 5 — from `axis/<zone>/scene/frame` analytics stream):
 
@@ -233,10 +233,6 @@ axis/<zone_id>/event/ObjectAnalytics/ScenarioOccupancy/VehicleOcc/Active
 
 # AOA Loitering (front, driveway_wide, driveway_id):
 axis/<zone_id>/event/ObjectAnalytics/ScenarioLoitering/Loitering/Active
-
-# D6210 radar via M2036 I/O port:
-axis/driveway_env/radar/motion                     # payload "1"/"0"
-axis/driveway_env/event/IOPort/VirtualInput/Active # JSON {Data:{active:bool}}
 
 # Scene frame metadata (com.axis.scene.frame.v1 analytics API, ~5 fps when objects present):
 axis/<zone_id>/scene/frame   # JSON {detections:[{type:"Human"|"Car"|..., score:0.xx, ...}]}
