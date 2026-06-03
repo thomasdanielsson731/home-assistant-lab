@@ -40,6 +40,4 @@ script: !include_dir_merge_named scripts/
 mqtt:
   binary_sensor: !include_dir_merge_list mqtt_binary_sensors/
   sensor: !include_dir_merge_list mqtt_sensors/
-
-# Scene snapshot images from Axis cameras (legacy platform format for HA 2026.x)
-image: !include_dir_merge_list mqtt_images/
+  image: !include_dir_merge_list mqtt_images/

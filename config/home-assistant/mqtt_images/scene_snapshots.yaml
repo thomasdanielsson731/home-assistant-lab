@@ -1,39 +1,33 @@
-# Axis Scene Metadata — latest object snapshots per camera
-# platform: mqtt — legacy format for HA 2026.x compatibility
-# Topic: axis/<zone>/scene/snapshot  (JPEG binary per detected object)
+# Axis Scene Snapshot Images — latest detected object per camera
+# Configured under mqtt: image: in configuration.yaml (not platform: mqtt)
+# Topic: axis/<zone>/scene/snapshot  (JPEG binary published on detection)
 
-- platform: mqtt
-  name: "front latest detection"
+- name: "front latest detection"
   unique_id: "scene_snapshot_front"
   image_topic: "axis/front/scene/snapshot"
   content_type: image/jpeg
 
-- platform: mqtt
-  name: "driveway wide latest detection"
+- name: "driveway wide latest detection"
   unique_id: "scene_snapshot_driveway_wide"
   image_topic: "axis/driveway_wide/scene/snapshot"
   content_type: image/jpeg
 
-- platform: mqtt
-  name: "driveway id latest detection"
+- name: "driveway id latest detection"
   unique_id: "scene_snapshot_driveway_id"
   image_topic: "axis/driveway_id/scene/snapshot"
   content_type: image/jpeg
 
-- platform: mqtt
-  name: "backyard latest detection"
+- name: "backyard latest detection"
   unique_id: "scene_snapshot_backyard"
   image_topic: "axis/backyard/scene/snapshot"
   content_type: image/jpeg
 
-- platform: mqtt
-  name: "storage ext latest detection"
+- name: "storage ext latest detection"
   unique_id: "scene_snapshot_storage_ext"
   image_topic: "axis/storage_ext/scene/snapshot"
   content_type: image/jpeg
 
-- platform: mqtt
-  name: "storage int latest detection"
+- name: "storage int latest detection"
   unique_id: "scene_snapshot_storage_int"
   image_topic: "axis/storage_int/scene/snapshot"
   content_type: image/jpeg

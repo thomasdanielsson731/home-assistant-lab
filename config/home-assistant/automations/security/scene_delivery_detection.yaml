@@ -27,7 +27,7 @@
       continue_on_timeout: true
 
     - variables:
-        dwell_seconds: "{{ (now() - arrived_at).total_seconds() | int }}"
+        dwell_seconds: "{{ (now() - as_datetime(arrived_at)).total_seconds() | int }}"
 
     - choose:
         - conditions:
