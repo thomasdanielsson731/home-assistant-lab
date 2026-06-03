@@ -82,6 +82,16 @@ Note: `docs/naming-conventions.md` specifies `camera.frigate_<zone_id>` as the i
 
 D6210 radar (via M2036 I/O): `binary_sensor.driveway_env_radar_motion`, `binary_sensor.driveway_env_radar_presence`
 
+**Scene frame entity IDs** (Phase 5 — from `axis/<zone>/scene/frame` analytics stream):
+
+| Zone | Presence | Person count | Vehicle count |
+|---|---|---|---|
+| `front` | `binary_sensor.front_scene_object_present` | `sensor.front_scene_persons` | `sensor.front_scene_vehicles` |
+| `driveway_wide` | `binary_sensor.driveway_wide_scene_object_present` | `sensor.driveway_wide_scene_persons` | `sensor.driveway_wide_scene_vehicles` |
+| `driveway_id` | `binary_sensor.driveway_id_scene_object_present` | `sensor.driveway_id_scene_persons` | — |
+
+Scene entities expire after 10 s if no MQTT message received. Image entities (`image.front_latest_detection` etc.) update on `axis/<zone>/scene/snapshot`.
+
 **Double Take entity pattern** (Phase 4): `sensor.dt_<person_name>_confidence`, `binary_sensor.dt_<person_name>_present`
 
 **Automation IDs**: `<domain>_<trigger>_<action>` (e.g. `security_person_detected_notify`). File placement: `automations/<domain>/<action>.yaml`. Domains: `security`, `presence`, `camera`, `notification`.
@@ -161,6 +171,7 @@ config/
       aoa_vehicle.yaml    # AOA Vehicle Occupancy (front, driveway_wide, driveway_id)
       aoa_loitering.yaml  # AOA Loitering (front, driveway_wide, driveway_id)
       d6210_radar.yaml    # D6210 radar motion + presence
+      scene_presence.yaml # Binary presence from scene/frame (faster than AOA)
     mqtt_sensors/        → merged via !include_dir_merge_list mqtt_sensors/
       scene_metadata.yaml # Axis scene metadata
     mqtt_images/         → merged via !include_dir_merge_list mqtt_images/
@@ -226,6 +237,11 @@ axis/<zone_id>/event/ObjectAnalytics/ScenarioLoitering/Loitering/Active
 # D6210 radar via M2036 I/O port:
 axis/driveway_env/radar/motion                     # payload "1"/"0"
 axis/driveway_env/event/IOPort/VirtualInput/Active # JSON {Data:{active:bool}}
+
+# Scene frame metadata (com.axis.scene.frame.v1 analytics API, ~5 fps when objects present):
+axis/<zone_id>/scene/frame   # JSON {detections:[{type:"Human"|"Car"|..., score:0.xx, ...}]}
+axis/<zone_id>/scene/track   # used by backyard/storage zones (object track events)
+axis/<zone_id>/scene/snapshot # JPEG binary — latest detected object image
 ```
 
 All AOA payloads are JSON `{Data: {active: bool}}` — use `value_template: "{{ 'on' if value_json.Data.active else 'off' }}"` in HA sensors.

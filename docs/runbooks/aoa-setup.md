@@ -90,3 +90,36 @@ After syncing config and restarting HA, you will have:
 # Then in HA: Developer Tools → YAML → Reload all YAML
 # Or restart HA for a full reload
 ```
+
+## Scene Frame Metadata (Phase 5 extension)
+
+In addition to AOA binary events, cameras can publish rich frame metadata via the `com.axis.scene.frame.v1` analytics MQTT API. This enables per-frame person/vehicle counts and snapshot images in HA.
+
+**Topics:**
+```
+axis/<zone_id>/scene/frame     # JSON with detections array (~5 fps when objects present)
+axis/<zone_id>/scene/snapshot  # JPEG binary of latest detected object
+```
+
+**Enable on camera:**
+1. In the camera web UI: **Apps → Object Analytics → [scenario] → Advanced**
+2. Enable **MQTT frame publishing** (exact label varies by firmware)
+3. Verify by subscribing:
+   ```bash
+   mosquitto_sub -h 192.168.68.175 -u <user> -P <pass> -t "axis/front/scene/#" -v
+   ```
+4. Walk in front of the camera — expect messages on `axis/front/scene/frame` with payload:
+   ```json
+   {"channel_id": 1, "timestamp": "...", "detections": [
+     {"bounding_box": {...}, "object_track_id": "uuid", "type": "Human", "score": 0.95}
+   ]}
+   ```
+
+**HA entities created** (from `mqtt_sensors/scene_metadata.yaml` and `mqtt_binary_sensors/scene_presence.yaml`):
+
+| Entity | Description |
+|---|---|
+| `binary_sensor.front_scene_object_present` | Any object at front (expires 10 s) |
+| `sensor.front_scene_persons` | Person count at front |
+| `sensor.front_scene_vehicles` | Vehicle count at front |
+| `image.front_latest_detection` | Latest snapshot JPEG |

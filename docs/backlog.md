@@ -70,8 +70,8 @@ Experimental and longer-horizon work. Sequence within this group is flexible.
 | # | Item | Effort | Dependencies | Value |
 |---|---|---|---|---|
 | F1 | Audit ACAP apps installed on each Axis camera | S | X3 | Baseline for analytics work |
-| F2 | Enable Axis MQTT on cameras — metadata to Mosquitto | M | N3, F1 | Rich event metadata without Frigate |
-| F3 | Build HA sensors from Axis MQTT metadata (loitering, vehicle class) | L | F2 | Axis analytics value in HA |
+| F2 | ~~Enable Axis MQTT on cameras — metadata to Mosquitto~~ | ~~M~~ | — | ✅ Done — `scripts/configure_cameras.py` + VAPIX API; scene/frame topics live in HA config |
+| F3 | ~~Build HA sensors from Axis MQTT metadata (loitering, vehicle class)~~ | ~~L~~ | — | ✅ Done — `mqtt_sensors/scene_metadata.yaml` (persons/vehicles/detections) + `mqtt_binary_sensors/scene_presence.yaml`; verify by running cameras |
 | F4 | Train custom ACAP object model on lab footage (Axis toolchain) | XL | F1, Axis dev access | Custom on-camera detection |
 | F5 | Set up Ollama + Qwen stable API on Windows dev machine | S | None | LLM foundation |
 | F6 | Connect Ollama to HA Assist pipeline (REST integration) | M | F5 | Natural language automation commands |
