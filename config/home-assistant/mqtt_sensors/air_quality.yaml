@@ -34,7 +34,7 @@
   unique_id: "driveway_env_nox"
   state_topic: "axis/driveway_env/air/nox"
   unit_of_measurement: "ppb"
-  device_class: nitrogen_oxide
+  device_class: nitrogen_dioxide
   state_class: measurement
 
 - name: "driveway env pm2.5"
