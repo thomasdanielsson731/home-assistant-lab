@@ -24,9 +24,13 @@ events/{type}/{yyyy}/{mm}/{dd}/{event_id}_thumb.jpg
 
 ## Status
 
-**Not yet implemented.** Events are currently implicit in HA entities and MQTT messages.
+**v0 implemented** — `scripts/event_normalizer.py` writes JSON events here from Frigate, Double Take, and D6210 MQTT.
 
-Phase 7 will add a normalizer that writes JSON events here (or to InfluxDB/SQLite with media in this tree).
+- Timeline log: `events/timeline.jsonl`
+- Daily counts: `events/aggregates/YYYY-MM-DD.json`
+- Viewer: `python scripts/timeline_server.py` → http://localhost:8765
+
+Phase 7 next: InfluxDB/SQLite for time-series; keep media in this tree.
 
 ## Schema
 

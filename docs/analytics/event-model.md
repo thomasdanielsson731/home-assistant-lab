@@ -282,4 +282,4 @@ Each folder stores JSON event files and references to media assets. See [../../e
 | Yale lock | `door` | HA integration → event (future) |
 | Scene delivery automation | `delivery` | Automation → event (future) |
 
-Phase 1 normalizer: log events as JSONL on dev PC. Phase 2: InfluxDB or SQLite. Phase 3: Timeline UI.
+**v0 implemented:** `scripts/event_normalizer.py` logs events as JSONL on dev PC. `scripts/timeline_server.py` serves Timeline UI on `:8765`. Phase 2: InfluxDB or SQLite.

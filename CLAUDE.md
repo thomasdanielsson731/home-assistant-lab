@@ -168,6 +168,15 @@ Requires: `pip install requests paho-mqtt python-dotenv`
 
 Polls the Axis D6210 air quality sensor every 60 s via the M2036 VAPIX proxy (`192.168.68.204`) and publishes readings to Mosquitto under `axis/driveway_env/air/<metric>`. Metrics published: TEMPERATURE, HUMIDITY, CO2, VOC, NOX, PM2.5, AQI. Reads `HA_HOST`, `MQTT_USER`, `MQTT_PASS` from `.env`. Run manually or schedule via Windows Task Scheduler.
 
+### Event Normalizer (Danielsson Insights v0)
+
+```bash
+python scripts/event_normalizer.py   # Frigate + Double Take + D6210 → events/
+python scripts/timeline_server.py    # Timeline UI at http://localhost:8765
+```
+
+See `docs/runbooks/event-normalizer.md`. Start all bridges: `.\scripts\start-bridges.ps1`.
+
 ### SSH to Host
 
 ```bash

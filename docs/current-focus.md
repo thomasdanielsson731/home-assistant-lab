@@ -17,7 +17,7 @@ Quick-start context for AI assistants. Read this + [CLAUDE.md](../CLAUDE.md) + [
 | **5** | Axis analytics — AOA, scene, air quality via MQTT | Bridges running, loitering manual step remains |
 | **4** | Face recognition — CodeProject.AI + Double Take | Config done, CodeProject.AI install needed |
 
-Phases 1–3 are done. Phases 6–8 (AI, data platform, digital twin) are future.
+Phases 1–3 are done. **Phase 7 v0** (event normalizer + timeline) is live on dev PC. Phases 6–8 (AI, InfluxDB, digital twin) are next.
 
 ---
 
@@ -27,7 +27,7 @@ Scheduled tasks (after `.\scripts\install-scheduled-tasks.ps1`):
 
 - **Every 6 h:** auto-commit + push + sync to HAOS
 - **Daily 04:00:** above + HA YAML reload (via `HA_TOKEN`)
-- **At logon:** `air_quality_bridge.py` + `aoa_bridge.py`
+- **At logon:** `air_quality_bridge.py` + `aoa_bridge.py` + `event_normalizer.py` + `timeline_server.py`
 
 Logs: `logs/maintenance.log` · Runbook: [maintenance.md](runbooks/maintenance.md)
 
@@ -37,23 +37,16 @@ Logs: `logs/maintenance.log` · Runbook: [maintenance.md](runbooks/maintenance.m
 
 ## Immediate Next Tasks
 
-### 1. Reload YAML in HA (sync already done)
+### 1. Event normalizer — verify end-to-end
 
-**Developer Tools → YAML → Reload all YAML configuration**.
+```powershell
+python scripts/event_normalizer.py   # or .\scripts\start-bridges.ps1
+python scripts/timeline_server.py    # http://localhost:8765
+```
 
-Config synced 2026-06-06. Bridge and cameras verified.
+Walk past `front` camera → check `events/timeline.jsonl` for `person` event.
 
-### 2. Verify D6210 sensors in HA States
-
-Bridge is publishing live data (temp 16°C, CO₂ 431 ppm, AQI 17). Check `sensor.driveway_env_*` appear after YAML reload.
-
-### 3. Verify scene + AOA sensors in HA
-
-All 6 cameras: MQTT connected, AOA PersonOccupancy OK. Walk in front of `front` camera → check `binary_sensor.front_aoa_person` and `binary_sensor.front_scene_object_present`.
-
-Loitering scenarios still need manual web UI setup on front + driveway cameras.
-
-### 4. Phase 4 — CodeProject.AI
+### 2. Phase 4 — CodeProject.AI
 
 1. Install on Windows dev PC: https://www.codeproject.com/AI/
 2. Enable Face Recognition module (port 32168)

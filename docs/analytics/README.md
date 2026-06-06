@@ -23,11 +23,11 @@ Sources → Events → Storage → Aggregates → Views (Timeline / Floorplan / 
 | Component | Status | Notes |
 |---|---|---|
 | Event schema defined | ✅ | `schemas/danielsson-event.schema.json` |
-| Event store | ⬜ | Phase 7 — InfluxDB or SQLite/JSONL |
-| HA → Event normalizer | ⬜ | Bridge scripts publish MQTT; normalizer TBD |
-| Timeline UI | ⬜ | Design complete, not built |
+| Event store (JSONL) | ✅ v0 | `events/timeline.jsonl` + per-type folders |
+| HA → Event normalizer | ✅ v0 | `scripts/event_normalizer.py` — Frigate, DT, D6210 |
+| Timeline UI | ✅ v0 | `scripts/timeline_server.py` on `:8765` |
 | Floorplan UI | ⬜ | Design complete, not built |
-| Daily aggregates | ⬜ | Phase 7 |
+| Daily aggregates | ✅ v0 | `events/aggregates/` updated on each event |
 | AI enrichment | ⬜ | Phase 6 |
 
 ## For AI Assistants

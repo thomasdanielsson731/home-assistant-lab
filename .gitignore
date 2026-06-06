@@ -1,3 +1,7 @@
+# Python
+__pycache__/
+*.pyc
+
 # Secrets — never commit
 config/home-assistant/secrets.yaml
 **/.env

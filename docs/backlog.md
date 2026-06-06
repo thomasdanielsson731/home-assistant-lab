@@ -40,7 +40,18 @@ CodeProject.AI path — see [ADR-003](decisions/003-face-recognizer.md).
 
 ---
 
-## Later — Phase 6 AI + Phase 7 Data Platform
+## Now — Phase 7 Event Platform (v0)
+
+| # | Item | Effort | Status |
+|---|---|---|---|
+| P7-1 | Event normalizer — Frigate + DT + D6210 → JSON | M | ✅ |
+| P7-2 | Timeline v0 web UI (`:8765`) | S | ✅ |
+| P7-3 | Verify person events from live Frigate tracks | S | ⬜ |
+| P7-4 | Scheduled tasks for normalizer + timeline | S | ✅ |
+
+---
+
+## Later — Phase 6 AI + Phase 7 Data Platform (full)
 
 | # | Item | Effort | Dependencies |
 |---|---|---|---|

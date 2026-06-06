@@ -18,5 +18,7 @@ function Start-Bridge {
     Write-Host "Started $Name"
 }
 
-Start-Bridge "AirQualityBridge" "$repoRoot\scripts\air_quality_bridge.py"
-Start-Bridge "AOABridge"       "$repoRoot\scripts\aoa_bridge.py"
+Start-Bridge "AirQualityBridge"  "$repoRoot\scripts\air_quality_bridge.py"
+Start-Bridge "AOABridge"         "$repoRoot\scripts\aoa_bridge.py"
+Start-Bridge "EventNormalizer"   "$repoRoot\scripts\event_normalizer.py"
+Start-Bridge "TimelineServer"    "$repoRoot\scripts\timeline_server.py"
