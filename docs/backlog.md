@@ -1,85 +1,86 @@
 # Project Backlog
 
-Prioritized work items grouped by time horizon. Effort is T-shirt sized: S (< 2h), M (half-day), L (full day), XL (multiple days).
+Prioritized work items. Effort: S (< 2h), M (half-day), L (full day), XL (multiple days).
+
+Vision: [vision.md](vision.md) · Active phase: **5 (Axis Analytics)** + **4 (Face Recognition)**
 
 ---
 
-## Now — Foundation and Cleanup
+## Now — Phase 5 Verification
 
-Work that must complete before anything else can start.
+Complete the Axis analytics pipeline end-to-end.
 
-| # | Item | Effort | Dependencies | Value |
-|---|---|---|---|---|
-| N1 | Apply naming conventions to all existing HA entities and areas | M | None | High — prevents cascading renames later |
-| N2 | Enable and test automatic backups (Settings → Backups) | S | None | Critical — safety net for all future work |
-| N3 | Install and verify Mosquitto MQTT broker | S | None | Blocker for Frigate and Axis MQTT |
-| N4 | Mount external 1 TB SSD to `/media/frigate` | S | SSD physical install | Blocker for Frigate recording |
-| N5 | Create all Areas and assign all devices | S | N1 (naming) | Required for dashboard and automations |
-| N6 | Create Person entities for Thomas, Nils, Hugo | S | None | Presence detection, dashboard |
-| N7 | Delete or disable all unavailable/stale entities | S | None | Reduce noise, improve startup time |
-| N8 | Install HACS and Mushroom Cards, Frigate Card, mini-graph-card | S | None | Required before building dashboards |
-| N9 | Set up `.env` and `sync-config.sh` on dev machine | S | SSH access to HAOS | Enables config-as-code workflow |
-| N10 | Take a manual backup after cleanup | S | N1–N7 | Restore point before Frigate install |
+| # | Item | Effort | Status |
+|---|---|---|---|
+| P5-1 | Commit + sync pending config changes | S | ✅ |
+| P5-2 | Start `air_quality_bridge.py`, verify `sensor.driveway_env_*` | S | ✅ MQTT OK, HA reload needed |
+| P5-3 | Run `configure_cameras.py` — MQTT + AOA on all cameras | M | ✅ |
+| P5-4 | Verify scene/frame on `front` via MQTT subscribe | S | ⬜ |
+| P5-5 | Verify scene/track on `backyard` — `binary_sensor.*_scene_object_present` | S | ⬜ |
+| P5-6 | Create Loitering scenarios manually (3 cameras) | M | ⬜ |
+| P5-7 | Add analytics cards to Security + Operations dashboard views | M | ⬜ |
+| P5-8 | Update stale docs (d6210 runbook ✅, backlog ✅, README ✅) | S | ✅ |
 
 ---
 
-## Next — Cameras, Frigate, Dashboard
+## Next — Phase 4 Face Recognition
 
-Work that delivers visible value once the foundation is clean.
+CodeProject.AI path — see [ADR-003](decisions/003-face-recognizer.md).
 
-| # | Item | Effort | Dependencies | Value |
-|---|---|---|---|---|
-| X1 | Install Frigate add-on and verify it starts | S | N3, N4 | Unblocks all camera work |
-| X2 | Add `front` (P3288) to Frigate — dual stream, detect + record | M | X1 | First camera live, validates the pattern |
-| X3 | Add remaining 5 cameras to Frigate using same pattern | L | X2 | Full camera coverage |
-| X4 | Validate D6210 radar sensor — VAPIX or MQTT integration | M | N3, X3 | Driveway pre-trigger without camera polling |
-| X5 | Install Frigate HA integration and verify entities appear | S | X3 | Enables HA automations on detection |
-| X6 | Build Security dashboard view — detections, event log | M | X5, N8 | Daily driver for security monitoring |
-| X7 | Build Cameras dashboard view — all 6 feeds in zone layout | M | X5, N8 | Main camera overview |
-| X8 | Build Home dashboard view — presence, quick status, events | M | N6, X7 | Primary daily-use view |
-| X9 | Build Rooms dashboard view — per-room controls | M | N5, N8 | Room control access |
-| X10 | Build Operations dashboard view — system health, add-ons | S | X1 | Operational visibility |
-| X11 | Person detection automation → push notification with snapshot | M | X5 | First working end-to-end security loop |
-| X12 | Configure Frigate recording retention (7-day default) | S | X3 | Prevents SSD from filling up |
+| # | Item | Effort | Dependencies |
+|---|---|---|---|
+| P4-1 | Install CodeProject.AI on Windows dev PC | S | None |
+| P4-2 | Enable Face Recognition module, verify `:32168` | S | P4-1 |
+| P4-3 | Restart Double Take, confirm detector connection | S | P4-2 |
+| P4-4 | Upload training photos (Thomas, Nils, Hugo, Anna) | M | P4-3 |
+| P4-5 | Test recognition at `front` — target >85% | M | P4-4 |
+| P4-6 | Unknown person alert automation | S | P4-3 |
+| P4-7 | Add face match status to Security dashboard | S | P4-5 |
 
 ---
 
-## Later — Face Recognition
+## Later — Phase 6 AI + Phase 7 Data Platform
 
-Work that builds the face recognition pipeline once cameras are stable.
-
-| # | Item | Effort | Dependencies | Value |
-|---|---|---|---|---|
-| L1 | Deploy CompreFace on a separate host or as a HAOS add-on | M | X3 | Recognizer backend |
-| L2 | Install Double Take add-on and connect to CompreFace | M | L1 | Middleware layer |
-| L3 | Configure Double Take → Frigate webhook on `front` and `driveway_id` | S | L2, X3 | Enables face match events |
-| L4 | Collect training images for Thomas, Nils, Hugo | M | L2 | Model accuracy |
-| L5 | Train CompreFace on household members | S | L4 | Known-person recognition |
-| L6 | Test recognition accuracy at `front` — target >85% confidence | M | L5 | Validate pipeline |
-| L7 | Build "unknown person" alert automation (notify + snapshot) | S | L3 | Core security value |
-| L8 | Build "known person" welcome automation | S | L5, L7 | Personalised entry experience |
-| L9 | Add face recognition status to Security dashboard view | S | L5, X6 | Surface face match results |
-| L10 | Retrain model with additional images to reduce false negatives | L | L6 | Ongoing improvement |
+| # | Item | Effort | Dependencies |
+|---|---|---|---|
+| L1 | Ollama + Qwen stable API on dev PC | S | None |
+| L2 | InfluxDB add-on or external instance | M | None |
+| L3 | HA → InfluxDB for energy + env + detection metrics | M | L2, P5-2 |
+| L4 | HA Assist → Ollama REST integration | M | L1 |
+| L5 | Vision model on Frigate snapshots | L | L1, Phase 2 |
+| L6 | Scene description automation | M | L5 |
+| L7 | Event rate baselines (zone × hour × object) | L | L3 |
+| L8 | Grafana dashboard or HA history trends | M | L3 |
+| L9 | Custom ACAP model on lab footage | XL | P5-8, Axis dev access |
 
 ---
 
-## Future — Axis Analytics and AI
+## Future — Phase 8 Digital Twin
 
-Experimental and longer-horizon work. Sequence within this group is flexible.
+| # | Item | Effort | Dependencies |
+|---|---|---|---|
+| F1 | House state template sensor (who, env, activity) | M | P5, P4 |
+| F2 | NL query over stored events (LLM + context) | L | L1, L3 |
+| F3 | Weekly insight report (agent-generated) | M | F1, L7 |
+| F4 | Wyoming STT/TTS for local voice (optional) | M | L4 |
 
-| # | Item | Effort | Dependencies | Value |
-|---|---|---|---|---|
-| F1 | Audit ACAP apps installed on each Axis camera | S | X3 | Baseline for analytics work |
-| F2 | ~~Enable Axis MQTT on cameras — metadata to Mosquitto~~ | ~~M~~ | — | ✅ Done — `scripts/configure_cameras.py` + VAPIX API; scene/frame topics live in HA config |
-| F3 | ~~Build HA sensors from Axis MQTT metadata (loitering, vehicle class)~~ | ~~L~~ | — | ✅ Done — `mqtt_sensors/scene_metadata.yaml` (persons/vehicles/detections) + `mqtt_binary_sensors/scene_presence.yaml`; verify by running cameras |
-| F4 | Train custom ACAP object model on lab footage (Axis toolchain) | XL | F1, Axis dev access | Custom on-camera detection |
-| F5 | Set up Ollama + Qwen stable API on Windows dev machine | S | None | LLM foundation |
-| F6 | Connect Ollama to HA Assist pipeline (REST integration) | M | F5 | Natural language automation commands |
-| F7 | Vision model (Qwen-VL or LLaVA) receiving Frigate snapshots | L | F5, X5 | Scene understanding |
-| F8 | Scene description automation: event → LLM caption → notification | M | F7 | Richer alerts |
-| F9 | Establish anomaly detection baseline (time-of-day event frequency) | XL | X12, F2 | Pattern-based alerting |
-| F10 | AI agent loop: event → context → LLM decision → HA action | XL | F6, F7, F9 | Autonomous response |
-| F11 | Wyoming STT + Piper TTS for local voice interface | M | F6 | Voice control without cloud |
+---
+
+## Completed (archive)
+
+<details>
+<summary>Foundation, Frigate, Dashboard (Phases 1–3)</summary>
+
+| # | Item | Status |
+|---|---|---|
+| — | HAOS, SSH, MQTT, backups, naming, areas | ✅ |
+| — | 6 cameras in Frigate, 99 HA entities | ✅ |
+| — | 5 dashboard views at `/lovelace/home-lab` | ✅ |
+| — | Person detection → push notification | ✅ |
+| F2 | Axis MQTT config via `configure_cameras.py` | ✅ |
+| F3 | HA sensors from Axis MQTT metadata | ✅ |
+
+</details>
 
 ---
 
@@ -87,6 +88,7 @@ Experimental and longer-horizon work. Sequence within this group is flexible.
 
 | Item | Reason |
 |---|---|
-| Cloud face recognition (AWS Rekognition) | Privacy preference — local-only policy |
-| Nabu Casa remote access | Evaluate after local setup is stable |
-| ALPR (license plate recognition) | Add only if there is a specific automation need |
+| Cloud face recognition | Local-only privacy policy |
+| Nabu Casa remote access | Evaluate after local setup stable |
+| ALPR | No current automation need |
+| HA REST sensors for D6210 | Replaced by MQTT bridge — simpler, already working |

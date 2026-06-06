@@ -15,9 +15,17 @@ Frigate (person snapshot) → Double Take → Recognizer → MQTT → HA Automat
 | CodeProject.AI | Self-hosted | Medium-High | Windows-friendly |
 | AWS Rekognition | Cloud | Very High | Paid, privacy tradeoff |
 
-## Recommended: CompreFace
+## Selected: CodeProject.AI (Phase 4)
 
-Run alongside HAOS via a separate Docker host or VM, or as a HAOS add-on if a community image is available.
+**Decision:** [ADR-003](../../docs/decisions/003-face-recognizer.md) — CodeProject.AI on Windows dev PC.
+
+`config/double-take/config.yml` already points to `http://192.168.68.118:32168`.
+
+Install: https://www.codeproject.com/AI/docs/why/installing_on_windows.html
+
+## Alternative: CompreFace
+
+Use if CodeProject.AI accuracy is insufficient. Run via Docker on dev PC or separate host.
 
 ```bash
 docker run -d \

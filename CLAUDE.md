@@ -80,7 +80,7 @@ Note: `docs/naming-conventions.md` specifies `camera.frigate_<zone_id>` as the i
 | `storage_ext` | `binary_sensor.storage_ext_aoa_person` | — | — |
 | `storage_int` | `binary_sensor.storage_int_aoa_person` | — | — |
 
-**D6210 air quality entity IDs** (Phase 5 — REST polling via M2036, see `docs/runbooks/d6210-setup.md`): `sensor.driveway_env_temperature`, `sensor.driveway_env_humidity`, `sensor.driveway_env_co2`, `sensor.driveway_env_voc`, `sensor.driveway_env_nox`, `sensor.driveway_env_pm25`, `sensor.driveway_env_aqi` — pending curl output to confirm JSON structure.
+**D6210 air quality entity IDs** (Phase 5 — MQTT bridge via `air_quality_bridge.py`, see `docs/runbooks/d6210-setup.md`): `sensor.driveway_env_temperature`, `sensor.driveway_env_humidity`, `sensor.driveway_env_co2`, `sensor.driveway_env_voc`, `sensor.driveway_env_nox`, `sensor.driveway_env_pm25`, `sensor.driveway_env_aqi`
 
 **Scene frame entity IDs** (Phase 5 — from `axis/<zone>/scene/frame` analytics stream):
 
@@ -127,7 +127,7 @@ MQTT_USER=frigate
 MQTT_PASS=change-me
 ```
 
-The script excludes `secrets.yaml`, `.storage/`, `*.db`, and `*.log` from sync. It pushes HA config, Frigate config, and Double Take config in three separate rsync passes.
+The script excludes `secrets.yaml`, `.storage/`, `*.db`, and `*.log` from sync. It pushes HA config, Frigate config, and Double Take config in three passes. The bash script uses `rsync`; the PowerShell script uses `scp` (Windows has no rsync by default).
 
 ### YAML Lint
 
@@ -137,7 +137,7 @@ CI runs `yamllint` on all `config/**/*.yaml` and `config/**/*.yml` files on push
 yamllint config/
 ```
 
-The CI rule: max line length 120 (warning), truthy values must be `true`/`false`.
+CI config: `.github/workflows/validate-yaml.yml`. Rules: max line length 120 (warning), truthy values must be `true`/`false`.
 
 ### Camera VAPIX Setup (MQTT + AOA)
 
@@ -145,9 +145,21 @@ The CI rule: max line length 120 (warning), truthy values must be `true`/`false`
 python scripts/configure_cameras.py
 ```
 
+Requires: `pip install requests`
+
 Connects to each camera via VAPIX, configures the MQTT client to publish to Mosquitto, and creates AOA scenarios (PersonOccupancy, VehicleOcc). Safe to re-run — skips scenarios that already exist. Camera IPs are hardcoded in the script; credentials (`CAM_USER`, `CAM_PASS`, `MQTT_USER`, `MQTT_PASS`) are read from `.env`.
 
 **Loitering scenarios cannot be created via script** — the `loitering` AOA type is not supported in current firmware. Configure them manually in each camera's web UI as an "Object in area" scenario named exactly `Loitering` with a minimum time threshold (e.g. 10 s). See `docs/runbooks/aoa-setup.md`.
+
+### D6210 Air Quality Bridge
+
+```bash
+python scripts/air_quality_bridge.py
+```
+
+Requires: `pip install requests paho-mqtt python-dotenv`
+
+Polls the Axis D6210 air quality sensor every 60 s via the M2036 VAPIX proxy (`192.168.68.204`) and publishes readings to Mosquitto under `axis/driveway_env/air/<metric>`. Metrics published: TEMPERATURE, HUMIDITY, CO2, VOC, NOX, PM2.5, AQI. Reads `HA_HOST`, `MQTT_USER`, `MQTT_PASS` from `.env`. Run manually or schedule via Windows Task Scheduler.
 
 ### SSH to Host
 
@@ -170,10 +182,10 @@ config/
       aoa_occupancy.yaml  # AOA Person Occupancy (all 6 cameras)
       aoa_vehicle.yaml    # AOA Vehicle Occupancy (front, driveway_wide, driveway_id)
       aoa_loitering.yaml  # AOA Loitering (front, driveway_wide, driveway_id)
-      d6210_radar.yaml    # D6210 radar motion + presence
       scene_presence.yaml # Binary presence from scene/frame (faster than AOA)
     mqtt_sensors/        → merged via !include_dir_merge_list mqtt_sensors/
       scene_metadata.yaml # Axis scene metadata
+      air_quality.yaml    # D6210 environmental metrics (temperature, humidity, CO2, VOC, NOX, PM2.5, AQI)
     mqtt_images/         → merged via !include_dir_merge_list mqtt_images/
       scene_snapshots.yaml # Axis snapshot images — declared under top-level image: key, NOT under mqtt:
     scripts/             → merged via !include_dir_merge_named scripts/
@@ -247,6 +259,7 @@ All AOA payloads are JSON `{Data: {active: bool}}` — use `value_template: "{{ 
 - Never commit directly to `main` — use PRs from `dev` or a feature branch
 - Branch naming: `feature/<name>`, `fix/<name>`, `docs/<name>`
 - Commit format: `<type>: <short summary>` — types: `feat`, `fix`, `docs`, `config`, `refactor`, `chore`
+- See `CONTRIBUTING.md` for PR process and self-review checklist
 
 ## Phase Status
 
@@ -255,30 +268,41 @@ All AOA payloads are JSON `{Data: {active: bool}}` — use `value_template: "{{ 
 | 1 | Foundation — naming, areas, MQTT, backups | Done |
 | 2 | Cameras + Frigate — 6 cameras, recording, HA integration (99 entities) | Done |
 | 3 | Dashboard — 5 views live at `/lovelace/home-lab` | Done |
-| 4 | Face recognition (Double Take + recognizer) | Blocked — see below |
-| 5 | Axis analytics (ACAP + MQTT) | In Progress — AOA entities defined; MQTT publication from cameras not yet verified |
+| 4 | Face recognition (Double Take + CodeProject.AI) | In Progress — config done, CodeProject.AI install needed |
+| 5 | Axis analytics (ACAP + MQTT) | In Progress — entities defined; E2E verification needed |
 | 6 | AI integration (Ollama + Qwen) | Future |
+| 7 | Data platform (InfluxDB, trends) | Future |
+| 8 | Digital twin (unified house state) | Future |
 
-### Phase 4 Blocker: Face Recognizer Selection
+### Phase 4: Face Recognizer
 
-Double Take is running and configured. Needs a recognizer backend:
+**Decision:** CodeProject.AI on Windows dev PC — see `docs/decisions/003-face-recognizer.md`.
 
-**Option A — CodeProject.AI** (easier): Native Windows installer, no Docker, port 32168. Double Take config already points to `192.168.68.118:32168`. Install from codeproject.ai, then restart Double Take.
+Double Take config already points to `http://192.168.68.118:32168`. Next steps:
 
-**Option B — CompreFace** (better accuracy): Requires enabling Intel VT-x in BIOS → Docker Desktop → `docker compose up -d` in `docker/compreface/` → update `config/double-take/config.yml` with the CompreFace API key.
+1. Install CodeProject.AI on dev PC, enable Face Recognition module
+2. Restart Double Take add-on
+3. Upload training photos via Double Take UI at `http://192.168.68.175:3000`
 
-After either option: upload training photos for Thomas/Nils/Hugo/Anna via the Double Take UI at `http://192.168.68.175:3000`.
+Fallback: CompreFace via `docker/compreface/` if accuracy is insufficient.
 
 ## Key Docs
 
+- `docs/vision.md` — project vision (Data Insights Lab, not lamp automation)
+- `docs/scope.md` — in/out-of-scope boundaries
+- `docs/current-focus.md` — AI assistant quick-start (read first)
 - `docs/naming-conventions.md` — authoritative naming reference
-- `docs/backlog.md` — prioritized work items (Now/Next/Later/Future)
+- `docs/roadmap.md` — 8-phase roadmap with current status
+- `docs/backlog.md` — prioritized work items
+- `agents/` — Cursor agent role definitions
+- `projects/` — sub-project briefs
 - `docs/architecture/overview.md` — system diagrams with Mermaid
 - `docs/architecture-review.md` — known risks and revised v1 design
 - `docs/hardware/cameras.md` — per-camera specs, HA roles, Frigate roles
 - `docs/dashboard-design.md` — visual layout for all 5 dashboard views
 - `docs/decisions/` — Architecture Decision Records (ADRs)
 - `docs/runbooks/` — step-by-step operational procedures (initial-setup, frigate-setup, aoa-setup, d6210-setup, double-take-setup)
+- `docs/cleanup-plan.md` — known cleanup tasks and tech debt
 
 ## User Context
 

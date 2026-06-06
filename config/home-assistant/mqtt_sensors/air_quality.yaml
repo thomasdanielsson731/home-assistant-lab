@@ -27,7 +27,7 @@
   unique_id: "driveway_env_voc"
   state_topic: "axis/driveway_env/air/voc"
   unit_of_measurement: "ppb"
-  device_class: volatile_organic_compounds_parts
+  device_class: volatile_organic_compounds
   state_class: measurement
 
 - name: "driveway env nox"
@@ -54,6 +54,5 @@
 - name: "driveway env aqi"
   unique_id: "driveway_env_aqi"
   state_topic: "axis/driveway_env/air/aqi"
-  unit_of_measurement: ""
   device_class: aqi
   state_class: measurement

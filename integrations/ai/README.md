@@ -1,5 +1,9 @@
 # AI Integrations
 
+Part of the Personal Data Insights Lab vision — see [docs/vision.md](../../docs/vision.md).
+
+Phase 6 (AI) builds on Phase 7 (data platform). Storage before analysis.
+
 ## Planned Capabilities
 
 ### 1. Local LLM (Natural Language Automations)

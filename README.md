@@ -1,6 +1,10 @@
 # Home Assistant Lab
 
-Personal smart home infrastructure managed as code. Built on Home Assistant OS with a focus on local processing, professional camera coverage, and a clear path toward AI-driven automation.
+A personal **Data Insights Lab** managed as code. Home Assistant is the event hub; cameras and sensors are data sources; AI turns signals into context and insight.
+
+> Not a lamp-automation project — HomeKit handles that. This lab answers: *what can we learn from the data?*
+
+See [docs/vision.md](docs/vision.md) for the full vision and [docs/scope.md](docs/scope.md) for boundaries.
 
 ---
 
@@ -8,10 +12,14 @@ Personal smart home infrastructure managed as code. Built on Home Assistant OS w
 
 ```
 Axis Cameras (6)  ──RTSP──►  Frigate (NVR + detection)  ──MQTT──►  Home Assistant
+        │                                                          ▲
+        └──MQTT (AOA, scene)──────────────────────────────────────┘
                                      │
-                              Double Take  ──►  Face Recognition (CompreFace, planned)
+                              Double Take  ──►  CodeProject.AI (face context)
                                      │
-                              AI Layer (planned: Ollama / Qwen)
+                              AI Layer (Ollama / Qwen — planned)
+                                     │
+                              Storage (InfluxDB — planned)
 ```
 
 ---
@@ -20,12 +28,13 @@ Axis Cameras (6)  ──RTSP──►  Frigate (NVR + detection)  ──MQTT─�
 
 | Component | Detail |
 |---|---|
-| Host | Dell Latitude 3120 |
+| Host | Dell Latitude 3120 (`192.168.68.175`) |
 | OS | Home Assistant OS (HAOS) — x86-64 |
-| Storage | External 1 TB SSD (Frigate recordings) |
-| NVR | Frigate add-on |
-| Face middleware | Double Take add-on |
-| Face recognizer | CompreFace (planned) |
+| Storage | External 1 TB SSD at `/media/frigate` |
+| NVR | Frigate 0.17.1 add-on |
+| Face middleware | Double Take 1.13.1 add-on |
+| Face recognizer | CodeProject.AI on Windows dev PC (`192.168.68.118:32168`) |
+| MQTT | Mosquitto add-on |
 
 ---
 
@@ -33,11 +42,12 @@ Axis Cameras (6)  ──RTSP──►  Frigate (NVR + detection)  ──MQTT─�
 
 | Component | Detail |
 |---|---|
-| Workstation | Windows PC |
-| Editor | VS Code + Cursor |
-| AI assistant | Claude Code |
+| Workstation | Windows PC at `192.168.68.118` |
+| Editors | VS Code + Cursor |
+| AI | Claude Code, Cursor agents (`agents/`) |
 | Local LLM | Ollama + Qwen |
-| Config sync | `scripts/sync-config.sh` via SSH |
+| Bridges | `air_quality_bridge.py` (D6210 → MQTT) |
+| Config sync | `scripts/sync-config.ps1` / `.sh` via SSH |
 
 ---
 
@@ -45,56 +55,13 @@ Axis Cameras (6)  ──RTSP──►  Frigate (NVR + detection)  ──MQTT─�
 
 | Zone ID | Model | Location | Purpose |
 |---|---|---|---|
-| `front` | Axis P3288 | Front entrance | Person / face detection |
+| `front` | Axis P3288-LVE | Front entrance | Person / face detection |
 | `driveway_wide` | Axis Q3558-LVE | Driveway — wide | Area overview, vehicle detection |
-| `driveway_id` | Axis M2036 | Driveway — close | License plate / face identification |
-| `backyard` | Axis Q1656 | Backyard | Perimeter coverage |
-| `storage_ext` | Axis Q1656 | Storage building — exterior | Door / perimeter monitoring |
-| `storage_int` | Axis M1055 | Storage building — interior | Interior presence detection |
-
-### Environmental Sensor
-
-| Zone ID | Model | Connected to | Purpose |
-|---|---|---|---|
-| `driveway_env` | Axis D6210 | M2036 (driveway_id) | Motion radar + environment |
-
----
-
-## Software Stack
-
-| Layer | Technology |
-|---|---|
-| Core platform | Home Assistant OS |
-| NVR + detection | Frigate |
-| Face middleware | Double Take |
-| Face recognizer | CompreFace (planned) |
-| MQTT broker | Mosquitto (built-in add-on) |
-| Dashboards | Mushroom Cards + Sections layout |
-| Config management | Git + SSH sync |
-| Development AI | Ollama + Qwen (local LLM) |
-
----
-
-## Repository Layout
-
-```
-config/                  All service configuration (no secrets committed)
-  home-assistant/        HA configuration.yaml, automations, scripts, lovelace
-  frigate/               Frigate config.yml + per-camera masks
-  double-take/           Double Take config.yml
-docs/
-  architecture/          System design, data flows, network topology
-  hardware/              Server, camera, and sensor reference docs
-  decisions/             Architecture Decision Records (ADRs)
-  runbooks/              Step-by-step operational procedures
-integrations/            Design notes for planned integrations
-  face-recognition/      CompreFace pipeline design
-  axis-analytics/        Axis ACAP + MQTT analytics design
-  ai/                    Ollama / Qwen automation assistant design
-scripts/                 Config sync, backup, dev utilities
-environments/            Production vs development environment notes
-.github/                 Issue templates, PR template, CI workflow
-```
+| `driveway_id` | Axis M2036-LE | Driveway — close | Identification point |
+| `backyard` | Axis Q1656-LE | Backyard | Perimeter coverage |
+| `storage_ext` | Axis M1055-L | Storage — exterior | Door / perimeter |
+| `storage_int` | Axis Q1656 | Storage — interior | Interior presence |
+| `driveway_env` | Axis D6210 | Via M2036 proxy | Air quality (temp, CO₂, AQI, PM) |
 
 ---
 
@@ -102,36 +69,59 @@ environments/            Production vs development environment notes
 
 | Phase | Focus | Status |
 |---|---|---|
-| 1 — Foundation | HAOS stable, SSH, MQTT, HA configured | In progress |
-| 2 — Cameras | All 6 Axis cameras in Frigate, detection working | Planned |
-| 3 — Dashboard | Mushroom Cards, Sections layout, mobile-first | Planned |
-| 4 — Face Recognition | Double Take + CompreFace, known-person automations | Planned |
-| 5 — Axis Analytics | ACAP apps, MQTT metadata into HA | Planned |
-| 6 — AI Integration | Ollama/Qwen automation assistant, scene understanding | Planned |
+| 1 — Foundation | HAOS, MQTT, naming, backups | **Done** |
+| 2 — Cameras | 6 cameras in Frigate, detection, recording | **Done** |
+| 3 — Dashboard | 5 views, mobile-first | **Done** |
+| 4 — Face Recognition | Double Take + CodeProject.AI | **In progress** |
+| 5 — Axis Analytics | AOA, scene metadata, air quality | **In progress** |
+| 6 — AI Integration | Ollama/Qwen, scene understanding | Planned |
+| 7 — Data Platform | InfluxDB, Grafana, event history | Planned |
+| 8 — Digital Twin | Unified house state, NL queries | Planned |
+
+Full detail: [docs/roadmap.md](docs/roadmap.md) · Work queue: [docs/backlog.md](docs/backlog.md)
 
 ---
 
-## Future AI Ambitions
+## Repository Layout
 
-- **Local LLM automation assistant** — natural language commands via Ollama + Qwen, no cloud dependency
-- **Custom object detection** — Axis ACAP custom models trained on lab footage
-- **Scene understanding** — vision-language model captions on Frigate events
-- **Anomaly detection** — statistical baseline over time-of-day event patterns
-- **AI agent loop** — Claude Code + Cursor as the development co-pilot for all of the above
+```
+config/                  Service configuration (no secrets committed)
+  home-assistant/        HA config, automations, MQTT sensors, dashboards
+  frigate/               NVR config + per-camera masks
+  double-take/           Face recognition middleware
+docs/
+  vision.md              Project vision and principles
+  scope.md               In/out-of-scope boundaries
+  current-focus.md       AI assistant quick-start (read this first)
+  roadmap.md             Phase plan with done criteria
+  backlog.md             Prioritized work queue
+  architecture/          System design and data flows
+  hardware/              Server and camera reference
+  decisions/             Architecture Decision Records (ADRs)
+  runbooks/              Operational procedures
+agents/                  Cursor agent role definitions
+projects/                Sub-project briefs
+integrations/            Integration design notes
+scripts/                 Sync, camera setup, bridges
+```
 
 ---
 
 ## Getting Started
 
+**For AI assistants:** Read [docs/current-focus.md](docs/current-focus.md) and [CLAUDE.md](CLAUDE.md) first.
+
+**For humans:**
+
 1. Clone this repo on your Windows dev machine
-2. Copy `.env.example` → `.env` and fill in `HA_HOST`
+2. Copy `.env.example` → `.env` and fill in `HA_HOST`, credentials
 3. Follow [docs/runbooks/initial-setup.md](docs/runbooks/initial-setup.md)
-4. Run `./scripts/sync-config.sh` to push config to the HAOS host
+4. Run `.\scripts\sync-config.ps1` to push config to HAOS
 
 ## Naming Conventions
 
-All entity IDs, file names, and zone identifiers follow the conventions in [docs/naming-conventions.md](docs/naming-conventions.md).
+[docs/naming-conventions.md](docs/naming-conventions.md) — authoritative reference for all entity IDs, files, and zones.
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for branch strategy and PR process.
+[CONTRIBUTING.md](CONTRIBUTING.md) — branch strategy, commit format, PR process.

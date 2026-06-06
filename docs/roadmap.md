@@ -1,92 +1,72 @@
 # Roadmap
 
-Long-term vision for the Home Assistant Lab — from stable platform to AI-driven smart home. Phases are sequential; each phase must reach "Done Criteria" before starting the next.
+From stable platform to AI-driven Data Insights Lab. Phases are sequential; each must reach its done criteria before the next begins.
+
+Vision: [vision.md](vision.md) · Scope: [scope.md](scope.md) · Work queue: [backlog.md](backlog.md)
 
 ---
 
 ## Phase 1 — Foundation `[Done]`
 
-**Goal:** Stable, maintainable HAOS installation with correct naming, areas, backups, and MQTT.
+**Goal:** Stable HAOS installation with naming, areas, backups, and MQTT.
 
 | Task | Status |
 |---|---|
-| HAOS installed on Dell Latitude 3120 | ✅ |
-| External 1 TB SSD mounted at `/media/frigate` | ✅ |
-| SSH access configured (port 22222) | ✅ |
-| Mosquitto MQTT running and tested | ✅ |
-| Automatic backups enabled | ✅ |
+| HAOS on Dell Latitude 3120 | ✅ |
+| External 1 TB SSD at `/media/frigate` | ✅ |
+| SSH (port 22222) | ✅ |
+| Mosquitto MQTT | ✅ |
+| Automatic backups | ✅ |
 | Naming conventions applied | ✅ |
-| Areas created and devices assigned (14 areas) | ✅ |
-| Person entities created (Thomas, Nils, Hugo, Anna) | ✅ |
-| HACS + Mushroom Cards, Frigate Card installed | ✅ |
-| Config syncing from this repo | ✅ |
-| Presence detection via TP-Link Deco + Companion | ⬜ |
-
-**Done when:** All tasks above complete including presence detection.
+| 14 areas + person entities | ✅ |
+| HACS + Mushroom Cards, Frigate Card | ✅ |
+| Config sync from repo | ✅ |
+| Presence via TP-Link Deco + Companion | ⬜ |
 
 ---
 
 ## Phase 2 — Cameras and Frigate `[Done]`
 
-**Goal:** All 6 Axis cameras streaming reliably into Frigate. Object detection producing HA entities.
+**Goal:** All 6 Axis cameras in Frigate. Detection producing HA entities.
 
 | Task | Status |
 |---|---|
-| Frigate 0.17.1 add-on installed | ✅ |
-| `front` (P3288) — dual stream in Frigate | ✅ |
-| `driveway_wide` (Q3558-LVE) — dual stream | ✅ |
-| `driveway_id` (M2036) — dual stream | ✅ |
-| `backyard` (Q1656) — dual stream | ✅ |
-| `storage_ext` (Q1656) — dual stream | ✅ |
-| `storage_int` (M1055) — dual stream | ✅ |
-| Frigate HA integration installed (99 entities) | ✅ |
-| Person detection events flowing to automations | ✅ |
-| Vehicle detection on driveway cameras | ✅ |
-| Recording verified to 1 TB SSD | ✅ |
-| Retention policy configured (7 days default) | ✅ |
-| D6210 radar sensor — integrated as binary_sensor | ⬜ |
-
-**Done when:** D6210 radar integrated and producing HA entities.
+| Frigate 0.17.1 add-on | ✅ |
+| All 6 cameras — dual stream | ✅ |
+| Frigate HA integration (99 entities) | ✅ |
+| Person + vehicle detection automations | ✅ |
+| Recording to 1 TB SSD, 7-day retention | ✅ |
 
 ---
 
 ## Phase 3 — Dashboard `[Done]`
 
-**Goal:** Clean, mobile-first dashboard following the [dashboard design](dashboard-design.md).
+**Goal:** Mobile-first dashboard per [dashboard-design.md](dashboard-design.md).
 
 | Task | Status |
 |---|---|
-| Sections layout enabled | ✅ |
-| Mushroom Cards configured | ✅ |
-| View: Home — presence, quick status, recent events | ✅ |
-| View: Cameras — all 6 feeds in zone layout | ✅ |
-| View: Rooms — ground floor + upper floor + outdoor | ✅ |
-| View: Security — detections, alarms, event log | ✅ |
-| View: Operations — system health, add-on status, storage | ✅ |
-| Mobile layout tested on phone | ✅ |
-| Frigate Card installed and working in Cameras view | ✅ |
+| 5 views live at `/lovelace/home-lab` | ✅ |
+| Home, Cameras, Rooms, Security, Operations | ✅ |
+| Frigate Card + Mushroom Cards | ✅ |
 
 ---
 
-## Phase 4 — Face Recognition `[Blocked]`
+## Phase 4 — Face Recognition `[In Progress]`
 
-**Goal:** Known persons identified at `front` and `driveway_id` cameras. Unknown person alerts working.
+**Goal:** Known persons identified at `front` and `driveway_id`. Unknown person alerts.
 
-**Blocker:** Face recognizer backend not yet chosen. See CLAUDE.md Phase 4 section for options.
+**Decision:** CodeProject.AI on Windows dev PC — see [ADR-003](decisions/003-face-recognizer.md).
 
 | Task | Status |
 |---|---|
-| Double Take 1.13.1 add-on installed and configured | ✅ |
-| Frigate → Double Take webhook configured | ✅ |
-| CompreFace or CodeProject.AI deployed and connected | ⬜ |
-| Training images collected for Thomas, Nils, Hugo, Anna | ⬜ |
-| Thomas — recognized at `front` (>85% confidence) | ⬜ |
-| Nils — recognized at `front` | ⬜ |
-| Hugo — recognized at `front` | ⬜ |
-| Anna — recognized at `front` | ⬜ |
+| Double Take 1.13.1 installed and configured | ✅ |
+| Frigate → Double Take webhook | ✅ |
+| CodeProject.AI installed on dev PC | ⬜ |
+| Face module enabled in CodeProject.AI | ⬜ |
+| Training images for Thomas, Nils, Hugo, Anna | ⬜ |
+| Recognition at `front` (>85% confidence) | ⬜ |
 | Unknown person alert automation | ⬜ |
-| Known person welcome automation (lights, door unlock) | ⬜ |
-| Face match events visible in Security dashboard | ⬜ |
+| Known person context in Security dashboard | ⬜ |
 
 **Done when:** All household members reliably identified. Unknown persons trigger push notification with snapshot.
 
@@ -94,55 +74,92 @@ Long-term vision for the Home Assistant Lab — from stable platform to AI-drive
 
 ## Phase 5 — Axis Analytics `[In Progress]`
 
-**Goal:** Leverage Axis ACAP platform for custom detection models and rich MQTT metadata directly from camera firmware.
+**Goal:** Axis analytics (AOA, scene metadata, air quality) flowing into HA via MQTT.
 
 | Task | Status |
 |---|---|
-| Axis MQTT client enabled on all cameras | ⬜ |
-| AOA Person Occupancy scenario on all 6 cameras | ⬜ |
-| Axis MQTT → Mosquitto → HA pipeline validated | ⬜ |
-| AOA Vehicle classification on driveway cameras | ⬜ |
-| AOA Loitering detection on driveway cameras | ⬜ |
-| D6210 radar metadata schema documented | ⬜ |
-| D6210 MQTT events → HA binary_sensor | ⬜ |
-| Audit installed ACAP apps on each camera | ⬜ |
-| Custom object model trained on lab footage | ⬜ |
-| ACAP metadata enriching Frigate event context | ⬜ |
+| HA MQTT entity config (AOA, scene, air quality) | ✅ |
+| `configure_cameras.py` — MQTT + AOA scenarios | ✅ |
+| `air_quality_bridge.py` — D6210 → MQTT | ✅ |
+| Axis MQTT client enabled on all cameras | ✅ |
+| AOA Person Occupancy on all 6 cameras | ✅ |
+| AOA Vehicle on driveway cameras | ✅ |
+| AOA Loitering (manual web UI setup) | ⬜ |
+| Scene frame/track sensors verified in HA | ⬜ |
+| D6210 air quality bridge publishing to MQTT | ✅ |
+| D6210 air quality sensors verified in HA | ⬜ |
+| End-to-end MQTT pipeline validated | ⬜ |
+| Audit installed ACAP apps per camera | ⬜ |
+| Custom ACAP model on lab footage | ⬜ |
 
-**Notes (Axis context):**
-- ARTPEC-8 cameras (Q3558-LVE, Q1656) support on-chip inference — no server needed
-- Use AXIS ACAP SDK for custom models; deploy to camera via AXIS Device Manager
-- Axis MQTT schema reference: [developer.axis.com](https://developer.axis.com)
-- HA config files: `config/home-assistant/mqtt_binary_sensors/`
-- Runbook: `docs/runbooks/aoa-setup.md`
+**Config files:**
+- `mqtt_binary_sensors/aoa_*.yaml`, `scene_presence.yaml`
+- `mqtt_sensors/scene_metadata.yaml`, `air_quality.yaml`
+- `mqtt_images/scene_snapshots.yaml`
 
-**Done when:** At least one custom ACAP model running on a production camera, events flowing to HA automations.
+**Runbooks:** [aoa-setup.md](runbooks/aoa-setup.md) · [d6210-setup.md](runbooks/d6210-setup.md)
+
+**Done when:** AOA + scene + air quality sensors verified live in HA for at least one week.
 
 ---
 
 ## Phase 6 — AI Integration `[Future]`
 
-**Goal:** Local LLM as automation assistant. Vision model for scene understanding. No cloud dependency.
+**Goal:** Local LLM for automation assistant and scene understanding. No cloud.
 
 | Task | Status |
 |---|---|
-| Ollama running stably on Windows dev machine | ⬜ |
-| Qwen model benchmarked for HA intent parsing | ⬜ |
-| HA Assist pipeline connected to Ollama via REST | ⬜ |
-| Natural language automation commands working | ⬜ |
-| Qwen-VL (vision model) receiving Frigate snapshots | ⬜ |
+| Ollama + Qwen stable on dev PC | ⬜ |
+| HA Assist pipeline → Ollama REST | ⬜ |
+| Natural language automation commands | ⬜ |
+| Vision model (Qwen-VL) on Frigate snapshots | ⬜ |
 | Scene description automation (event → caption → notify) | ⬜ |
-| Anomaly detection baseline established | ⬜ |
-| AI agent loop: event → context → decision → HA action | ⬜ |
-| Wyoming STT/TTS for voice interface (optional) | ⬜ |
+| Anomaly detection baseline | ⬜ |
+| AI agent loop: event → context → decision → action | ⬜ |
 
-**Done when:** At least one end-to-end AI automation loop running without cloud API calls.
+**Done when:** One end-to-end AI loop running without cloud API calls.
+
+---
+
+## Phase 7 — Data Platform `[Future]`
+
+**Goal:** Time-series storage and dashboards for trend analysis and baselines.
+
+| Task | Status |
+|---|---|
+| InfluxDB deployed (HA add-on or external) | ⬜ |
+| HA → InfluxDB integration configured | ⬜ |
+| Key metrics ingested (energy, env, detections) | ⬜ |
+| Retention policy (30+ days metrics, 7 days events) | ⬜ |
+| Grafana or HA history dashboards | ⬜ |
+| Event rate baselines per zone/time-of-day | ⬜ |
+
+**Design:** [integrations/data-platform/README.md](../integrations/data-platform/README.md)
+
+**Done when:** At least one insight dashboard shows a 7-day trend, not just live state.
+
+---
+
+## Phase 8 — Digital Twin `[Future]`
+
+**Goal:** Unified live state model of the house. Natural-language queries over context.
+
+| Task | Status |
+|---|---|
+| House state template (who, env, activity, energy) | ⬜ |
+| State aggregation from all Phase 5–7 sources | ⬜ |
+| "Who is home?" unified answer | ⬜ |
+| NL query interface (LLM over stored events) | ⬜ |
+| Weekly insight report (automated or agent-generated) | ⬜ |
+
+**Done when:** Can answer "what happened today?" and "why was energy high this week?" from stored data.
 
 ---
 
 ## Principles
 
 - **Local first** — no cloud processing for security-relevant data
-- **One phase at a time** — don't start Phase N+1 until Phase N is stable for 2 weeks
-- **Config as code** — every change in HA is reflected in this repo before closing the PR
-- **Backward compatible** — new integrations must not break existing automations
+- **Insights over automation** — learn from data, don't just react to it
+- **One phase at a time** — stabilise for 2 weeks before expanding
+- **Config as code** — every HA change in this repo
+- **Document decisions** — ADRs for architecture, runbooks for operations

@@ -34,8 +34,7 @@
 - name: "backyard scene object present"
   unique_id: "scene_backyard_object_present"
   state_topic: "axis/backyard/scene/track"
-  value_template: >
-    {{ 'on' if value_json.duration | default(0) < 2 else 'off' }}
+  value_template: "on"
   payload_on: "on"
   payload_off: "off"
   device_class: motion
