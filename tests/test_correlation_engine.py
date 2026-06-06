@@ -106,3 +106,102 @@ class TestArrivalRule:
         p2 = _write_raw(store, ts=now, etype="person", zone="front", eid="p2", identity=identity)
         result = engine.process(p2)
         assert result == []
+
+
+class TestDoorArrivalRule:
+    def test_door_unlock_after_person_at_front(self, engine, store):
+        now = datetime.now(TZ)
+        _write_raw(
+            store,
+            ts=now - timedelta(seconds=30),
+            etype="person",
+            zone="front",
+            eid="p1",
+            identity={"type": "person", "name": "Nils", "source": "double_take", "confidence": 0.9},
+        )
+        door = {
+            "event_id": "d1",
+            "timestamp": now.isoformat(),
+            "type": "door",
+            "location": {"zone": "front", "camera": None},
+            "metadata": {"action": "unlocked", "entity_id": "lock.front_door"},
+            "source": "ha_mqtt",
+            "enriched": False,
+            "summary": "door",
+        }
+        store.write(door)
+        result = engine.process(door)
+        assert len(result) >= 1
+        arrivals = [
+            json.loads(line)
+            for line in store.timeline_jsonl.read_text().splitlines()
+            if json.loads(line).get("type") == "arrival" and json.loads(line).get("enriched")
+        ]
+        assert any(a["metadata"].get("rule", "").startswith("door_unlock") for a in arrivals)
+
+
+class TestBicycleRule:
+    def test_person_and_scene_bicycle_at_driveway_id(self, engine, store):
+        now = datetime.now(TZ)
+        _write_raw(
+            store,
+            ts=now - timedelta(seconds=20),
+            etype="person",
+            zone="driveway_id",
+            eid="p1",
+            identity={"type": "person", "name": "Hugo", "source": "double_take", "confidence": 0.88},
+        )
+        scene = {
+            "event_id": "s1",
+            "timestamp": now.isoformat(),
+            "type": "scene",
+            "location": {"zone": "driveway_id", "camera": "driveway_id"},
+            "metadata": {"persons": 1, "vehicles": 0, "bicycles": 1},
+            "source": "axis_scene",
+            "enriched": False,
+            "summary": "scene",
+        }
+        store.write(scene)
+        result = engine.process(scene)
+        assert len(result) >= 1
+        bicycles = [
+            json.loads(line)
+            for line in store.timeline_jsonl.read_text().splitlines()
+            if json.loads(line).get("type") == "bicycle"
+        ]
+        assert any(b.get("enriched") for b in bicycles)
+        assert any(b["identity"].get("person") == "Hugo" for b in bicycles)
+
+    def test_door_unlock_correlates_bicycle_trip(self, engine, store):
+        now = datetime.now(TZ)
+        _write_raw(store, ts=now - timedelta(seconds=40), etype="person", zone="driveway", eid="p1")
+        scene = {
+            "event_id": "s1",
+            "timestamp": (now - timedelta(seconds=35)).isoformat(),
+            "type": "scene",
+            "location": {"zone": "driveway", "camera": "driveway_wide"},
+            "metadata": {"persons": 1, "bicycles": 1, "vehicles": 0},
+            "source": "axis_scene",
+            "enriched": False,
+            "summary": "scene",
+        }
+        store.write(scene)
+        door = {
+            "event_id": "d1",
+            "timestamp": now.isoformat(),
+            "type": "door",
+            "location": {"zone": "front", "camera": None},
+            "metadata": {"action": "unlocked"},
+            "source": "ha_mqtt",
+            "enriched": False,
+            "summary": "door",
+        }
+        store.write(door)
+        result = engine.process(door)
+        assert len(result) >= 1
+        enriched = [
+            json.loads(line)
+            for line in store.timeline_jsonl.read_text().splitlines()
+            if json.loads(line).get("type") == "bicycle" and json.loads(line).get("enriched")
+        ]
+        assert any(e["metadata"].get("correlated_door_unlock") for e in enriched)

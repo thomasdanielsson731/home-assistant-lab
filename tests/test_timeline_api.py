@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 
 from event_store import TZ
-from timeline_api import build_occupancy_blocks, load_events, load_metrics
+from timeline_api import build_occupancy_blocks, load_events, load_metrics, parse_time_range
 
 
 @pytest.fixture
@@ -62,3 +62,45 @@ def test_load_metrics(tmp_path: Path):
     metrics = load_metrics(hours=24, metrics_path=path)
     assert len(metrics) == 1
     assert metrics[0]["metric"] == "co2"
+
+
+def test_load_events_custom_range(timeline_file: Path):
+    now = datetime.now(TZ)
+    since = now - timedelta(minutes=15)
+    until = now + timedelta(minutes=1)
+    events = load_events(
+        hours=None,
+        since=since,
+        until=until,
+        timeline_path=timeline_file,
+        newest_first=False,
+    )
+    assert len(events) == 3
+
+
+def test_load_metrics_custom_range(tmp_path: Path):
+    path = tmp_path / "metrics.jsonl"
+    now = datetime.now(TZ)
+    rows = [
+        {"timestamp": (now - timedelta(hours=1)).isoformat(), "zone": "front", "values": {"spl": 50}},
+        {"timestamp": now.isoformat(), "zone": "front", "values": {"spl": 55}},
+    ]
+    path.write_text("\n".join(json.dumps(r) for r in rows) + "\n", encoding="utf-8")
+    since = now - timedelta(minutes=30)
+    metrics = load_metrics(hours=None, since=since, until=now + timedelta(seconds=1), metrics_path=path)
+    assert len(metrics) == 1
+
+
+def test_parse_time_range_custom():
+    now = datetime.now(TZ)
+    since = now - timedelta(hours=2)
+    qs = {"from": [since.isoformat()], "to": [now.isoformat()]}
+    s, u, hours = parse_time_range(qs)
+    assert hours is None
+    assert s <= u
+
+
+def test_parse_time_range_hours_fallback():
+    s, u, hours = parse_time_range({})
+    assert hours == 24
+    assert s < u

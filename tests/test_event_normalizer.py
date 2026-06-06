@@ -206,3 +206,21 @@ class TestAoaAndScene:
         assert store.metrics_jsonl.exists()
         row = json.loads(store.metrics_jsonl.read_text().strip())
         assert row["values"]["spl"] == 55.2
+
+    def test_scene_frame_counts_bicycles(self, normalizer, store):
+        topic = "axis/driveway_id/scene/frame"
+        payload = json.dumps({"detections": [{"type": "Human"}, {"type": "Bike"}]})
+        normalizer.handle_scene_frame(topic, payload)
+        row = json.loads(store.timeline_jsonl.read_text().strip())
+        assert row["metadata"]["bicycles"] == 1
+
+    def test_door_lock_unlock_emits_event(self, normalizer, store):
+        topic = "homeassistant/lock/front_door/state"
+        normalizer.handle_door_lock(topic, "unlocked")
+        normalizer.handle_door_lock(topic, "unlocked")
+        lines = store.timeline_jsonl.read_text().strip().splitlines()
+        assert len(lines) == 1
+        row = json.loads(lines[0])
+        assert row["type"] == "door"
+        assert row["metadata"]["action"] == "unlocked"
+        assert row["location"]["zone"] == "front"

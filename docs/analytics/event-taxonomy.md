@@ -10,14 +10,14 @@ Classification, lifecycle, and retention for Danielsson Insights events.
 |---|---|---|---|
 | `person` | Human detected or identified | Frigate, AOA, Double Take | Live |
 | `vehicle` | Car, truck, bus, motorcycle | Frigate, AOA | Live |
-| `bicycle` | Bicycle with optional rider attribution | Frigate + person correlation | Planned |
+| `bicycle` | Bicycle with optional rider attribution | Frigate + scene + correlation engine | Live |
 | `cat` | Cat detected (neighbour cats) | Frigate / custom ACAP model | Planned |
 | `delivery` | Package or courier visit | Correlation: person + vehicle / scene | Live |
 | `arrival` | Household member arrived home | Correlation: identity or vehicle+person | Live |
 | `environment` | Air quality, temp, humidity | D6210 bridge | Live |
 | `occupancy` | Zone occupied (start/end blocks) | Axis AOA via MQTT | Live |
 | `scene` | Scene frame detection counts | Axis scene/frame | Live |
-| `door` | Lock/unlock, open/close | Yale Doorman V3 | Planned |
+| `door` | Lock/unlock, open/close | Yale via HA MQTT (`homeassistant/lock/+/state`) | Live |
 | `smoke` | Smoke detector alert | Zigbee (future) | Future |
 
 ---

@@ -123,9 +123,9 @@ Wed 15:28  Nils arrived by bicycle → door unlocked
 | Dependency | Status |
 |---|---|
 | Face recognition (Nils, Hugo) | Phase 4 — CodeProject.AI |
-| Yale door events | Not integrated |
-| Bicycle detection model | Not implemented |
-| Event store + aggregates | Phase 7 |
+| Yale door events | HA MQTT ingestion live — map `YALE_LOCK_ENTITIES` in `.env` |
+| Bicycle detection model | Scene `bicycles` count + Frigate `bicycle` label |
+| Event store + correlation | Live — `correlation_engine.py` |
 
 ---
 
@@ -134,8 +134,8 @@ Wed 15:28  Nils arrived by bicycle → door unlocked
 | Phase | Task |
 |---|---|
 | 1 | Face recognition working at `driveway_id` |
-| 2 | Yale → `door` events |
-| 3 | Bicycle detection (Frigate label or ACAP) |
-| 4 | Correlation engine (person + bike + door) |
+| 2 | Yale → `door` events | ✅ HA MQTT |
+| 3 | Bicycle detection (Frigate label or ACAP) | ✅ scene + Frigate label |
+| 4 | Correlation engine (person + bike + door) | ✅ |
 | 5 | Bicycle aggregates + dashboard cards |
 | 6 | AI mobility summaries |

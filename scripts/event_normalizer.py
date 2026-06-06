@@ -11,6 +11,7 @@ Sources:
   - axis/+/audio/spl      → metrics (SPL)
   - axis/+/scene/frame    → scene events
   - axis/+/event/ObjectAnalytics/ScenarioOccupancy/# → occupancy start/end
+  - homeassistant/lock/+/state → door lock/unlock (Yale via HA MQTT)
 
 Run: python scripts/event_normalizer.py
 """
@@ -63,8 +64,27 @@ correlator = CorrelationEngine(store)
 _env_cache: dict[str, float | int] = {}
 _last_env_event = 0.0
 _aoa_state: dict[str, tuple[bool, datetime | None]] = {}
-_scene_last: dict[str, tuple[int, int]] = {}
+_scene_last: dict[str, tuple[int, int, int]] = {}
 _spl_last_written: dict[str, float] = {}
+_lock_state: dict[str, str] = {}
+
+HA_LOCK_TOPIC_RE = re.compile(r"homeassistant/lock/(?P<entity>[^/]+)/state")
+BIKE_TYPES = frozenset({"Bike", "bike", "Bicycle", "bicycle"})
+
+
+def _door_zone_map() -> dict[str, str]:
+    raw = os.environ.get("YALE_LOCK_ENTITIES", "front_door:front,yale_doorman:front")
+    out: dict[str, str] = {}
+    for part in raw.split(","):
+        part = part.strip()
+        if ":" not in part:
+            continue
+        entity, zone = part.split(":", 1)
+        out[entity.strip()] = zone.strip()
+    return out
+
+
+DOOR_ZONE_BY_ENTITY = _door_zone_map()
 
 AOA_TOPIC_RE = re.compile(
     r"axis/(?P<zone>[^/]+)/event/ObjectAnalytics/ScenarioOccupancy/(?P<scenario>[^/]+)/Active"
@@ -189,12 +209,13 @@ def handle_double_take(payload: dict) -> None:
 
 def reset_env_state() -> None:
     """Clear caches (for tests)."""
-    global _last_env_event, _env_cache, _aoa_state, _scene_last, _spl_last_written
+    global _last_env_event, _env_cache, _aoa_state, _scene_last, _spl_last_written, _lock_state
     _env_cache = {}
     _last_env_event = 0.0
     _aoa_state = {}
     _scene_last = {}
     _spl_last_written = {}
+    _lock_state = {}
 
 
 def handle_env_metric(topic: str, value: str) -> None:
@@ -307,20 +328,65 @@ def handle_scene_frame(topic: str, payload: str) -> None:
     detections = data.get("detections") or data.get("data", {}).get("detections") or []
     persons = sum(1 for d in detections if d.get("type") in ("Human", "human", "Person"))
     vehicles = sum(1 for d in detections if d.get("type") in ("Car", "car", "Vehicle", "Truck"))
-    if persons == 0 and vehicles == 0:
+    bicycles = sum(1 for d in detections if d.get("type") in BIKE_TYPES)
+    if persons == 0 and vehicles == 0 and bicycles == 0:
         return
     last = _scene_last.get(zone)
-    if last == (persons, vehicles):
+    if last == (persons, vehicles, bicycles):
         return
-    _scene_last[zone] = (persons, vehicles)
+    _scene_last[zone] = (persons, vehicles, bicycles)
 
     ts = _ts_now()
     event = {
         "timestamp": ts,
         "type": "scene",
         "location": {"zone": zone, "camera": zone},
-        "metadata": {"persons": persons, "vehicles": vehicles, "detections": len(detections)},
+        "metadata": {
+            "persons": persons,
+            "vehicles": vehicles,
+            "bicycles": bicycles,
+            "detections": len(detections),
+        },
         "source": "axis_scene",
+        "enriched": False,
+        "identity": {},
+    }
+    event["summary"] = make_summary(event)
+    eid = store.write(event)
+    _correlate(event, eid)
+
+
+def handle_door_lock(topic: str, payload: str) -> None:
+    m = HA_LOCK_TOPIC_RE.match(topic)
+    if not m:
+        return
+    entity = m.group("entity")
+    zone = DOOR_ZONE_BY_ENTITY.get(entity)
+    if not zone:
+        log.debug("Door entity %s not in YALE_LOCK_ENTITIES — skip", entity)
+        return
+
+    state = payload.strip().lower()
+    if state not in ("locked", "unlocked"):
+        return
+
+    prev = _lock_state.get(entity)
+    _lock_state[entity] = state
+    if prev == state:
+        return
+
+    action = "unlocked" if state == "unlocked" else "locked"
+    ts = _ts_now()
+    event = {
+        "timestamp": ts,
+        "type": "door",
+        "location": {"zone": zone, "camera": None},
+        "metadata": {
+            "action": action,
+            "entity_id": f"lock.{entity}",
+            "lock_state": state,
+        },
+        "source": "ha_mqtt",
         "enriched": False,
         "identity": {},
     }
@@ -363,6 +429,8 @@ def on_message(client, userdata, msg):
             handle_scene_frame(msg.topic, msg.payload.decode())
         elif "/ScenarioOccupancy/" in msg.topic:
             handle_aoa_occupancy(msg.topic, msg.payload.decode())
+        elif HA_LOCK_TOPIC_RE.match(msg.topic):
+            handle_door_lock(msg.topic, msg.payload.decode())
     except (json.JSONDecodeError, KeyError, TypeError) as exc:
         log.warning("Bad message on %s: %s", msg.topic, exc)
 
@@ -382,6 +450,7 @@ def main() -> None:
     client.subscribe("axis/+/audio/spl")
     client.subscribe("axis/+/scene/frame")
     client.subscribe("axis/+/event/ObjectAnalytics/ScenarioOccupancy/#")
+    client.subscribe("homeassistant/lock/+/state")
 
     log.info("Event normalizer started  mqtt=%s  store=%s", MQTT_HOST, store.events_root)
     client.loop_forever()

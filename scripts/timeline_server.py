@@ -24,6 +24,7 @@ from timeline_api import (  # noqa: E402
     event_summary_stats,
     load_events,
     load_metrics,
+    parse_time_range,
 )
 
 REPO_ROOT = Path(__file__).parent.parent
@@ -56,6 +57,11 @@ def _hours_from_qs(qs: dict) -> int:
     return int(qs.get("hours", ["24"])[0])
 
 
+def _range_from_qs(qs: dict) -> tuple:
+    since, until, hours = parse_time_range(qs)
+    return since, until, hours
+
+
 TIMELINE_V1_HTML = """<!DOCTYPE html>
 <html lang="sv">
 <head>
@@ -71,6 +77,8 @@ TIMELINE_V1_HTML = """<!DOCTYPE html>
     .toolbar { display: flex; gap: 0.5rem; flex-wrap: wrap; padding: 0.75rem 1.25rem; align-items: center; }
     .toolbar button { padding: 0.35rem 0.85rem; border: none; border-radius: 1rem; background: #2d2f36; color: #bdc1c6; cursor: pointer; font-size: 0.8rem; }
     .toolbar button.active { background: #8ab4f8; color: #0f1117; }
+    .toolbar input[type="datetime-local"] { padding: 0.3rem 0.5rem; border: 1px solid #2d2f36; border-radius: 0.5rem; background: #16181d; color: #e8eaed; font-size: 0.75rem; }
+    .toolbar .range-label { color: #9aa0a6; font-size: 0.75rem; }
     .stats { color: #9aa0a6; font-size: 0.75rem; margin-left: auto; }
     main { display: grid; grid-template-columns: 1fr 280px; min-height: calc(100vh - 120px); }
     @media (max-width: 800px) { main { grid-template-columns: 1fr; } }
@@ -89,6 +97,10 @@ TIMELINE_V1_HTML = """<!DOCTYPE html>
     .legend .occupancy::before { background: #fdd663; border-radius: 2px; width: 12px; height: 6px; }
     .legend .scene::before { background: #c58af9; }
     .legend .environment::before { background: #78d9ec; }
+    .legend .bicycle::before { background: #a8dab5; }
+    .legend .door::before { background: #e8c4a0; }
+    #canvas-wrap { cursor: grab; }
+    #canvas-wrap.dragging { cursor: grabbing; }
   </style>
 </head>
 <body>
@@ -100,11 +112,21 @@ TIMELINE_V1_HTML = """<!DOCTYPE html>
     <button data-hours="1">1 h</button>
     <button data-hours="24" class="active">24 h</button>
     <button data-hours="168">7 d</button>
+    <span class="range-label">Från</span>
+    <input type="datetime-local" id="from-input">
+    <span class="range-label">Till</span>
+    <input type="datetime-local" id="to-input">
+    <button type="button" id="apply-range">Apply</button>
+    <button type="button" id="zoom-in" title="Zoom in">+</button>
+    <button type="button" id="zoom-out" title="Zoom out">−</button>
+    <button type="button" id="zoom-reset" title="Reset view">Reset</button>
     <span class="stats" id="stats"></span>
   </div>
   <div class="legend">
     <span class="person">Person</span>
     <span class="vehicle">Vehicle</span>
+    <span class="bicycle">Bicycle</span>
+    <span class="door">Door</span>
     <span class="occupancy">Occupancy block</span>
     <span class="scene">Scene</span>
     <span class="environment">Environment</span>
@@ -122,24 +144,90 @@ TIMELINE_V1_HTML = """<!DOCTYPE html>
     const canvas = document.getElementById('timeline');
     const ctx = canvas.getContext('2d');
     let hours = 24;
+    let customFrom = null;
+    let customTo = null;
     let events = [];
     let blocks = [];
     let metrics = [];
+    let viewStart = 0;
+    let viewEnd = 0;
+    let dragging = false;
+    let dragStartX = 0;
+    let dragViewStart = 0;
 
-    const LANES = ['arrival', 'delivery', 'occupancy', 'person', 'vehicle', 'scene', 'environment'];
-    const COLORS = { arrival: '#f28b82', delivery: '#fdcfe8', person: '#8ab4f8', vehicle: '#81c995', scene: '#c58af9', environment: '#78d9ec', occupancy: '#fdd663' };
+    const LANES = ['arrival', 'delivery', 'bicycle', 'door', 'occupancy', 'person', 'vehicle', 'scene', 'environment'];
+    const COLORS = {
+      arrival: '#f28b82', delivery: '#fdcfe8', bicycle: '#a8dab5', door: '#e8c4a0',
+      person: '#8ab4f8', vehicle: '#81c995', scene: '#c58af9', environment: '#78d9ec', occupancy: '#fdd663'
+    };
+
+    function apiQuery() {
+      if (customFrom && customTo) {
+        return `from=${encodeURIComponent(customFrom)}&to=${encodeURIComponent(customTo)}`;
+      }
+      return `hours=${hours}`;
+    }
+
+    function toLocalInputValue(iso) {
+      const d = new Date(iso);
+      const pad = n => String(n).padStart(2, '0');
+      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
+
+    function resetViewToData() {
+      const now = Date.now();
+      const ts = [
+        ...events.map(e => new Date(e.timestamp).getTime()),
+        ...blocks.flatMap(b => [new Date(b.start).getTime(), new Date(b.end).getTime()]),
+        ...metrics.map(m => new Date(m.timestamp).getTime()),
+      ];
+      if (!ts.length) {
+        viewEnd = now;
+        viewStart = customFrom ? new Date(customFrom).getTime() : now - hours * 3600000;
+        if (customTo) viewEnd = new Date(customTo).getTime();
+        return;
+      }
+      viewStart = Math.min(...ts);
+      viewEnd = Math.max(...ts, now);
+      if (customFrom) viewStart = new Date(customFrom).getTime();
+      if (customTo) viewEnd = new Date(customTo).getTime();
+    }
+
+    function clampView(minSpanMs = 60000) {
+      const now = Date.now();
+      if (viewEnd - viewStart < minSpanMs) {
+        const mid = (viewStart + viewEnd) / 2;
+        viewStart = mid - minSpanMs / 2;
+        viewEnd = mid + minSpanMs / 2;
+      }
+      const maxPast = now - 365 * 24 * 3600000;
+      if (viewStart < maxPast) viewStart = maxPast;
+      if (viewEnd > now + 60000) viewEnd = now + 60000;
+    }
+
+    function zoomView(factor, anchorRatio) {
+      const span = viewEnd - viewStart;
+      const anchor = viewStart + span * anchorRatio;
+      const newSpan = span * factor;
+      viewStart = anchor - newSpan * anchorRatio;
+      viewEnd = viewStart + newSpan;
+      clampView();
+      draw();
+    }
 
     async function load() {
+      const q = apiQuery();
       const [ev, occ, met] = await Promise.all([
-        fetch(`/api/v1/events?hours=${hours}`).then(r => r.json()),
-        fetch(`/api/v1/occupancy?hours=${hours}`).then(r => r.json()),
-        fetch(`/api/v1/metrics?hours=${hours}`).then(r => r.json()),
+        fetch(`/api/v1/events?${q}`).then(r => r.json()),
+        fetch(`/api/v1/occupancy?${q}`).then(r => r.json()),
+        fetch(`/api/v1/metrics?${q}`).then(r => r.json()),
       ]);
       events = ev;
       blocks = occ;
       metrics = met;
       document.getElementById('stats').textContent =
         `${events.length} events · ${blocks.length} occupancy blocks · ${metrics.length} metric samples`;
+      resetViewToData();
       renderOccupancy();
       draw();
     }
@@ -158,10 +246,9 @@ TIMELINE_V1_HTML = """<!DOCTYPE html>
       const w = canvas.width, h = canvas.height;
       ctx.fillStyle = '#16181d';
       ctx.fillRect(0, 0, w, h);
-      const now = Date.now();
-      const start = now - hours * 3600000;
       const pad = 48;
       const laneH = (h - pad - 40) / LANES.length;
+      const span = viewEnd - viewStart || 1;
 
       ctx.strokeStyle = '#2d2f36';
       ctx.beginPath();
@@ -177,13 +264,13 @@ TIMELINE_V1_HTML = """<!DOCTYPE html>
       });
 
       function xFor(ts) {
-        const t = new Date(ts).getTime();
-        return pad + ((t - start) / (now - start)) * (w - pad - 20);
+        const t = typeof ts === 'number' ? ts : new Date(ts).getTime();
+        return pad + ((t - viewStart) / span) * (w - pad - 20);
       }
 
+      const occLane = LANES.indexOf('occupancy');
       blocks.forEach(b => {
-        const lane = 0;
-        const y = pad + lane * laneH + laneH / 2;
+        const y = pad + occLane * laneH + laneH / 2;
         const x1 = xFor(b.start), x2 = xFor(b.end);
         ctx.fillStyle = COLORS.occupancy + '99';
         ctx.fillRect(x1, y - 8, Math.max(x2 - x1, 4), 16);
@@ -240,10 +327,57 @@ TIMELINE_V1_HTML = """<!DOCTYPE html>
     document.getElementById('toolbar').addEventListener('click', e => {
       const btn = e.target.closest('button[data-hours]');
       if (!btn) return;
-      document.querySelectorAll('.toolbar button').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.toolbar button[data-hours]').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       hours = +btn.dataset.hours;
+      customFrom = null;
+      customTo = null;
+      document.getElementById('from-input').value = '';
+      document.getElementById('to-input').value = '';
       load();
+    });
+
+    document.getElementById('apply-range').addEventListener('click', () => {
+      const fromVal = document.getElementById('from-input').value;
+      const toVal = document.getElementById('to-input').value;
+      if (!fromVal || !toVal) return;
+      customFrom = new Date(fromVal).toISOString();
+      customTo = new Date(toVal).toISOString();
+      document.querySelectorAll('.toolbar button[data-hours]').forEach(b => b.classList.remove('active'));
+      load();
+    });
+
+    document.getElementById('zoom-in').addEventListener('click', () => zoomView(0.7, 0.5));
+    document.getElementById('zoom-out').addEventListener('click', () => zoomView(1.4, 0.5));
+    document.getElementById('zoom-reset').addEventListener('click', () => { resetViewToData(); draw(); });
+
+    canvas.addEventListener('wheel', e => {
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      const ratio = (e.clientX - rect.left - 48) / (canvas.width - 60);
+      zoomView(e.deltaY < 0 ? 0.85 : 1.18, Math.max(0, Math.min(1, ratio)));
+    }, { passive: false });
+
+    const wrap = document.getElementById('canvas-wrap');
+    canvas.addEventListener('mousedown', e => {
+      dragging = true;
+      dragStartX = e.clientX;
+      dragViewStart = viewStart;
+      wrap.classList.add('dragging');
+    });
+    window.addEventListener('mousemove', e => {
+      if (!dragging) return;
+      const dx = e.clientX - dragStartX;
+      const span = viewEnd - viewStart;
+      const shift = (dx / (canvas.width - 68)) * span;
+      viewStart = dragViewStart - shift;
+      viewEnd = viewStart + span;
+      clampView();
+      draw();
+    });
+    window.addEventListener('mouseup', () => {
+      dragging = false;
+      wrap.classList.remove('dragging');
     });
 
     load();
@@ -318,23 +452,38 @@ class Handler(BaseHTTPRequestHandler):
         qs = parse_qs(parsed.query)
 
         if parsed.path in ("/api/events", "/api/v1/events"):
-            hours = _hours_from_qs(qs)
+            since, until, hours = _range_from_qs(qs)
             etype = qs.get("type", [None])[0]
-            data = load_events(hours=hours, event_type=etype, timeline_path=TIMELINE_JSONL)
+            data = load_events(
+                hours=hours,
+                since=since,
+                until=until,
+                event_type=etype,
+                timeline_path=TIMELINE_JSONL,
+            )
             self._json_response(data)
             return
 
         if parsed.path == "/api/v1/metrics":
-            hours = _hours_from_qs(qs)
+            since, until, hours = _range_from_qs(qs)
             metrics = qs.get("metric", None)
-            data = load_metrics(hours=hours, metrics=metrics)
+            data = load_metrics(hours=hours, since=since, until=until, metrics=metrics)
             self._json_response(data)
             return
 
         if parsed.path == "/api/v1/occupancy":
-            hours = _hours_from_qs(qs)
-            events = load_events(hours=hours * 2, event_type="occupancy", timeline_path=TIMELINE_JSONL, newest_first=False)
-            self._json_response(build_occupancy_blocks(events, hours=hours))
+            since, until, _hours = _range_from_qs(qs)
+            window = until - since
+            occ_since = since - window
+            events = load_events(
+                hours=None,
+                since=occ_since,
+                until=until,
+                event_type="occupancy",
+                timeline_path=TIMELINE_JSONL,
+                newest_first=False,
+            )
+            self._json_response(build_occupancy_blocks(events, since=since, until=until))
             return
 
         if parsed.path == "/timeline":

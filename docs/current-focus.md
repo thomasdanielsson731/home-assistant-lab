@@ -16,7 +16,7 @@ See [ADR-005](decisions/005-home-intelligence-timeline.md) · [event-model.md](a
 
 | Phase | Focus | Status |
 |---|---|---|
-| **7** | Home Intelligence Timeline — API + UI v1 | In progress |
+| **7** | Home Intelligence Timeline — API + UI v1 + zoom | In progress |
 | **5** | Axis analytics — MQTT to HA + events | Bridges running; loitering manual |
 | **4** | Face recognition — CodeProject.AI + Double Take | On hold |
 
@@ -27,7 +27,7 @@ Phases 1–3 done. Phase 6 (AI) and 8 (digital twin) follow Phase 7 correlation.
 ## Architecture (target)
 
 ```
-Sources → event_normalizer.py → Event Store → Correlation (future) → Timeline API → /timeline
+Sources → event_normalizer.py → Event Store → correlation_engine.py → Timeline API → /timeline
 ```
 
 ---
@@ -58,9 +58,9 @@ python scripts/health-check.py
 | Item | Action |
 |---|---|
 | AOA Loitering | Camera web UI — 3 cameras |
-| Yale Doorman | Integrate when hardware arrives |
+| Yale Doorman | Hardware + HA lock entity — door MQTT ingestion ready |
 | Face recognition | CodeProject.AI + training photos |
-| Correlation rules | `arrival`, `delivery` live — see correlation-engine.md |
+| Correlation rules | `arrival`, `delivery`, `bicycle` + door boost — see correlation-engine.md |
 
 ---
 
@@ -72,7 +72,7 @@ python scripts/health-check.py
 | `scripts/event_store.py` | Persist events, dedup, aggregates |
 | `scripts/timeline_api.py` | Query helpers for API v1 |
 | `scripts/timeline_server.py` | Timeline UI + REST API |
-| `scripts/correlation_engine.py` | Raw → enriched events (`arrival`, `delivery`) |
+| `scripts/correlation_engine.py` | Raw → enriched (`arrival`, `delivery`, `bicycle`) |
 | `scripts/configure_ha_sidebar.py` | Hide HA panels, default Home Lab |
 | `events/timeline.jsonl` | Event stream |
 | `events/metrics.jsonl` | Continuous metrics (env, SPL) |

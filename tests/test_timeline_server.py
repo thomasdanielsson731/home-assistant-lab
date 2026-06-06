@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from http.client import HTTPConnection
 from pathlib import Path
 from threading import Thread
+from urllib.parse import quote
 
 import pytest
 
@@ -127,3 +128,22 @@ class TestTimelineHTTP:
         resp = conn.getresponse()
         assert resp.status == 200
         assert isinstance(json.loads(resp.read().decode()), list)
+
+    def test_api_v1_events_custom_range(self, server):
+        now = datetime.now(TZ)
+        since = (now - timedelta(hours=1)).isoformat()
+        until = (now + timedelta(minutes=1)).isoformat()
+        conn = HTTPConnection("127.0.0.1", server)
+        conn.request("GET", f"/api/v1/events?from={quote(since)}&to={quote(until)}")
+        resp = conn.getresponse()
+        assert resp.status == 200
+        data = json.loads(resp.read().decode())
+        assert any(e["event_id"] == "evt_recent" for e in data)
+
+    def test_timeline_v1_has_zoom_controls(self, server):
+        conn = HTTPConnection("127.0.0.1", server)
+        conn.request("GET", "/timeline")
+        body = conn.getresponse().read().decode()
+        assert "zoom-in" in body
+        assert "from-input" in body
+        assert "bicycle" in body

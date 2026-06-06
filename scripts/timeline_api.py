@@ -14,7 +14,8 @@ DEFAULT_METRICS = REPO_ROOT / "events" / "metrics.jsonl"
 
 
 def _parse_ts(value: str) -> datetime:
-    ts = datetime.fromisoformat(value)
+    # Query strings decode '+' in timezone offsets to space
+    ts = datetime.fromisoformat(value.replace(" ", "+"))
     if ts.tzinfo is None:
         ts = ts.replace(tzinfo=TZ)
     return ts
@@ -60,9 +61,26 @@ def load_events(
     return events
 
 
+def parse_time_range(
+    qs: dict,
+    *,
+    default_hours: int = 24,
+) -> tuple[datetime, datetime, int | None]:
+    """Return (since, until, hours) from query string. Custom from/to overrides hours."""
+    from_raw = qs.get("from", [None])[0]
+    to_raw = qs.get("to", [None])[0]
+    now = datetime.now(TZ)
+    if from_raw and to_raw:
+        return _parse_ts(from_raw), _parse_ts(to_raw), None
+    hours = int(qs.get("hours", [str(default_hours)])[0])
+    return now - timedelta(hours=hours), now, hours
+
+
 def load_metrics(
     *,
-    hours: int = 24,
+    hours: int | None = 24,
+    since: datetime | None = None,
+    until: datetime | None = None,
     metrics: list[str] | None = None,
     zones: list[str] | None = None,
     metrics_path: Path | None = None,
@@ -71,7 +89,11 @@ def load_metrics(
     if not path.exists():
         return []
 
-    since = datetime.now(TZ) - timedelta(hours=hours)
+    now = datetime.now(TZ)
+    if since is None and hours is not None:
+        since = now - timedelta(hours=hours)
+    if until is None:
+        until = now
     allowed = {m.lower() for m in metrics} if metrics else None
     out: list[dict] = []
     for line in path.read_text(encoding="utf-8").splitlines():
@@ -82,7 +104,9 @@ def load_metrics(
         except json.JSONDecodeError:
             continue
         ts = _parse_ts(row["timestamp"])
-        if ts < since:
+        if since and ts < since:
+            continue
+        if until and ts > until:
             continue
         zone = row.get("zone", "")
         if zones and zone not in zones:
@@ -106,9 +130,12 @@ def build_occupancy_blocks(
     events: list[dict],
     *,
     hours: int | None = 24,
+    since: datetime | None = None,
+    until: datetime | None = None,
 ) -> list[dict]:
     """Merge occupancy start/end events into duration blocks."""
-    since = datetime.now(TZ) - timedelta(hours=hours) if hours is not None else None
+    if since is None and hours is not None:
+        since = datetime.now(TZ) - timedelta(hours=hours)
     open_blocks: dict[str, dict] = {}
     blocks: list[dict] = []
 
@@ -118,6 +145,8 @@ def build_occupancy_blocks(
             continue
         ts = _parse_ts(e["timestamp"])
         if since and ts < since:
+            continue
+        if until and ts > until:
             continue
         meta = e.get("metadata") or {}
         zone = e.get("location", {}).get("zone", "?")

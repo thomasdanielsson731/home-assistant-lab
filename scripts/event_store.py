@@ -42,6 +42,7 @@ CAMERA_ZONE = {
 FRIGATE_LABEL_TYPE = {
     "person": "person",
     "car": "vehicle",
+    "bicycle": "bicycle",
 }
 
 

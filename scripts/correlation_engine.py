@@ -21,13 +21,26 @@ log = logging.getLogger("correlation")
 
 # Property zones that count as "approach / entrance"
 ENTRANCE_ZONES = frozenset({"front", "driveway"})
+BICYCLE_ZONES = frozenset({"front", "driveway", "driveway_id"})
 
 ARRIVAL_COOLDOWN = timedelta(minutes=30)
 DELIVERY_COOLDOWN = timedelta(minutes=20)
+BICYCLE_COOLDOWN = timedelta(minutes=20)
 
 ARRIVAL_LOOKBACK = timedelta(minutes=15)
 DELIVERY_LOOKBACK = timedelta(minutes=10)
 VEHICLE_PERSON_WINDOW = timedelta(minutes=2)
+DOOR_ARRIVAL_LOOKBACK = timedelta(minutes=5)
+DOOR_UNLOCK_WINDOW = timedelta(seconds=60)
+BICYCLE_LOOKBACK = timedelta(minutes=5)
+
+_COOLDOWNS = {
+    "arrival": ARRIVAL_COOLDOWN,
+    "delivery": DELIVERY_COOLDOWN,
+    "bicycle": BICYCLE_COOLDOWN,
+}
+
+BIKE_SCENE_TYPES = frozenset({"Bike", "bike", "Bicycle", "bicycle"})
 
 
 def _parse_ts(value: str) -> datetime:
@@ -80,7 +93,12 @@ class CorrelationEngine:
     def process(self, trigger: dict) -> list[str]:
         """Evaluate rules after a raw event is stored. Returns new event_ids."""
         written: list[str] = []
-        for rule in (self._try_delivery, self._try_arrival):
+        for rule in (
+            self._try_delivery,
+            self._try_arrival,
+            self._try_arrival_from_door,
+            self._try_bicycle,
+        ):
             eid = rule(trigger)
             if eid:
                 written.append(eid)
@@ -153,7 +171,7 @@ class CorrelationEngine:
         extra_meta: dict | None = None,
     ) -> str | None:
         parents = [trigger["event_id"]] + [e["event_id"] for e in related if e["event_id"] != trigger["event_id"]]
-        since = _parse_ts(timestamp) - (ARRIVAL_COOLDOWN if etype == "arrival" else DELIVERY_COOLDOWN)
+        since = _parse_ts(timestamp) - _COOLDOWNS.get(etype, DELIVERY_COOLDOWN)
         if self._enriched_exists(parents, etype, since):
             return None
 
@@ -220,6 +238,23 @@ class CorrelationEngine:
             log.info("Correlated delivery: %s", eid)
         return eid
 
+    def _door_unlock_near(self, ts: datetime, *, before: bool = True) -> dict | None:
+        """Return nearest door unlock within DOOR_UNLOCK_WINDOW (before or after ts)."""
+        window_start = ts - DOOR_UNLOCK_WINDOW if before else ts
+        window_end = ts if before else ts + DOOR_UNLOCK_WINDOW
+        doors = self._recent(
+            since=window_start,
+            until=window_end,
+            types=frozenset({"door"}),
+        )
+        unlocks = [
+            d for d in doors
+            if (d.get("metadata") or {}).get("action") == "unlocked"
+        ]
+        if not unlocks:
+            return None
+        return unlocks[-1] if before else unlocks[0]
+
     def _try_arrival(self, trigger: dict) -> str | None:
         ts = _parse_ts(trigger["timestamp"])
         zone = trigger.get("location", {}).get("zone", "")
@@ -230,15 +265,21 @@ class CorrelationEngine:
             if name:
                 if self._arrival_recent_for_person(name, ts - ARRIVAL_COOLDOWN):
                     return None
+                door = self._door_unlock_near(ts, before=False)
+                extra: dict = {"rule": "identified_person", "direction": "arriving"}
+                related: list[dict] = []
+                if door:
+                    extra["door_corroborated"] = True
+                    related = [door]
                 return self._write_enriched(
                     etype="arrival",
                     timestamp=trigger["timestamp"],
                     zone=zone,
                     camera=trigger.get("location", {}).get("camera"),
                     trigger=trigger,
-                    related=[],
+                    related=related,
                     identity=dict(trigger.get("identity") or {}),
-                    extra_meta={"rule": "identified_person", "direction": "arriving"},
+                    extra_meta=extra,
                 )
 
         # Vehicle then person at entrance within 2 min → arrival (unknown or named)
@@ -276,6 +317,12 @@ class CorrelationEngine:
         if not name:
             identity = {"type": "person", "name": "Someone", "source": "correlation", "confidence": 0.5}
 
+        door = self._door_unlock_near(ts, before=False)
+        extra_meta: dict = {"rule": "vehicle_then_person", "direction": "arriving"}
+        if door:
+            extra_meta["door_corroborated"] = True
+            related = [*related, door]
+
         eid = self._write_enriched(
             etype="arrival",
             timestamp=trigger["timestamp"],
@@ -284,10 +331,187 @@ class CorrelationEngine:
             trigger=trigger,
             related=related,
             identity=identity,
-            extra_meta={"rule": "vehicle_then_person", "direction": "arriving"},
+            extra_meta=extra_meta,
         )
         if eid:
             log.info("Correlated arrival: %s", eid)
+        return eid
+
+    def _try_arrival_from_door(self, trigger: dict) -> str | None:
+        if trigger.get("type") != "door":
+            return None
+        if (trigger.get("metadata") or {}).get("action") != "unlocked":
+            return None
+
+        ts = _parse_ts(trigger["timestamp"])
+        zone = trigger.get("location", {}).get("zone", "front")
+        recent = self._recent(
+            since=ts - DOOR_ARRIVAL_LOOKBACK,
+            until=ts,
+            zones=ENTRANCE_ZONES,
+            types=frozenset({"person", "vehicle"}),
+        )
+        persons = [e for e in recent if e["type"] == "person"]
+        vehicles = [e for e in recent if e["type"] == "vehicle"]
+        if not persons:
+            return None
+
+        last_person = persons[-1]
+        identity = dict(last_person.get("identity") or {})
+        rule = "door_unlock"
+        related = [last_person]
+
+        if vehicles:
+            last_vehicle = vehicles[-1]
+            if ts - _parse_ts(last_vehicle["timestamp"]) <= VEHICLE_PERSON_WINDOW:
+                related = [last_vehicle, last_person]
+                rule = "door_unlock_vehicle_person"
+                if not identity.get("name"):
+                    identity = {
+                        "type": "person",
+                        "name": "Someone",
+                        "source": "correlation",
+                        "confidence": 0.55,
+                    }
+        elif not identity.get("name"):
+            identity = {
+                "type": "person",
+                "name": "Someone",
+                "source": "correlation",
+                "confidence": 0.45,
+            }
+
+        name = identity.get("name")
+        if name and name != "Someone" and self._arrival_recent_for_person(name, ts - ARRIVAL_COOLDOWN):
+            return None
+
+        eid = self._write_enriched(
+            etype="arrival",
+            timestamp=trigger["timestamp"],
+            zone=zone,
+            camera=last_person.get("location", {}).get("camera"),
+            trigger=trigger,
+            related=related,
+            identity=identity,
+            extra_meta={"rule": rule, "direction": "arriving", "door_corroborated": True},
+        )
+        if eid:
+            log.info("Correlated arrival from door: %s", eid)
+        return eid
+
+    def _scene_has_bicycle(self, event: dict) -> bool:
+        meta = event.get("metadata") or {}
+        if meta.get("bicycles", 0) >= 1:
+            return True
+        return any(
+            d.get("type") in BIKE_SCENE_TYPES
+            for d in meta.get("detection_types") or []
+        )
+
+    def _try_bicycle(self, trigger: dict) -> str | None:
+        ts = _parse_ts(trigger["timestamp"])
+        ttype = trigger.get("type")
+
+        if ttype == "door":
+            if (trigger.get("metadata") or {}).get("action") != "unlocked":
+                return None
+            zone = trigger.get("location", {}).get("zone", "front")
+            recent = self._recent(
+                since=ts - BICYCLE_LOOKBACK,
+                until=ts,
+                zones=BICYCLE_ZONES,
+                types=frozenset({"person", "bicycle", "scene"}),
+            )
+            persons = [e for e in recent if e["type"] == "person"]
+            bikes = [e for e in recent if e["type"] == "bicycle"]
+            scenes = [e for e in recent if e["type"] == "scene" and self._scene_has_bicycle(e)]
+            if not persons or not (bikes or scenes):
+                return None
+            person_ev = persons[-1]
+            zone = person_ev.get("location", {}).get("zone", zone)
+            related = [e for e in recent if e["event_id"] != trigger["event_id"]]
+            extra: dict = {
+                "rule": "person_and_bicycle",
+                "correlated_door_unlock": True,
+                "time_to_door_seconds": 0,
+            }
+            return self._write_bicycle_enriched(
+                trigger=trigger,
+                person_ev=person_ev,
+                zone=zone,
+                related=related,
+                extra=extra,
+            )
+
+        zone = trigger.get("location", {}).get("zone", "")
+        if zone not in BICYCLE_ZONES:
+            return None
+
+        if ttype == "scene" and not self._scene_has_bicycle(trigger):
+            return None
+        if ttype not in ("person", "bicycle", "scene"):
+            return None
+
+        recent = self._recent(
+            since=ts - BICYCLE_LOOKBACK,
+            until=ts,
+            zones=BICYCLE_ZONES,
+            types=frozenset({"person", "bicycle", "scene"}),
+        )
+
+        persons = [e for e in recent if e["type"] == "person"]
+        bikes = [e for e in recent if e["type"] == "bicycle"]
+        scenes = [e for e in recent if e["type"] == "scene" and self._scene_has_bicycle(e)]
+
+        has_person = bool(persons) or ttype == "person"
+        has_bike = bool(bikes) or (ttype == "bicycle") or (
+            ttype == "scene" and self._scene_has_bicycle(trigger)
+        ) or bool(scenes)
+
+        if not has_person or not has_bike:
+            return None
+
+        person_ev = trigger if ttype == "person" else persons[-1]
+        related = [e for e in recent if e["event_id"] != trigger["event_id"]]
+        extra = {"rule": "person_and_bicycle"}
+        return self._write_bicycle_enriched(
+            trigger=trigger,
+            person_ev=person_ev,
+            zone=zone,
+            related=related,
+            extra=extra,
+        )
+
+    def _write_bicycle_enriched(
+        self,
+        *,
+        trigger: dict,
+        person_ev: dict,
+        zone: str,
+        related: list[dict],
+        extra: dict,
+    ) -> str | None:
+        identity_src = person_ev.get("identity") or {}
+        person_name = identity_src.get("name") or "Someone"
+        identity = {
+            "type": "person",
+            "person": person_name,
+            "name": person_name,
+            "source": identity_src.get("source", "correlation"),
+            "confidence": identity_src.get("confidence", 0.5),
+        }
+        eid = self._write_enriched(
+            etype="bicycle",
+            timestamp=trigger["timestamp"],
+            zone=zone,
+            camera=trigger.get("location", {}).get("camera") or person_ev.get("location", {}).get("camera"),
+            trigger=trigger,
+            related=related,
+            identity=identity,
+            extra_meta=extra,
+        )
+        if eid:
+            log.info("Correlated bicycle: %s", eid)
         return eid
 
     def _arrival_recent_for_person(self, name: str, since: datetime) -> bool:
