@@ -184,14 +184,18 @@ Requires: `pip install requests paho-mqtt python-dotenv websocket-client`
 
 Subscribes to SPL Summary events via VAPIX WebSocket (`wssession.cgi` + `ws-data-stream`) on `front`, `driveway_wide`, and `backyard`. Publishes to `axis/<zone>/audio/spl` as JSON `{"max_spl", "min_spl", "spl"}`. Needs `AXIS_ROOT_PASSWORD` in `.env`. Included in `.\scripts\start-bridges.ps1`.
 
-### Event Normalizer (Danielsson Insights v0)
+### Event Platform (Danielsson Home Intelligence)
 
 ```bash
-python scripts/event_normalizer.py   # Frigate + Double Take + D6210 → events/
-python scripts/timeline_server.py    # Timeline UI at http://localhost:8765
+python scripts/event_normalizer.py   # Frigate, Axis AOA/scene/SPL, D6210 → events/
+python scripts/timeline_server.py    # Timeline API + UI
 ```
 
-See `docs/runbooks/event-normalizer.md`. Start all bridges: `.\scripts\start-bridges.ps1`.
+- List UI: `http://localhost:8765/`
+- **House Intelligence Timeline v1:** `http://localhost:8765/timeline`
+- API: `/api/v1/events`, `/api/v1/metrics`, `/api/v1/occupancy`
+
+See `docs/decisions/005-home-intelligence-timeline.md`. Start all bridges: `.\scripts\start-bridges.ps1`.
 
 ### Lab health check
 

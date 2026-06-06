@@ -1,6 +1,6 @@
-# Vision — Danielsson Insights
+# Vision — Danielsson Home Intelligence Platform
 
-This is not a smart-home automation project. It is **Danielsson Insights** — a personal Home Analytics Platform where the house is the data source, everything is an event, and AI turns signals into understanding.
+This is not a smart-home automation project. It is **Danielsson Home Intelligence** (also *Danielsson Insights* in docs/code) — an event-driven analytics platform where the house is the data source, everything is an event, and the primary question is **what happened?**
 
 > Detailed product vision and Cursor prompts: [vision/danielsson-insights.md](vision/danielsson-insights.md)
 > Event schema: [analytics/event-model.md](analytics/event-model.md)
@@ -9,7 +9,7 @@ This is not a smart-home automation project. It is **Danielsson Insights** — a
 
 ## One-Sentence Goal
 
-Build an AI-driven observatory for the home: sensors and cameras generate events, data is stored and analysed, and the result is actionable context — not lamp control.
+Build a unified event-driven intelligence platform: ingest from cameras, sensors, and locks → normalize → correlate → visualize on a **timeline** — situational awareness, not lamp control.
 
 ---
 
@@ -33,17 +33,21 @@ HomeKit already handles lights and blinds. This project answers different questi
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  INSIGHTS — AI agents, dashboards, natural-language queries │
+│  VISUALIZATION — House Intelligence Timeline, HA ops views   │
 ├─────────────────────────────────────────────────────────────┤
-│  ANALYSIS — LLM, anomaly detection, scene understanding     │
+│  TIMELINE API — /api/v1/events, metrics, occupancy blocks   │
 ├─────────────────────────────────────────────────────────────┤
-│  STORAGE — time-series DB, event history, retention policy    │
+│  CORRELATION — raw detections → enriched events (arrival…)  │
 ├─────────────────────────────────────────────────────────────┤
-│  EVENTS — MQTT, Frigate, AOA, scene/frame, HA state changes  │
+│  EVENT STORE — timeline.jsonl, metrics.jsonl, snapshots       │
 ├─────────────────────────────────────────────────────────────┤
-│  SOURCES — cameras, env sensors, energy, presence, weather    │
+│  INGESTION — event_normalizer.py (Frigate, Axis, D6210, …)  │
+├─────────────────────────────────────────────────────────────┤
+│  SOURCES — cameras, env sensors, locks, presence, weather   │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+See [ADR-005](decisions/005-home-intelligence-timeline.md).
 
 Same shape as a commercial Data Insights platform — just smaller and local-first.
 

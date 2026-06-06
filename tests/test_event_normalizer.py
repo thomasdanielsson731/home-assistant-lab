@@ -176,3 +176,33 @@ class TestDownloadSnapshot:
             side_effect=requests.RequestException("network"),
         ):
             assert normalizer._download_snapshot("evt-id", tmp_path / "x.jpg") is False
+
+
+class TestAoaAndScene:
+    def test_aoa_occupancy_start_end(self, normalizer, store):
+        topic = "axis/front/event/ObjectAnalytics/ScenarioOccupancy/PersonOccupancy/Active"
+        normalizer.handle_aoa_occupancy(topic, json.dumps({"Data": {"active": True}}))
+        normalizer.handle_aoa_occupancy(topic, json.dumps({"Data": {"active": False}}))
+        lines = store.timeline_jsonl.read_text().strip().splitlines()
+        assert len(lines) == 2
+        start = json.loads(lines[0])
+        end = json.loads(lines[1])
+        assert start["type"] == "occupancy"
+        assert start["metadata"]["phase"] == "start"
+        assert end["metadata"]["phase"] == "end"
+
+    def test_scene_frame_emits_on_change(self, normalizer, store):
+        topic = "axis/front/scene/frame"
+        payload = json.dumps({"detections": [{"type": "Human", "score": 0.9}]})
+        normalizer.handle_scene_frame(topic, payload)
+        normalizer.handle_scene_frame(topic, payload)
+        lines = store.timeline_jsonl.read_text().strip().splitlines()
+        assert len(lines) == 1
+        assert json.loads(lines[0])["type"] == "scene"
+
+    def test_audio_spl_writes_metric(self, normalizer, store):
+        topic = "axis/front/audio/spl"
+        normalizer.handle_audio_spl(topic, json.dumps({"max_spl": 55.2}))
+        assert store.metrics_jsonl.exists()
+        row = json.loads(store.metrics_jsonl.read_text().strip())
+        assert row["values"]["spl"] == 55.2

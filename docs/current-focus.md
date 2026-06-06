@@ -6,7 +6,9 @@ Quick-start context for AI assistants. Read this + [CLAUDE.md](../CLAUDE.md) + [
 
 ## Project Identity
 
-**Danielsson Insights** — Home Analytics Platform. Everything is an event. HA ingests; analytics docs define the model. See [vision/danielsson-insights.md](vision/danielsson-insights.md) and [analytics/event-model.md](analytics/event-model.md).
+**Danielsson Home Intelligence Platform** — event-driven situational awareness. Primary UX: **House Intelligence Timeline** at `http://localhost:8765/timeline`. HA dashboard = secondary (ops/security).
+
+See [ADR-005](decisions/005-home-intelligence-timeline.md) · [event-model.md](analytics/event-model.md)
 
 ---
 
@@ -14,78 +16,65 @@ Quick-start context for AI assistants. Read this + [CLAUDE.md](../CLAUDE.md) + [
 
 | Phase | Focus | Status |
 |---|---|---|
-| **5** | Axis analytics — AOA, scene, air quality via MQTT | Bridges running, loitering manual step remains |
-| **4** | Face recognition — CodeProject.AI + Double Take | Config done, CodeProject.AI install needed |
+| **7** | Home Intelligence Timeline — API + UI v1 | In progress |
+| **5** | Axis analytics — MQTT to HA + events | Bridges running; loitering manual |
+| **4** | Face recognition — CodeProject.AI + Double Take | On hold |
 
-Phases 1–3 are done. **Phase 7 v0** (event normalizer + timeline) is live on dev PC. Phases 6–8 (AI, InfluxDB, digital twin) are next.
+Phases 1–3 done. Phase 6 (AI) and 8 (digital twin) follow Phase 7 correlation.
+
+---
+
+## Architecture (target)
+
+```
+Sources → event_normalizer.py → Event Store → Correlation (future) → Timeline API → /timeline
+```
 
 ---
 
 ## Automated Maintenance
 
-Scheduled tasks (after `.\scripts\install-scheduled-tasks.ps1`):
-
-- **Every 6 h:** auto-commit + push + sync to HAOS
-- **Daily 04:00:** above + HA YAML reload (via `HA_TOKEN`)
-- **At logon:** `start-bridges.ps1` (air quality + audio SPL + AOA + event normalizer + timeline)
-
-Logs: `logs/maintenance.log` · Runbook: [maintenance.md](runbooks/maintenance.md)
-
-**MQTT bridges on dev PC** (ADR-004): AOA events don't publish natively on FW 12.x without manual UI steps. `aoa_bridge.py` polls `getOccupancy` every 5 s.
+- **Every 6 h:** `repo-maintenance.ps1` — commit + push + sync
+- **Daily 04:00:** above + HA YAML + MQTT reload
+- **At logon / Startup:** `start-bridges.ps1` (bridges + normalizer + timeline)
 
 ---
 
-## Immediate Next Tasks
-
-### 1. Health check (automated)
+## Immediate Commands
 
 ```powershell
 .\scripts\start-bridges.ps1
 python scripts/health-check.py
 ```
 
-Timeline: `http://localhost:8765` · Events: `events/timeline.jsonl`
+- Timeline v1: `http://localhost:8765/timeline`
+- Event list: `http://localhost:8765/`
+- API: `/api/v1/events`, `/api/v1/metrics`, `/api/v1/occupancy`
 
-### 2. Manual steps remaining
+---
+
+## Manual steps remaining
 
 | Item | Action |
 |---|---|
 | AOA Loitering | Camera web UI — 3 cameras |
-| Audio SPL | Auto-started via `HomeLab-Bridges` task / Startup shortcut |
 | Yale Doorman | Integrate when hardware arrives |
-| Unavailable lights | Re-pair HomeKit/Matter devices |
-| Face recognition | **On hold** — see ADR-003 when ready |
+| Face recognition | CodeProject.AI + training photos |
+| Correlation rules | `arrival`, `delivery` — Phase 7e |
 
 ---
 
-## Key Config Files (Phase 5)
+## Key Files
 
 | File | Purpose |
 |---|---|
-| `mqtt_binary_sensors/aoa_occupancy.yaml` | Person occupancy — 6 cameras |
-| `mqtt_binary_sensors/aoa_vehicle.yaml` | Vehicle — front, driveway_wide, driveway_id |
-| `mqtt_binary_sensors/aoa_loitering.yaml` | Loitering — 3 cameras (manual setup) |
-| `mqtt_binary_sensors/scene_presence.yaml` | Fast presence from scene/frame + track |
-| `mqtt_sensors/scene_metadata.yaml` | Person/vehicle counts |
-| `mqtt_sensors/air_quality.yaml` | D6210 environmental metrics |
-| `mqtt_sensors/audio_analytics.yaml` | SPL sensors (front, driveway_wide, backyard) |
-| `mqtt_images/scene_snapshots.yaml` | Latest detection snapshots |
-| `scripts/configure_cameras.py` | VAPIX: MQTT + AOA scenarios |
-| `scripts/air_quality_bridge.py` | D6210 polling → MQTT |
-| `scripts/audio_bridge.py` | SPL WebSocket → MQTT (needs root creds) |
-
----
-
-## Key Technical Decisions
-
-| Decision | Rationale |
-|---|---|
-| D6210 via MQTT bridge | REST sensors can't easily POST with dynamic timestamps |
-| D6210 via M2036 VAPIX proxy | D6210 has no direct network connection |
-| `scene/track` for backyard/storage, `scene/frame` for front/driveway | Different analytics APIs per camera |
-| AOA loitering manual only | Firmware VAPIX API doesn't expose loitering type |
-| CodeProject.AI for face recognition | Already configured; no Docker/VT-x needed |
-| Bridge on Windows dev PC | HAOS has no persistent process manager |
+| `scripts/event_normalizer.py` | MQTT → canonical events + metrics |
+| `scripts/event_store.py` | Persist events, dedup, aggregates |
+| `scripts/timeline_api.py` | Query helpers for API v1 |
+| `scripts/timeline_server.py` | Timeline UI + REST API |
+| `scripts/configure_ha_sidebar.py` | Hide HA panels, default Home Lab |
+| `events/timeline.jsonl` | Event stream |
+| `events/metrics.jsonl` | Continuous metrics (env, SPL) |
 
 ---
 
@@ -93,9 +82,9 @@ Timeline: `http://localhost:8765` · Events: `events/timeline.jsonl`
 
 | Doc | When to read |
 |---|---|
-| [vision.md](vision.md) | Understanding project direction |
-| [scope.md](scope.md) | What's in/out of scope |
-| [roadmap.md](roadmap.md) | Phase tasks and done criteria |
-| [backlog.md](backlog.md) | Prioritized work queue |
-| [agents/](../agents/) | Cursor agent roles |
-| [projects/](../projects/) | Sub-project briefs |
+| [vision.md](vision.md) | Product direction |
+| [scope.md](scope.md) | In/out of scope |
+| [roadmap.md](roadmap.md) | Phase tasks |
+| [backlog.md](backlog.md) | Work queue |
+| [analytics/event-model.md](analytics/event-model.md) | Event schema |
+| [decisions/005-home-intelligence-timeline.md](decisions/005-home-intelligence-timeline.md) | Timeline architecture |

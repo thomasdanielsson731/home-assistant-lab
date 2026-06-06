@@ -8,9 +8,10 @@ Explicit boundaries for the Home Assistant Lab / Data Insights Lab. When in doub
 
 | | |
 |---|---|
-| **Name** | Home Assistant Lab (repo) / Personal Data Insights Lab (vision) |
-| **Primary purpose** | Collect home data, generate context, learn data/AI platform patterns |
-| **Secondary purpose** | Security monitoring and family presence awareness |
+| **Name** | Home Assistant Lab (repo) / **Danielsson Home Intelligence Platform** (product) |
+| **Primary purpose** | Event-driven situational awareness — *what happened*, not just current state |
+| **Primary UX** | **House Intelligence Timeline** (`http://localhost:8765/timeline`) — see [ADR-005](decisions/005-home-intelligence-timeline.md) |
+| **Secondary UX** | HA `home-lab` dashboard — operations, security, live entity cards |
 | **Not** | A replacement for HomeKit lighting and blind automation |
 
 ---

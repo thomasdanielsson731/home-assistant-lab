@@ -15,6 +15,7 @@ log = logging.getLogger("event_store")
 REPO_ROOT = Path(__file__).parent.parent
 EVENTS_ROOT = REPO_ROOT / "events"
 TIMELINE_JSONL = EVENTS_ROOT / "timeline.jsonl"
+METRICS_JSONL = EVENTS_ROOT / "metrics.jsonl"
 AGGREGATES_DIR = EVENTS_ROOT / "aggregates"
 
 
@@ -48,7 +49,7 @@ FRIGATE_LABEL_TYPE = {
 class EventStore:
     events_root: Path = EVENTS_ROOT
     dedup_seconds: int = 30
-    _recent: list[tuple[datetime, str, str, str]] = field(default_factory=list)
+    _recent: list[tuple[datetime, tuple[str, str, str], str]] = field(default_factory=list)
 
     @property
     def timeline_jsonl(self) -> Path:
@@ -58,10 +59,14 @@ class EventStore:
     def aggregates_dir(self) -> Path:
         return self.events_root / "aggregates"
 
+    @property
+    def metrics_jsonl(self) -> Path:
+        return self.events_root / "metrics.jsonl"
+
     def __post_init__(self) -> None:
         for sub in (
             "person", "vehicle", "bicycle", "cat", "delivery",
-            "environment", "door", "smoke",
+            "environment", "occupancy", "scene", "door", "smoke",
         ):
             (self.events_root / sub).mkdir(parents=True, exist_ok=True)
         self.aggregates_dir.mkdir(parents=True, exist_ok=True)
@@ -69,18 +74,32 @@ class EventStore:
     def _now(self) -> datetime:
         return datetime.now(TZ)
 
-    def _is_duplicate(self, ts: datetime, camera: str, event_type: str) -> bool:
+    def _dedup_key(self, event: dict) -> tuple[str, str, str]:
+        loc = event.get("location", {})
+        camera = loc.get("camera") or loc.get("zone", "")
+        event_type = event["type"]
+        extra = ""
+        if event_type == "occupancy":
+            meta = event.get("metadata") or {}
+            extra = f"{meta.get('scenario', '')}:{meta.get('phase', '')}"
+        elif event_type == "scene":
+            meta = event.get("metadata") or {}
+            extra = f"{meta.get('persons', 0)}:{meta.get('vehicles', 0)}"
+        return (camera, event_type, extra)
+
+    def _is_duplicate(self, ts: datetime, dedup_key: tuple[str, str, str]) -> bool:
         cutoff = ts - timedelta(seconds=self.dedup_seconds)
         self._recent = [
-            (t, c, e, _) for t, c, e, _ in self._recent if t >= cutoff
+            (t, k, _) for t, k, _ in self._recent if t >= cutoff
         ]
-        for t, c, e, _ in self._recent:
-            if c == camera and e == event_type and abs((ts - t).total_seconds()) < self.dedup_seconds:
+        camera, event_type, extra = dedup_key
+        for t, k, _ in self._recent:
+            if k == dedup_key and abs((ts - t).total_seconds()) < self.dedup_seconds:
                 return True
         return False
 
-    def _remember(self, ts: datetime, camera: str, event_type: str, event_id: str) -> None:
-        self._recent.append((ts, camera, event_type, event_id))
+    def _remember(self, ts: datetime, dedup_key: tuple[str, str, str], event_id: str) -> None:
+        self._recent.append((ts, dedup_key, event_id))
         if len(self._recent) > 500:
             self._recent = self._recent[-200:]
 
@@ -93,13 +112,15 @@ class EventStore:
         if ts.tzinfo is None:
             ts = ts.replace(tzinfo=TZ)
 
-        camera = event.get("location", {}).get("camera") or event["location"]["zone"]
-        event_type = event["type"]
+        dedup_key = self._dedup_key(event)
 
-        if self._is_duplicate(ts, camera, event_type):
-            log.debug("Dedup skip %s %s", camera, event_type)
+        if self._is_duplicate(ts, dedup_key):
+            log.debug("Dedup skip %s", dedup_key)
             return None
 
+        loc = event.get("location", {})
+        camera = loc.get("camera") or loc.get("zone", "unknown")
+        event_type = event["type"]
         event_id = event.get("event_id") or self.make_event_id(ts, camera, event_type)
         event["event_id"] = event_id
 
@@ -115,10 +136,16 @@ class EventStore:
         with self.timeline_jsonl.open("a", encoding="utf-8") as f:
             f.write(json.dumps(event, ensure_ascii=False) + "\n")
 
-        self._remember(ts, camera, event_type, event_id)
+        self._remember(ts, dedup_key, event_id)
         self._update_aggregate(event)
         log.info("Event stored: %s (%s)", event_id, event.get("summary", event_type))
         return event_id
+
+    def write_metric(self, timestamp: str, zone: str, values: dict) -> None:
+        """Append a continuous metric sample (timeline metrics layer)."""
+        row = {"timestamp": timestamp, "zone": zone, "values": values}
+        with self.metrics_jsonl.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(row, ensure_ascii=False) + "\n")
 
     def _update_aggregate(self, event: dict) -> None:
         ts = datetime.fromisoformat(event["timestamp"])
@@ -133,7 +160,8 @@ class EventStore:
             agg = {
                 "date": date_key,
                 "counts": {t: 0 for t in (
-                    "person", "vehicle", "bicycle", "cat", "delivery", "environment", "door", "smoke"
+                    "person", "vehicle", "bicycle", "cat", "delivery",
+                    "environment", "occupancy", "scene", "door", "smoke",
                 )},
                 "environment": {},
             }
@@ -223,4 +251,28 @@ def make_summary(event: dict) -> str:
         temp = meta.get("temperature", "?")
         co2 = meta.get("co2", "?")
         return f"Air · {temp}°C CO₂ {co2}"
+    if etype == "occupancy":
+        meta = event.get("metadata", {})
+        scenario = meta.get("scenario", "occupancy")
+        phase = meta.get("phase", "")
+        label = "Vehicle" if "Vehicle" in scenario else "Person"
+        if phase == "start":
+            return f"{label} occupancy started · {zone}"
+        if phase == "end":
+            dur = meta.get("duration_seconds")
+            if dur:
+                return f"{label} occupancy ended · {zone} ({dur}s)"
+            return f"{label} occupancy ended · {zone}"
+        return f"{label} occupancy · {zone}"
+    if etype == "scene":
+        meta = event.get("metadata", {})
+        humans = meta.get("persons", 0)
+        vehicles = meta.get("vehicles", 0)
+        parts = []
+        if humans:
+            parts.append(f"{humans} person(s)")
+        if vehicles:
+            parts.append(f"{vehicles} vehicle(s)")
+        detail = ", ".join(parts) if parts else "object(s)"
+        return f"Scene · {detail} at {zone}"
     return f"{etype} at {zone}"

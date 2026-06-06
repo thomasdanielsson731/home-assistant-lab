@@ -1,12 +1,14 @@
-# Danielsson Insights
+# Danielsson Home Intelligence
 
-The Danielsson Home project is evolving from a smart home platform into a **Home Analytics Platform**.
+The Danielsson Home project is evolving from a smart home platform into a **Home Intelligence Platform** (Danielsson Insights in code/docs).
 
 ```
 Collect → Enrich → Analyze → Visualize → Understand
 ```
 
-**Focus:** event collection, enrichment, metadata, snapshots, timeline, floorplan, AI insights.
+**Focus:** event collection, correlation, timeline API, House Intelligence Timeline UI, metrics layer, AI insights.
+
+**Primary UX:** `http://localhost:8765/timeline` — not the HA Lovelace dashboard.
 
 **Not:** lamp automation (HomeKit handles that). The goal is understanding what happens around the house.
 

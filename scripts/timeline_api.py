@@ -1,0 +1,159 @@
+"""Timeline API v1 — query helpers for House Intelligence Timeline."""
+
+from __future__ import annotations
+
+import json
+from datetime import datetime, timedelta
+from pathlib import Path
+
+from event_store import TZ
+
+REPO_ROOT = Path(__file__).parent.parent
+DEFAULT_TIMELINE = REPO_ROOT / "events" / "timeline.jsonl"
+DEFAULT_METRICS = REPO_ROOT / "events" / "metrics.jsonl"
+
+
+def _parse_ts(value: str) -> datetime:
+    ts = datetime.fromisoformat(value)
+    if ts.tzinfo is None:
+        ts = ts.replace(tzinfo=TZ)
+    return ts
+
+
+def load_events(
+    *,
+    hours: int | None = 168,
+    event_type: str | None = None,
+    since: datetime | None = None,
+    until: datetime | None = None,
+    timeline_path: Path | None = None,
+    newest_first: bool = True,
+) -> list[dict]:
+    path = timeline_path or DEFAULT_TIMELINE
+    if not path.exists():
+        return []
+
+    now = datetime.now(TZ)
+    if since is None and hours is not None:
+        since = now - timedelta(hours=hours)
+    if until is None:
+        until = now
+
+    events: list[dict] = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        try:
+            e = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        ts = _parse_ts(e["timestamp"])
+        if since and ts < since:
+            continue
+        if until and ts > until:
+            continue
+        if event_type and e.get("type") != event_type:
+            continue
+        events.append(e)
+
+    events.sort(key=lambda x: x["timestamp"], reverse=newest_first)
+    return events
+
+
+def load_metrics(
+    *,
+    hours: int = 24,
+    metrics: list[str] | None = None,
+    zones: list[str] | None = None,
+    metrics_path: Path | None = None,
+) -> list[dict]:
+    path = metrics_path or DEFAULT_METRICS
+    if not path.exists():
+        return []
+
+    since = datetime.now(TZ) - timedelta(hours=hours)
+    allowed = {m.lower() for m in metrics} if metrics else None
+    out: list[dict] = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        try:
+            row = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        ts = _parse_ts(row["timestamp"])
+        if ts < since:
+            continue
+        zone = row.get("zone", "")
+        if zones and zone not in zones:
+            continue
+        for key, val in row.get("values", {}).items():
+            if allowed and key.lower() not in allowed:
+                continue
+            out.append(
+                {
+                    "timestamp": row["timestamp"],
+                    "zone": zone,
+                    "metric": key,
+                    "value": val,
+                }
+            )
+    out.sort(key=lambda x: x["timestamp"])
+    return out
+
+
+def build_occupancy_blocks(
+    events: list[dict],
+    *,
+    hours: int | None = 24,
+) -> list[dict]:
+    """Merge occupancy start/end events into duration blocks."""
+    since = datetime.now(TZ) - timedelta(hours=hours) if hours is not None else None
+    open_blocks: dict[str, dict] = {}
+    blocks: list[dict] = []
+
+    sorted_events = sorted(events, key=lambda e: e["timestamp"])
+    for e in sorted_events:
+        if e.get("type") != "occupancy":
+            continue
+        ts = _parse_ts(e["timestamp"])
+        if since and ts < since:
+            continue
+        meta = e.get("metadata") or {}
+        zone = e.get("location", {}).get("zone", "?")
+        scenario = meta.get("scenario", "PersonOccupancy")
+        key = f"{zone}:{scenario}"
+        phase = meta.get("phase")
+
+        if phase == "start":
+            open_blocks[key] = {
+                "zone": zone,
+                "scenario": scenario,
+                "camera": e.get("location", {}).get("camera"),
+                "start": e["timestamp"],
+                "source": e.get("source", "axis_aoa"),
+            }
+        elif phase == "end" and key in open_blocks:
+            start = open_blocks.pop(key)
+            blocks.append(
+                {
+                    "zone": start["zone"],
+                    "scenario": start["scenario"],
+                    "camera": start.get("camera"),
+                    "start": start["start"],
+                    "end": e["timestamp"],
+                    "duration_seconds": meta.get("duration_seconds"),
+                    "source": start.get("source"),
+                }
+            )
+
+    blocks.sort(key=lambda b: b["start"], reverse=True)
+    return blocks
+
+
+def event_summary_stats(events: list[dict]) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for e in events:
+        t = e.get("type", "?")
+        counts[t] = counts.get(t, 0) + 1
+    return counts

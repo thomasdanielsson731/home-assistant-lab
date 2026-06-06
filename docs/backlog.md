@@ -43,14 +43,20 @@ CodeProject.AI path — see [ADR-003](decisions/003-face-recognizer.md).
 
 ---
 
-## Now — Phase 7 Event Platform (v0)
+## Now — Phase 7 Home Intelligence Timeline
 
 | # | Item | Effort | Status |
 |---|---|---|---|
 | P7-1 | Event normalizer — Frigate + DT + D6210 → JSON | M | ✅ |
-| P7-2 | Timeline v0 web UI (`:8765`) | S | ✅ |
+| P7-2 | Timeline list UI (`:8765`) | S | ✅ |
 | P7-3 | Verify person events from live Frigate tracks | S | ✅ health-check |
-| P7-4 | Scheduled tasks for normalizer + timeline | S | ✅ |
+| P7-4 | Bridge startup (scheduled + Startup shortcut) | S | ✅ |
+| P7-5 | ADR-005 + scope/vision docs | S | ✅ |
+| P7-6 | Normalizer — AOA occupancy, scene, SPL metrics | M | ✅ |
+| P7-7 | Timeline API v1 + `/timeline` UI | M | ✅ |
+| P7-8 | Correlation engine (`arrival`, `delivery`) | L | ⬜ |
+| P7-9 | Timeline zoom + custom time range | M | ⬜ |
+| P7-10 | InfluxDB metrics retention | M | ⬜ |
 
 ---
 

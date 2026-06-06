@@ -8,6 +8,9 @@ Sources:
   - frigate/events        → person, vehicle
   - double_take/matches   → identity enrichment
   - axis/driveway_env/air/# → environment (every 15 min)
+  - axis/+/audio/spl      → metrics (SPL)
+  - axis/+/scene/frame    → scene events
+  - axis/+/event/ObjectAnalytics/ScenarioOccupancy/# → occupancy start/end
 
 Run: python scripts/event_normalizer.py
 """
@@ -17,6 +20,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import re
 import sys
 import time
 from datetime import datetime
@@ -56,6 +60,14 @@ log = logging.getLogger("event_normalizer")
 store = EventStore()
 _env_cache: dict[str, float | int] = {}
 _last_env_event = 0.0
+_aoa_state: dict[str, tuple[bool, datetime | None]] = {}
+_scene_last: dict[str, tuple[int, int]] = {}
+_spl_last_written: dict[str, float] = {}
+
+AOA_TOPIC_RE = re.compile(
+    r"axis/(?P<zone>[^/]+)/event/ObjectAnalytics/ScenarioOccupancy/(?P<scenario>[^/]+)/Active"
+)
+SPL_METRIC_INTERVAL = 300  # 5 min per zone
 
 
 def _ts_now() -> str:
@@ -157,10 +169,13 @@ def handle_double_take(payload: dict) -> None:
 
 
 def reset_env_state() -> None:
-    """Clear environment metric cache (for tests)."""
-    global _last_env_event, _env_cache
+    """Clear caches (for tests)."""
+    global _last_env_event, _env_cache, _aoa_state, _scene_last, _spl_last_written
     _env_cache = {}
     _last_env_event = 0.0
+    _aoa_state = {}
+    _scene_last = {}
+    _spl_last_written = {}
 
 
 def handle_env_metric(topic: str, value: str) -> None:
@@ -206,6 +221,104 @@ def handle_env_metric(topic: str, value: str) -> None:
     }
     event["summary"] = make_summary(event)
     store.write(event)
+    store.write_metric(ts, "driveway_env", dict(_env_cache))
+
+
+def handle_aoa_occupancy(topic: str, payload: str) -> None:
+    m = AOA_TOPIC_RE.match(topic)
+    if not m:
+        return
+    zone = m.group("zone")
+    scenario = m.group("scenario")
+    try:
+        data = json.loads(payload)
+        active = bool(data.get("Data", {}).get("active"))
+    except json.JSONDecodeError:
+        return
+
+    key = f"{zone}:{scenario}"
+    prev = _aoa_state.get(key, (False, None))
+    was_active, started_at = prev
+    now = datetime.now(TZ)
+    ts = now.isoformat(timespec="seconds")
+
+    if active and not was_active:
+        _aoa_state[key] = (True, now)
+        event = {
+            "timestamp": ts,
+            "type": "occupancy",
+            "location": {"zone": zone, "camera": zone},
+            "metadata": {"scenario": scenario, "phase": "start", "active": True},
+            "source": "axis_aoa",
+            "enriched": False,
+            "identity": {},
+        }
+        event["summary"] = make_summary(event)
+        store.write(event)
+    elif not active and was_active:
+        duration = int((now - started_at).total_seconds()) if started_at else None
+        _aoa_state[key] = (False, None)
+        event = {
+            "timestamp": ts,
+            "type": "occupancy",
+            "location": {"zone": zone, "camera": zone},
+            "metadata": {
+                "scenario": scenario,
+                "phase": "end",
+                "active": False,
+                "duration_seconds": duration,
+            },
+            "source": "axis_aoa",
+            "enriched": False,
+            "identity": {},
+        }
+        event["summary"] = make_summary(event)
+        store.write(event)
+
+
+def handle_scene_frame(topic: str, payload: str) -> None:
+    zone = topic.split("/")[1]
+    try:
+        data = json.loads(payload)
+    except json.JSONDecodeError:
+        return
+    detections = data.get("detections") or data.get("data", {}).get("detections") or []
+    persons = sum(1 for d in detections if d.get("type") in ("Human", "human", "Person"))
+    vehicles = sum(1 for d in detections if d.get("type") in ("Car", "car", "Vehicle", "Truck"))
+    if persons == 0 and vehicles == 0:
+        return
+    last = _scene_last.get(zone)
+    if last == (persons, vehicles):
+        return
+    _scene_last[zone] = (persons, vehicles)
+
+    ts = _ts_now()
+    event = {
+        "timestamp": ts,
+        "type": "scene",
+        "location": {"zone": zone, "camera": zone},
+        "metadata": {"persons": persons, "vehicles": vehicles, "detections": len(detections)},
+        "source": "axis_scene",
+        "enriched": False,
+        "identity": {},
+    }
+    event["summary"] = make_summary(event)
+    store.write(event)
+
+
+def handle_audio_spl(topic: str, payload: str) -> None:
+    zone = topic.split("/")[1]
+    try:
+        data = json.loads(payload)
+        spl = float(data.get("max_spl") or data.get("spl"))
+    except (json.JSONDecodeError, TypeError, ValueError):
+        return
+    now = time.time()
+    last = _spl_last_written.get(zone, 0.0)
+    if now - last < SPL_METRIC_INTERVAL:
+        return
+    _spl_last_written[zone] = now
+    store.write_metric(_ts_now(), zone, {"spl": round(spl, 1)})
 
 
 def on_message(client, userdata, msg):
@@ -221,6 +334,12 @@ def on_message(client, userdata, msg):
                 handle_double_take(data)
         elif msg.topic.startswith("axis/driveway_env/air/"):
             handle_env_metric(msg.topic, msg.payload.decode())
+        elif msg.topic.endswith("/audio/spl"):
+            handle_audio_spl(msg.topic, msg.payload.decode())
+        elif msg.topic.endswith("/scene/frame"):
+            handle_scene_frame(msg.topic, msg.payload.decode())
+        elif "/ScenarioOccupancy/" in msg.topic:
+            handle_aoa_occupancy(msg.topic, msg.payload.decode())
     except (json.JSONDecodeError, KeyError, TypeError) as exc:
         log.warning("Bad message on %s: %s", msg.topic, exc)
 
@@ -237,6 +356,9 @@ def main() -> None:
     client.subscribe("frigate/events")
     client.subscribe("double_take/matches")
     client.subscribe("axis/driveway_env/air/#")
+    client.subscribe("axis/+/audio/spl")
+    client.subscribe("axis/+/scene/frame")
+    client.subscribe("axis/+/event/ObjectAnalytics/ScenarioOccupancy/#")
 
     log.info("Event normalizer started  mqtt=%s  store=%s", MQTT_HOST, store.events_root)
     client.loop_forever()

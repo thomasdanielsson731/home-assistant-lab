@@ -126,22 +126,38 @@ Vision: [vision.md](vision.md) · Scope: [scope.md](scope.md) · Work queue: [ba
 
 ---
 
-## Phase 7 — Data Platform `[Future]`
+## Phase 7 — Home Intelligence Timeline `[In Progress]`
 
-**Goal:** Time-series storage and dashboards for trend analysis and baselines.
+**Goal:** API-first timeline platform — *what happened?* not entity state.
+
+**Decision:** [ADR-005](decisions/005-home-intelligence-timeline.md)
 
 | Task | Status |
 |---|---|
-| InfluxDB deployed (HA add-on or external) | ⬜ |
-| HA → InfluxDB integration configured | ⬜ |
-| Key metrics ingested (energy, env, detections) | ⬜ |
-| Retention policy (30+ days metrics, 7 days events) | ⬜ |
-| Grafana or HA history dashboards | ⬜ |
+| Event normalizer v0 (Frigate, D6210, Double Take) | ✅ |
+| Event normalizer — AOA occupancy, scene, SPL metrics | ✅ |
+| Event store (`timeline.jsonl`, `metrics.jsonl`) | ✅ |
+| Timeline API v1 (`/api/v1/events`, `metrics`, `occupancy`) | ✅ |
+| Timeline UI v1 — horizontal scale, occupancy blocks | ✅ `/timeline` |
+| Correlation engine (`arrival`, `delivery`, …) | ⬜ |
+| InfluxDB for long retention (optional) | ⬜ |
+| Grafana / 7-day trend dashboards | ⬜ |
+
+**Done when:** Timeline shows detections, occupancy blocks, and env metrics for 24 h without opening HA.
+
+---
+
+## Phase 7b — Data Platform (metrics retention) `[Future]`
+
+**Goal:** Long-term metrics storage and baselines.
+
+| Task | Status |
+|---|---|
+| InfluxDB deployed | ⬜ |
+| HA + event platform → InfluxDB | ⬜ |
 | Event rate baselines per zone/time-of-day | ⬜ |
 
 **Design:** [integrations/data-platform/README.md](../integrations/data-platform/README.md)
-
-**Done when:** At least one insight dashboard shows a 7-day trend, not just live state.
 
 ---
 

@@ -114,3 +114,16 @@ class TestTimelineHTTP:
         body = conn.getresponse().read().decode()
         assert "Air ·" in body
         assert "Vehicle at driveway" not in body
+
+    def test_timeline_v1_page(self, server):
+        conn = HTTPConnection("127.0.0.1", server)
+        conn.request("GET", "/timeline")
+        body = conn.getresponse().read().decode()
+        assert "House Intelligence Timeline" in body
+
+    def test_api_v1_occupancy(self, server):
+        conn = HTTPConnection("127.0.0.1", server)
+        conn.request("GET", "/api/v1/occupancy?hours=24")
+        resp = conn.getresponse()
+        assert resp.status == 200
+        assert isinstance(json.loads(resp.read().decode()), list)

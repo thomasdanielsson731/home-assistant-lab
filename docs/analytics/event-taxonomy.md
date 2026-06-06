@@ -14,6 +14,8 @@ Classification, lifecycle, and retention for Danielsson Insights events.
 | `cat` | Cat detected (neighbour cats) | Frigate / custom ACAP model | Planned |
 | `delivery` | Package or courier visit | Scene metadata + person + vehicle | Prototype |
 | `environment` | Air quality, temp, humidity | D6210 bridge | Live |
+| `occupancy` | Zone occupied (start/end blocks) | Axis AOA via MQTT | Live |
+| `scene` | Scene frame detection counts | Axis scene/frame | Live |
 | `door` | Lock/unlock, open/close | Yale Doorman V3 | Planned |
 | `smoke` | Smoke detector alert | Zigbee (future) | Future |
 
@@ -28,8 +30,8 @@ Detect → Normalize → Store → Enrich → Aggregate → Visualize
 | Stage | What happens | Owner |
 |---|---|---|
 | **Detect** | Camera, sensor, or lock produces raw signal | Frigate, Axis, HA |
-| **Normalize** | Raw signal → canonical Event JSON | Event normalizer (planned) |
-| **Store** | Event persisted with snapshot refs | Event store (Phase 7) |
+| **Normalize** | Raw signal → canonical Event JSON | `event_normalizer.py` |
+| **Store** | Event persisted with snapshot refs | `event_store.py` + `metrics.jsonl` |
 | **Enrich** | AI caption, identity attach, correlation | Enrichment pipeline (Phase 6) |
 | **Aggregate** | Daily/weekly rollups per zone | Aggregate job (Phase 7) |
 | **Visualize** | Timeline, floorplan, dashboard | UI layers |

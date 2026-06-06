@@ -1,25 +1,31 @@
 # Event Normalizer Runbook
 
-Danielsson Insights Phase 7 v0 — MQTT → canonical JSON events on the dev PC.
+Danielsson Home Intelligence — MQTT → canonical events + metrics on the dev PC.
 
 ## What It Does
 
-`scripts/event_normalizer.py` subscribes to Mosquitto and writes events to `events/`:
+`scripts/event_normalizer.py` subscribes to Mosquitto and writes to `events/`:
 
-| MQTT topic | Event type | Notes |
+| MQTT topic | Output | Notes |
 |---|---|---|
-| `frigate/events` | `person`, `vehicle` | On `type: end` only (one event per track) |
+| `frigate/events` | `person`, `vehicle` | On `type: end` only |
 | `double_take/matches` | identity enrichment | Attaches name to recent person event |
-| `axis/driveway_env/air/#` | `environment` | Snapshot every 15 min |
+| `axis/driveway_env/air/#` | `environment` + metrics | Every 15 min |
+| `axis/+/audio/spl` | `metrics.jsonl` | SPL every 5 min per zone |
+| `axis/+/scene/frame` | `scene` | On detection count change |
+| `axis/+/event/ObjectAnalytics/ScenarioOccupancy/#` | `occupancy` | Start/end blocks for timeline |
 
 Output:
 
 ```
 events/
-├── timeline.jsonl          # Append-only log for Timeline v0
+├── timeline.jsonl          # Point events
+├── metrics.jsonl           # Continuous metrics (env, SPL)
 ├── aggregates/YYYY-MM-DD.json
 └── {type}/YYYY/MM/DD/{event_id}.json
 ```
+
+Timeline UI: `http://localhost:8765/timeline` · API: `/api/v1/*`
 
 Event JSON and media are gitignored.
 

@@ -41,9 +41,38 @@ Not separate silos (`camera_event`, `door_event`, `cat_event`) — one `Event` w
 | `identity` | no | Person, cat, or vehicle identity when known |
 | `metadata` | no | Type-specific attributes |
 | `source` | no | `frigate`, `axis_aoa`, `axis_scene`, `yale`, `d6210`, `ha` |
-| `enriched` | no | `true` after AI/metadata pipeline runs |
+| `enriched` | no | `true` after correlation / AI enrichment |
+| `parent_event_ids` | no | Raw events that produced this enriched event (Phase 7e) |
+
+External docs may use `event_type` — maps 1:1 to `type` in this repo.
 
 JSON Schema: [`schemas/danielsson-event.schema.json`](../../schemas/danielsson-event.schema.json)
+
+---
+
+## Raw vs Enriched Events
+
+| Class | `enriched` | Example |
+|---|---|---|
+| **Raw detection** | `false` | `person`, `vehicle`, `occupancy` start/end, `scene` |
+| **Enriched** | `true` | `arrival` (Thomas arrived home) derived from person + vehicle + face + door |
+
+Enriched events set `parent_event_ids` to link back to raw detections. The correlation engine (Phase 7e) writes enriched events without redesigning the schema.
+
+### Continuous metrics (not point events)
+
+High-frequency samples (CO₂, temperature, SPL) go to `events/metrics.jsonl`:
+
+```json
+{"timestamp": "2026-06-06T15:00:00+02:00", "zone": "driveway_env", "values": {"co2": 436, "temperature": 22.1}}
+{"timestamp": "2026-06-06T15:05:00+02:00", "zone": "front", "values": {"spl": 55.3}}
+```
+
+The Timeline API exposes these via `/api/v1/metrics` aligned to the same time range as events.
+
+### Occupancy blocks
+
+AOA transitions emit `occupancy` events with `metadata.phase`: `start` | `end`. The API merges them into duration blocks for calendar-style visualization.
 
 ---
 

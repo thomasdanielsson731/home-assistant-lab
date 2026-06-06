@@ -1,6 +1,6 @@
 # Dashboards
 
-HA Lovelace dashboards are **views** on top of the event model — not the analytics platform itself.
+HA Lovelace dashboards are **secondary** — live ops and security. Primary insights UX is **House Intelligence Timeline** (`http://localhost:8765/timeline`). See [ADR-005](../decisions/005-home-intelligence-timeline.md).
 
 | Document | Purpose |
 |---|---|
