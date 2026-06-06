@@ -68,6 +68,15 @@ Environment events appear within 15 min of air quality bridge running.
 | Duplicate events | Dedup window is 30 s per camera+type; adjust in `EventStore` |
 | No environment events | Ensure `air_quality_bridge.py` is running and publishing |
 
+## Tests
+
+```powershell
+pip install -r requirements-dev.txt
+python -m pytest
+```
+
+38 tests cover event store, normalizer handlers, and timeline server. CI enforces ≥85% coverage on the three scripts.
+
 ## Next Steps (Phase 7)
 
 - InfluxDB time-series for metrics

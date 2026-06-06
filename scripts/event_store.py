@@ -50,13 +50,21 @@ class EventStore:
     dedup_seconds: int = 30
     _recent: list[tuple[datetime, str, str, str]] = field(default_factory=list)
 
+    @property
+    def timeline_jsonl(self) -> Path:
+        return self.events_root / "timeline.jsonl"
+
+    @property
+    def aggregates_dir(self) -> Path:
+        return self.events_root / "aggregates"
+
     def __post_init__(self) -> None:
         for sub in (
             "person", "vehicle", "bicycle", "cat", "delivery",
             "environment", "door", "smoke",
         ):
             (self.events_root / sub).mkdir(parents=True, exist_ok=True)
-        AGGREGATES_DIR.mkdir(parents=True, exist_ok=True)
+        self.aggregates_dir.mkdir(parents=True, exist_ok=True)
 
     def _now(self) -> datetime:
         return datetime.now(TZ)
@@ -104,7 +112,7 @@ class EventStore:
         path = day_dir / f"{event_id}.json"
         path.write_text(json.dumps(event, indent=2, ensure_ascii=False), encoding="utf-8")
 
-        with TIMELINE_JSONL.open("a", encoding="utf-8") as f:
+        with self.timeline_jsonl.open("a", encoding="utf-8") as f:
             f.write(json.dumps(event, ensure_ascii=False) + "\n")
 
         self._remember(ts, camera, event_type, event_id)
@@ -117,7 +125,7 @@ class EventStore:
         if ts.tzinfo is None:
             ts = ts.replace(tzinfo=TZ)
         date_key = ts.strftime("%Y-%m-%d")
-        agg_path = AGGREGATES_DIR / f"{date_key}.json"
+        agg_path = self.aggregates_dir / f"{date_key}.json"
 
         if agg_path.exists():
             agg = json.loads(agg_path.read_text(encoding="utf-8"))
@@ -143,11 +151,11 @@ class EventStore:
 
     def attach_identity(self, camera: str, name: str, confidence: float, source: str = "double_take") -> str | None:
         """Attach identity to most recent person event at camera (within 2 min)."""
-        if not TIMELINE_JSONL.exists():
+        if not self.timeline_jsonl.exists():
             return None
 
         cutoff = self._now() - timedelta(minutes=2)
-        lines = TIMELINE_JSONL.read_text(encoding="utf-8").strip().splitlines()
+        lines = self.timeline_jsonl.read_text(encoding="utf-8").strip().splitlines()
         for line in reversed(lines[-100:]):
             event = json.loads(line)
             if event.get("type") != "person":
@@ -167,9 +175,19 @@ class EventStore:
             }
             event["summary"] = f"{name.title()} at {event['location'].get('zone', camera)}"
             event_id = event["event_id"]
+            encoded = json.dumps(event, ensure_ascii=False)
             # Rewrite JSON file
             for path in (self.events_root / "person").rglob(f"{event_id}.json"):
                 path.write_text(json.dumps(event, indent=2, ensure_ascii=False), encoding="utf-8")
+            # Update matching line in timeline log
+            all_lines = self.timeline_jsonl.read_text(encoding="utf-8").splitlines()
+            self.timeline_jsonl.write_text(
+                "\n".join(
+                    encoded if json.loads(line).get("event_id") == event_id else line
+                    for line in all_lines
+                ) + ("\n" if all_lines else ""),
+                encoding="utf-8",
+            )
             log.info("Identity attached: %s → %s", event_id, name)
             return event_id
         return None

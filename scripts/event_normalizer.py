@@ -39,8 +39,8 @@ from event_store import (  # noqa: E402
 load_dotenv(Path(__file__).parent.parent / ".env")
 
 MQTT_HOST = os.environ.get("HA_HOST", "192.168.68.175")
-MQTT_USER = os.environ["MQTT_USER"]
-MQTT_PASS = os.environ["MQTT_PASS"]
+MQTT_USER = os.environ.get("MQTT_USER", "")
+MQTT_PASS = os.environ.get("MQTT_PASS", "")
 HA_TOKEN = os.environ.get("HA_TOKEN", "")
 FRIGATE_URL = os.environ.get("FRIGATE_URL", f"http://{MQTT_HOST}:5000")
 
@@ -80,7 +80,7 @@ def _download_snapshot(frigate_event_id: str, dest: Path) -> bool:
                 dest.parent.mkdir(parents=True, exist_ok=True)
                 dest.write_bytes(r.content)
                 return True
-        except requests.RequestException as exc:
+        except (requests.RequestException, OSError) as exc:
             log.debug("Snapshot fetch failed %s: %s", url, exc)
     return False
 
@@ -156,6 +156,13 @@ def handle_double_take(payload: dict) -> None:
     store.attach_identity(camera, name, float(conf))
 
 
+def reset_env_state() -> None:
+    """Clear environment metric cache (for tests)."""
+    global _last_env_event, _env_cache
+    _env_cache = {}
+    _last_env_event = 0.0
+
+
 def handle_env_metric(topic: str, value: str) -> None:
     global _last_env_event, _env_cache
 
@@ -219,6 +226,9 @@ def on_message(client, userdata, msg):
 
 
 def main() -> None:
+    if not MQTT_USER or not MQTT_PASS:
+        raise SystemExit("MQTT_USER and MQTT_PASS must be set in .env")
+
     client = mqtt.Client(CallbackAPIVersion.VERSION2, client_id="event_normalizer")
     client.username_pw_set(MQTT_USER, MQTT_PASS)
     client.on_message = on_message

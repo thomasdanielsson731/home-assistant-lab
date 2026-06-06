@@ -44,10 +44,22 @@ chore: update .gitignore for Double Take storage paths
 
 1. Create a branch from `dev`
 2. Make changes
-3. Test by syncing to HAOS with `--dry-run` first: `./scripts/sync-config.sh --dry-run`
-4. Open a PR against `dev` (or `main` for urgent fixes)
-5. Fill in the PR template
-6. Merge when self-reviewed and CI passes
+3. Run Python tests: `python -m pytest` (requires `pip install -r requirements-dev.txt`)
+4. Test by syncing to HAOS with `--dry-run` first: `./scripts/sync-config.sh --dry-run`
+5. Open a PR against `dev` (or `main` for urgent fixes)
+6. Fill in the PR template
+7. Merge when self-reviewed and CI passes
+
+### Python Tests
+
+Event platform scripts (`event_store`, `event_normalizer`, `timeline_server`) have pytest coverage with an 85% minimum threshold enforced in CI.
+
+```powershell
+pip install -r requirements-dev.txt
+python -m pytest
+```
+
+CI workflow: `.github/workflows/test-python.yml` (runs on push/PR when `scripts/` or `tests/` change).
 
 ---
 

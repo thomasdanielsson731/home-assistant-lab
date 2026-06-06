@@ -41,12 +41,17 @@ TYPE_ICON = {
 }
 
 
-def load_events(hours: int = 168, event_type: str | None = None) -> list[dict]:
-    if not TIMELINE_JSONL.exists():
+def load_events(
+    hours: int = 168,
+    event_type: str | None = None,
+    timeline_path: Path | None = None,
+) -> list[dict]:
+    path = timeline_path or TIMELINE_JSONL
+    if not path.exists():
         return []
     cutoff = datetime.now(TZ) - timedelta(hours=hours)
     events = []
-    for line in TIMELINE_JSONL.read_text(encoding="utf-8").strip().splitlines():
+    for line in path.read_text(encoding="utf-8").strip().splitlines():
         if not line:
             continue
         try:
@@ -72,22 +77,22 @@ HTML = """<!DOCTYPE html>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Danielsson Insights — Timeline</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: system-ui, sans-serif; background: #0f1117; color: #e8eaed; padding: 1rem; max-width: 640px; margin: 0 auto; }
-    h1 { font-size: 1.25rem; margin-bottom: 0.25rem; }
-    .sub { color: #9aa0a6; font-size: 0.85rem; margin-bottom: 1rem; }
-    .filters { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
-    .filters a { padding: 0.35rem 0.75rem; border-radius: 1rem; background: #2d2f36; color: #bdc1c6; text-decoration: none; font-size: 0.8rem; }
-    .filters a.active { background: #8ab4f8; color: #0f1117; }
-    .entry { display: flex; gap: 0.75rem; padding: 0.75rem 0; border-bottom: 1px solid #2d2f36; align-items: flex-start; }
-    .time { color: #9aa0a6; font-size: 0.8rem; min-width: 3.5rem; padding-top: 0.1rem; }
-    .icon { font-size: 1.25rem; }
-    .body { flex: 1; }
-    .summary { font-size: 0.95rem; }
-    .meta { color: #9aa0a6; font-size: 0.75rem; margin-top: 0.15rem; }
-    .thumb { width: 56px; height: 56px; object-fit: cover; border-radius: 6px; background: #2d2f36; }
-    .empty { color: #9aa0a6; padding: 2rem 0; text-align: center; }
-    .stats { display: flex; gap: 1rem; margin-bottom: 1rem; font-size: 0.8rem; color: #9aa0a6; }
+    * {{ box-sizing: border-box; margin: 0; padding: 0; }}
+    body {{ font-family: system-ui, sans-serif; background: #0f1117; color: #e8eaed; padding: 1rem; max-width: 640px; margin: 0 auto; }}
+    h1 {{ font-size: 1.25rem; margin-bottom: 0.25rem; }}
+    .sub {{ color: #9aa0a6; font-size: 0.85rem; margin-bottom: 1rem; }}
+    .filters {{ display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }}
+    .filters a {{ padding: 0.35rem 0.75rem; border-radius: 1rem; background: #2d2f36; color: #bdc1c6; text-decoration: none; font-size: 0.8rem; }}
+    .filters a.active {{ background: #8ab4f8; color: #0f1117; }}
+    .entry {{ display: flex; gap: 0.75rem; padding: 0.75rem 0; border-bottom: 1px solid #2d2f36; align-items: flex-start; }}
+    .time {{ color: #9aa0a6; font-size: 0.8rem; min-width: 3.5rem; padding-top: 0.1rem; }}
+    .icon {{ font-size: 1.25rem; }}
+    .body {{ flex: 1; }}
+    .summary {{ font-size: 0.95rem; }}
+    .meta {{ color: #9aa0a6; font-size: 0.75rem; margin-top: 0.15rem; }}
+    .thumb {{ width: 56px; height: 56px; object-fit: cover; border-radius: 6px; background: #2d2f36; }}
+    .empty {{ color: #9aa0a6; padding: 2rem 0; text-align: center; }}
+    .stats {{ display: flex; gap: 1rem; margin-bottom: 1rem; font-size: 0.8rem; color: #9aa0a6; }}
   </style>
 </head>
 <body>

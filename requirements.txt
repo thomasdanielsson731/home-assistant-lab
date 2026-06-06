@@ -1,0 +1,4 @@
+# Runtime dependencies for scripts/ bridges and event platform
+requests>=2.31
+paho-mqtt>=2.0
+python-dotenv>=1.0

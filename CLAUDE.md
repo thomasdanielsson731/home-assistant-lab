@@ -177,6 +177,13 @@ python scripts/timeline_server.py    # Timeline UI at http://localhost:8765
 
 See `docs/runbooks/event-normalizer.md`. Start all bridges: `.\scripts\start-bridges.ps1`.
 
+### Python Tests
+
+```bash
+pip install -r requirements-dev.txt
+python -m pytest   # 85% coverage gate on event platform scripts
+```
+
 ### SSH to Host
 
 ```bash

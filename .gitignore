@@ -1,6 +1,9 @@
 # Python
 __pycache__/
 *.pyc
+.pytest_cache/
+.coverage
+htmlcov/
 
 # Secrets — never commit
 config/home-assistant/secrets.yaml
