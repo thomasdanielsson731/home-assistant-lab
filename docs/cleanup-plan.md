@@ -150,7 +150,7 @@ Quick cleanup before building dashboards.
 - [ ] Install **HACS** if not already installed
 - [ ] Install: Mushroom Cards
 - [ ] Install: Frigate Card
-- [ ] Install: mini-graph-card
+- [x] Install: mini-graph-card — `scripts/install-mini-graph-card.ps1`
 - [ ] Restart HA frontend after each install
 
 ---
