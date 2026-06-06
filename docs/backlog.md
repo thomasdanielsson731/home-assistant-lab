@@ -19,6 +19,8 @@ Complete the Axis analytics pipeline end-to-end.
 | P5-5 | AOA via `aoa_bridge.py` — poll getOccupancy → MQTT | M | ✅ |
 | P5-6 | Create Loitering scenarios manually (3 cameras) | M | ⬜ |
 | P5-7 | Add analytics cards to Security + Operations dashboard views | M | ✅ |
+| P5-9 | Insights graphs — built-in history/statistics cards | S | ✅ |
+| P5-10 | `scripts/health-check.py` — automated lab status | S | ✅ |
 | P5-8 | House context template sensors | S | ✅ |
 | P5-8 | Update stale docs (d6210 runbook ✅, backlog ✅, README ✅) | S | ✅ |
 

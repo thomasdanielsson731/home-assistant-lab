@@ -1,5 +1,6 @@
 - id: "aoa_loitering_detected"
   alias: "AOA — loitering detected"
+  enabled: false
   description: >
     Fires when a person lingers in a camera zone longer than the AOA loitering
     threshold (configured per camera, recommended 10-15 seconds).

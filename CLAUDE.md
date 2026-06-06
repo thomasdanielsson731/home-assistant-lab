@@ -177,14 +177,14 @@ python scripts/timeline_server.py    # Timeline UI at http://localhost:8765
 
 See `docs/runbooks/event-normalizer.md`. Start all bridges: `.\scripts\start-bridges.ps1`.
 
-### HACS Frontend — mini-graph-card
+### Lab health check
 
 ```powershell
-.\scripts\install-mini-graph-card.ps1   # deploy bundle to HAOS
-.\scripts\sync-config.ps1               # includes lovelace resource in configuration.yaml
+.\scripts\start-bridges.ps1
+python scripts/health-check.py
 ```
 
-See `docs/runbooks/hacs-frontend-cards.md`.
+Insights env graphs: built-in `history-graph` / `statistics-graph` — see `docs/runbooks/hacs-frontend-cards.md`.
 
 ### Python Tests
 

@@ -1,0 +1,65 @@
+# Future notification policy — enable when ready
+#
+# Notify ONLY for:
+#   1. Cats (neighbour cats, custom Frigate model)
+#   2. Persons who are NOT family (Thomas, Nils, Hugo, Anna)
+#
+# Requires Phase 4 (Double Take) for unknown-person filtering.
+# Enable individual automations below when recognizer is trained.
+
+- id: notify_cat_detected
+  alias: "Notify — cat detected"
+  enabled: false
+  description: >
+    Push when Frigate detects a cat. Enable after cat model is trained
+    or Frigate label 'cat' is reliable.
+  mode: single
+  max_exceeded: silent
+  trigger:
+    - platform: mqtt
+      topic: "frigate/events"
+  condition:
+    - condition: template
+      value_template: >
+        {{ trigger.payload_json.type == 'new'
+           and trigger.payload_json.after.label == 'cat' }}
+  action:
+    - service: notify.mobile_app_thomas_iphone_15
+      data:
+        title: "Cat detected"
+        message: >-
+          {{ trigger.payload_json.after.camera | replace('_', ' ') | title }}
+        data:
+          image: /api/frigate/notifications/{{ trigger.payload_json.after.id }}/snapshot.jpg
+
+- id: notify_unknown_person_entry
+  alias: "Notify — unknown person at entry"
+  enabled: false
+  description: >
+    Push when a person is detected and no family member is identified.
+    Enable after Double Take is trained for Thomas, Nils, Hugo, Anna.
+  mode: single
+  max_exceeded: silent
+  trigger:
+    - platform: mqtt
+      topic: "frigate/events"
+  condition:
+    - condition: template
+      value_template: >
+        {{ trigger.payload_json.type == 'new'
+           and trigger.payload_json.after.label == 'person'
+           and trigger.payload_json.after.camera in ['front', 'driveway_id', 'driveway_wide'] }}
+    - condition: template
+      value_template: >
+        {{ not is_state('binary_sensor.dt_thomas_present', 'on')
+           and not is_state('binary_sensor.dt_nils_present', 'on')
+           and not is_state('binary_sensor.dt_hugo_present', 'on')
+           and not is_state('binary_sensor.dt_anna_present', 'on') }}
+  action:
+    - service: notify.mobile_app_thomas_iphone_15
+      data:
+        title: "Unknown person"
+        message: >-
+          {{ trigger.payload_json.after.camera | replace('_', ' ') | title }}
+        data:
+          image: /api/frigate/notifications/{{ trigger.payload_json.after.id }}/snapshot.jpg

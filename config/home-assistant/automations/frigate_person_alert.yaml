@@ -1,5 +1,6 @@
 - id: frigate_person_detected
   alias: "Frigate — Person detected at entry"
+  enabled: false  # Push notifications off — see security/smart_notifications.yaml for future policy
   description: >
     Notify when Frigate detects a new person event at an entry camera.
     Uses frigate/events (not state topic) so the snapshot ID is available.

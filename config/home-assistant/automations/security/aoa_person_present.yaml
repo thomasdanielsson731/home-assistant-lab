@@ -1,9 +1,9 @@
 # AOA person detection notifications — cooldown-protected
-# NOTE: AOA MQTT publication not yet verified active on cameras.
-# Automations are enabled but will only fire when cameras publish events.
+# DISABLED: all push notifications off until smart_notifications policy is live.
 
 - id: "aoa_person_detected_entry"
   alias: "AOA — person detected at entry point"
+  enabled: false
   description: >
     Triggers when AOA detects a person at front or driveway.
     10 min cooldown to prevent notification spam.
@@ -28,6 +28,7 @@
 
 - id: "aoa_person_detected_perimeter"
   alias: "AOA — person detected at perimeter"
+  enabled: false
   description: "Person vid bakgård/förråd. 15 min cooldown."
   mode: single
   max_exceeded: silent

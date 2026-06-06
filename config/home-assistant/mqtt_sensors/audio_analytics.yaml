@@ -1,0 +1,32 @@
+# AXIS Audio Analytics — Sound Pressure Level (SPL)
+# Requires AXIS Audio Analytics ACAP on camera + analytics-mqtt publisher.
+# Configure: python scripts/configure_audio_analytics.py
+# Topics: axis/<zone>/audio/spl  (JSON or plain dB value)
+
+- name: "Driveway Wide Audio SPL"
+  unique_id: "driveway_wide_audio_spl"
+  state_topic: "axis/driveway_wide/audio/spl"
+  unit_of_measurement: "dB"
+  icon: "mdi:volume-high"
+  value_template: >-
+    {% if value_json is defined and value_json.spl is defined %}
+    {{ value_json.spl }}
+    {% elif value_json is defined and value_json.value is defined %}
+    {{ value_json.value }}
+    {% else %}
+    {{ value }}
+    {% endif %}
+
+- name: "Front Audio SPL"
+  unique_id: "front_audio_spl"
+  state_topic: "axis/front/audio/spl"
+  unit_of_measurement: "dB"
+  icon: "mdi:volume-high"
+  value_template: >-
+    {% if value_json is defined and value_json.spl is defined %}
+    {{ value_json.spl }}
+    {% elif value_json is defined and value_json.value is defined %}
+    {{ value_json.value }}
+    {% else %}
+    {{ value }}
+    {% endif %}

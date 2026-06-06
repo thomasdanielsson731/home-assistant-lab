@@ -22,4 +22,4 @@ $script = (Join-Path $repoRoot "scripts\install-mini-graph-card.sh") -replace '\
 
 scp -P $port $script "root@${host_}:/tmp/install-mini-graph-card.sh"
 ssh -p $port "root@${host_}" "bash /tmp/install-mini-graph-card.sh"
-Write-Host "Done. Sync configuration.yaml and reload HA YAML."
+Write-Host 'Done. Sync configuration.yaml and reload HA YAML.'

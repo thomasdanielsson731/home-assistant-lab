@@ -37,23 +37,24 @@ Logs: `logs/maintenance.log` · Runbook: [maintenance.md](runbooks/maintenance.m
 
 ## Immediate Next Tasks
 
-### 1. Event normalizer — verify end-to-end
+### 1. Health check (automated)
 
 ```powershell
-python scripts/event_normalizer.py   # or .\scripts\start-bridges.ps1
-python scripts/timeline_server.py    # http://localhost:8765
+.\scripts\start-bridges.ps1
+python scripts/health-check.py
 ```
 
-Walk past `front` camera → check `events/timeline.jsonl` for `person` event.
+Timeline: `http://localhost:8765` · Events: `events/timeline.jsonl`
 
-### 2. Phase 4 — CodeProject.AI
+### 2. Manual steps remaining
 
-1. Install on Windows dev PC: https://www.codeproject.com/AI/
-2. Enable Face Recognition module (port 32168)
-3. Restart Double Take add-on
-4. Upload training photos at `http://192.168.68.175:3000`
-
-See [ADR-003](decisions/003-face-recognizer.md).
+| Item | Action |
+|---|---|
+| AOA Loitering | Camera web UI — 3 cameras |
+| Audio SPL | Install AXIS Audio Analytics ACAP on Q3558 |
+| Yale Doorman | Integrate when hardware arrives |
+| Unavailable lights | Re-pair HomeKit/Matter devices |
+| Face recognition | **On hold** — see ADR-003 when ready |
 
 ---
 

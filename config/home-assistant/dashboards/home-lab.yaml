@@ -13,18 +13,30 @@ views:
 
       # ── Overview — compact status at top ─────────────────────
       - cards:
-          - type: custom:mushroom-template-card
-            primary: >-
-              {% set h = now().hour %}
-              {% if h < 12 %}Good morning
-              {% elif h < 17 %}Good afternoon
-              {% else %}Good evening{% endif %}, Thomas
-            secondary: "{{ now().strftime('%A') }} · {{ now().day }} {{ now().strftime('%B') }}"
-            icon: mdi:home-variant
-            icon_color: blue
-            fill_container: true
-            tap_action:
-              action: none
+          - type: horizontal-stack
+            cards:
+              - type: custom:mushroom-template-card
+                primary: >-
+                  {% set h = now().hour %}
+                  {% if h < 12 %}Good morning
+                  {% elif h < 17 %}Good afternoon
+                  {% else %}Good evening{% endif %}, Thomas
+                secondary: "{{ now().strftime('%A') }} · {{ now().day }} {{ now().strftime('%B') }}"
+                icon: mdi:home-variant
+                icon_color: blue
+                fill_container: true
+                tap_action:
+                  action: none
+              - type: custom:mushroom-template-card
+                primary: "{{ states('weather.forecast_hem') | replace('_', ' ') | title }}"
+                secondary: Weather
+                icon: mdi:weather-partly-cloudy
+                icon_color: blue
+                layout: vertical
+                fill_container: true
+                tap_action:
+                  action: more-info
+                  entity: weather.forecast_hem
           - type: horizontal-stack
             cards:
               - type: custom:mushroom-template-card
@@ -131,208 +143,114 @@ views:
                      else 'Utomhus · Tomt' }}
                 icon_color: >-
                   {{ 'red' if is_state('sensor.house_outdoor_presence', 'on') else 'grey' }}
-              - type: template
-                icon: mdi:weather-cloudy
-                content: "{{ states('weather.forecast_hem') | title }}"
-                icon_color: blue
 
-      # ── Lights On Now ────────────────────────────────────────
+      # ── Lights On Now — only lights that are actually on ────
       - title: LIGHTS ON NOW
         cards:
+          - type: custom:mushroom-template-card
+            primary: >-
+              {% set on = states.light
+                | selectattr('state', 'eq', 'on')
+                | rejectattr('entity_id', 'search', 'ir_light|whitelight')
+                | list %}
+              {% if on | count == 0 %}All lights off
+              {% elif on | count == 1 %}1 light on
+              {% else %}{{ on | count }} lights on{% endif %}
+            secondary: >-
+              {% set on = states.light
+                | selectattr('state', 'eq', 'on')
+                | rejectattr('entity_id', 'search', 'ir_light|whitelight')
+                | map(attribute='name') | list %}
+              {{ on | join(' · ') if on | count > 0 else 'Tap a light in Rooms to control' }}
+            icon: mdi:lightbulb-group
+            icon_color: >-
+              {% set on = states.light
+                | selectattr('state', 'eq', 'on')
+                | rejectattr('entity_id', 'search', 'ir_light|whitelight')
+                | list %}
+              {{ 'amber' if on | count > 0 else 'disabled' }}
+            fill_container: true
+            tap_action:
+              action: navigate
+              navigation_path: /lovelace/home-lab/rooms
+          - type: entity-filter
+            show_empty: false
+            entities:
+              - entity: light.anna_och_thomas_sovrum
+                name: Sovrum
+              - entity: light.hugos_rum
+                name: Hugos rum
+              - entity: light.living_room
+                name: Vardagsrum
+              - entity: light.fonsterlampor
+                name: Fönsterlampor
+              - entity: light.fonster_vanster
+                name: Fönster vänster
+              - entity: light.fonster_hoger
+                name: Fönster höger
+              - entity: light.matplats
+                name: Matplats
+              - entity: light.spottar
+                name: Spottar
+              - entity: light.taklampa
+                name: Taklampa
+              - entity: light.underskapsbelysning
+                name: Underskåp
+              - entity: light.sovrumstaklampa
+                name: Sovrum tak
+              - entity: light.hugos_taklampa
+                name: Hugo tak
+            state_filter:
+              - "on"
+            card:
+              type: entities
+              state_color: true
+
+      # ── Vacuum — family quick control ────────────────────────
+      - title: VACUUM
+        cards:
+          - type: custom:mushroom-vacuum-card
+            entity: vacuum.hoover
+            name: Vacuum
+            fill_container: true
           - type: custom:mushroom-chips-card
             chips:
+              - type: action
+                icon: mdi:play
+                content: Start
+                tap_action:
+                  action: call-service
+                  service: vacuum.start
+                  target:
+                    entity_id: vacuum.hoover
+              - type: action
+                icon: mdi:pause
+                content: Pause
+                tap_action:
+                  action: call-service
+                  service: vacuum.pause
+                  target:
+                    entity_id: vacuum.hoover
+              - type: action
+                icon: mdi:stop
+                content: Stop
+                tap_action:
+                  action: call-service
+                  service: vacuum.stop
+                  target:
+                    entity_id: vacuum.hoover
+              - type: action
+                icon: mdi:home-import-outline
+                content: Dock
+                tap_action:
+                  action: call-service
+                  service: vacuum.return_to_base
+                  target:
+                    entity_id: vacuum.hoover
               - type: entity
-                entity: light.anna_och_thomas_sovrum
-              - type: entity
-                entity: light.hugos_rum
-              - type: entity
-                entity: light.living_room
-              - type: entity
-                entity: light.fonsterlampor
-
-      # ── Recent Events ────────────────────────────────────────
-      - title: RECENT EVENTS
-        cards:
-          - type: logbook
-            hours_to_show: 6
-            entities:
-              - binary_sensor.front_motion
-              - binary_sensor.front_person_occupancy
-              - binary_sensor.driveway_wide_motion
-              - binary_sensor.driveway_wide_car_occupancy
-              - binary_sensor.driveway_id_motion
-              - binary_sensor.driveway_id_person_occupancy
-              - binary_sensor.backyard_motion
-              - binary_sensor.backyard_person_occupancy
-              - binary_sensor.storage_ext_motion
-              - binary_sensor.storage_int_motion
-
-      - title: LAST 7 DAYS
-        cards:
-          - type: custom:mini-graph-card
-            entities:
-              - entity: sensor.driveway_env_temperature
-                name: Temperature
-            name: Temperature
-            hours_to_show: 168
-            points_per_hour: 2
-            line_width: 2
-            show:
-              state: true
-              extrema: true
-              fill: fade
-              labels: false
-            color_thresholds:
-              - value: 0
-                color: "#2196F3"
-              - value: 20
-                color: "#4CAF50"
-              - value: 28
-                color: "#FF9800"
-          - type: custom:mini-graph-card
-            entities:
-              - entity: sensor.driveway_env_humidity
-                name: Humidity
-            name: Humidity
-            hours_to_show: 168
-            points_per_hour: 2
-            line_width: 2
-            show:
-              state: true
-              extrema: true
-              fill: fade
-              labels: false
-          - type: custom:mini-graph-card
-            entities:
-              - entity: sensor.driveway_env_co2
-                name: CO₂
-            name: CO₂
-            hours_to_show: 168
-            points_per_hour: 2
-            line_width: 2
-            show:
-              state: true
-              extrema: true
-              fill: fade
-              labels: false
-            color_thresholds:
-              - value: 0
-                color: "#4CAF50"
-              - value: 800
-                color: "#FF9800"
-              - value: 1200
-                color: "#F44336"
-          - type: custom:mini-graph-card
-            entities:
-              - entity: sensor.driveway_env_aqi
-                name: AQI
-            name: Air Quality
-            hours_to_show: 168
-            points_per_hour: 2
-            line_width: 2
-            show:
-              state: true
-              extrema: true
-              fill: fade
-              labels: false
-          - type: custom:mini-graph-card
-            entities:
-              - entity: sensor.driveway_env_pm2_5
-                name: PM2.5
-            name: PM2.5
-            hours_to_show: 168
-            points_per_hour: 2
-            line_width: 2
-            show:
-              state: true
-              extrema: true
-              fill: fade
-              labels: false
-
-      - title: LAST 90 DAYS
-        cards:
-          - type: custom:mini-graph-card
-            entities:
-              - entity: sensor.driveway_env_temperature
-                name: Temperature
-            name: Temperature
-            hours_to_show: 2160
-            points_per_hour: 0.1667
-            group_by: interval
-            aggregate_func: avg
-            line_width: 2
-            show:
-              state: true
-              extrema: true
-              fill: fade
-              labels: false
-            color_thresholds:
-              - value: 0
-                color: "#2196F3"
-              - value: 20
-                color: "#4CAF50"
-              - value: 28
-                color: "#FF9800"
-          - type: custom:mini-graph-card
-            entities:
-              - entity: sensor.driveway_env_humidity
-                name: Humidity
-            name: Humidity
-            hours_to_show: 2160
-            points_per_hour: 0.1667
-            group_by: interval
-            aggregate_func: avg
-            line_width: 2
-            show:
-              state: true
-              extrema: true
-              fill: fade
-              labels: false
-          - type: custom:mini-graph-card
-            entities:
-              - entity: sensor.driveway_env_co2
-                name: CO₂
-            name: CO₂
-            hours_to_show: 2160
-            points_per_hour: 0.1667
-            group_by: interval
-            aggregate_func: avg
-            line_width: 2
-            show:
-              state: true
-              extrema: true
-              fill: fade
-              labels: false
-          - type: custom:mini-graph-card
-            entities:
-              - entity: sensor.driveway_env_aqi
-                name: AQI
-            name: Air Quality
-            hours_to_show: 2160
-            points_per_hour: 0.1667
-            group_by: interval
-            aggregate_func: avg
-            line_width: 2
-            show:
-              state: true
-              extrema: true
-              fill: fade
-              labels: false
-          - type: custom:mini-graph-card
-            entities:
-              - entity: sensor.driveway_env_pm2_5
-                name: PM2.5
-            name: PM2.5
-            hours_to_show: 2160
-            points_per_hour: 0.1667
-            group_by: interval
-            aggregate_func: avg
-            line_width: 2
-            show:
-              state: true
-              extrema: true
-              fill: fade
-              labels: false
+                entity: button.hoover_full_cleaning
+                icon: mdi:broom
+                content_info: name
 
 
   # ═══════════════════════════════════════════════════════════════
@@ -542,8 +460,204 @@ views:
                 tap_action:
                   action: more-info
 
-      # ── AOA presence (live) — scene/frame often empty on FW 12.x ──
-      - title: LIVE PRESENCE (AOA)
+      # ── Face Recognition ─────────────────────────────────────
+      - title: FACE RECOGNITION
+        cards:
+          - type: custom:mushroom-template-card
+            primary: Not yet active
+            secondary: Double Take + CompreFace — Phase 4
+            icon: mdi:face-recognition
+            icon_color: amber
+            fill_container: true
+            tap_action:
+              action: none
+
+      # ── Yale Doorman (Sprint 1) ──────────────────────────────
+      - title: ACCESS
+        cards:
+          - type: custom:mushroom-template-card
+            primary: Yale Doorman — coming soon
+            secondary: Door lock + person correlation
+            icon: mdi:door-closed-lock
+            icon_color: disabled
+            fill_container: true
+            tap_action:
+              action: none
+
+      - title: MORE ANALYTICS
+        cards:
+          - type: custom:mushroom-template-card
+            primary: Danielsson Insights
+            secondary: Timeline · Environment · Activity · Object counts
+            icon: mdi:chart-timeline-variant
+            icon_color: blue
+            fill_container: true
+            tap_action:
+              action: navigate
+              navigation_path: /lovelace/home-lab/insights
+
+
+  # ═══════════════════════════════════════════════════════════════
+  # VIEW 4 — INSIGHTS (Danielsson Insights)
+  # ═══════════════════════════════════════════════════════════════
+  - title: Insights
+    path: insights
+    icon: mdi:chart-timeline-variant
+    type: sections
+    max_columns: 1
+    sections:
+
+      # ── Outdoor environment — live ─────────────────────────────
+      - title: OUTDOOR NOW
+        cards:
+          - type: horizontal-stack
+            cards:
+              - type: custom:mushroom-template-card
+                primary: "{{ states('sensor.driveway_env_temperature') }}°C"
+                secondary: Temperature
+                icon: mdi:thermometer
+                icon_color: >-
+                  {% set t = states('sensor.driveway_env_temperature') | float(0) %}
+                  {{ 'blue' if t < 10 else 'green' if t < 22 else 'orange' if t < 28 else 'red' }}
+                layout: vertical
+                fill_container: true
+              - type: custom:mushroom-template-card
+                primary: "{{ states('sensor.driveway_env_humidity') }}%"
+                secondary: Humidity
+                icon: mdi:water-percent
+                icon_color: blue
+                layout: vertical
+                fill_container: true
+              - type: custom:mushroom-template-card
+                primary: "{{ states('sensor.driveway_env_co2') | int(0) }} ppm"
+                secondary: CO₂
+                icon: mdi:molecule-co2
+                icon_color: >-
+                  {% set c = states('sensor.driveway_env_co2') | int(0) %}
+                  {{ 'green' if c < 800 else 'amber' if c < 1200 else 'red' }}
+                layout: vertical
+                fill_container: true
+              - type: custom:mushroom-template-card
+                primary: "AQI {{ states('sensor.driveway_env_aqi') }}"
+                secondary: Air quality
+                icon: mdi:air-filter
+                icon_color: >-
+                  {% set aqi = states('sensor.driveway_env_aqi') | int(0) %}
+                  {{ 'green' if aqi <= 50 else 'amber' if aqi <= 100 else 'red' }}
+                layout: vertical
+                fill_container: true
+              - type: custom:mushroom-template-card
+                primary: "{{ states('sensor.driveway_env_pm2_5') }}"
+                secondary: PM2.5 µg/m³
+                icon: mdi:blur
+                icon_color: grey
+                layout: vertical
+                fill_container: true
+
+      - title: LAST 7 DAYS
+        cards:
+          - type: history-graph
+            title: Temperature
+            entities:
+              - entity: sensor.driveway_env_temperature
+            hours_to_show: 168
+          - type: history-graph
+            title: Humidity
+            entities:
+              - entity: sensor.driveway_env_humidity
+            hours_to_show: 168
+          - type: history-graph
+            title: CO₂
+            entities:
+              - entity: sensor.driveway_env_co2
+            hours_to_show: 168
+          - type: history-graph
+            title: Air Quality (AQI)
+            entities:
+              - entity: sensor.driveway_env_aqi
+            hours_to_show: 168
+          - type: history-graph
+            title: PM2.5
+            entities:
+              - entity: sensor.driveway_env_pm2_5
+            hours_to_show: 168
+
+      - title: LAST 90 DAYS
+        cards:
+          - type: statistics-graph
+            chart_type: line
+            entities:
+              - sensor.driveway_env_temperature
+            stat_types:
+              - mean
+            days_to_show: 90
+            period: day
+            hide_legend: true
+          - type: statistics-graph
+            chart_type: line
+            entities:
+              - sensor.driveway_env_humidity
+            stat_types:
+              - mean
+            days_to_show: 90
+            period: day
+            hide_legend: true
+          - type: statistics-graph
+            chart_type: line
+            entities:
+              - sensor.driveway_env_co2
+            stat_types:
+              - mean
+            days_to_show: 90
+            period: day
+            hide_legend: true
+          - type: statistics-graph
+            chart_type: line
+            entities:
+              - sensor.driveway_env_aqi
+            stat_types:
+              - mean
+            days_to_show: 90
+            period: day
+            hide_legend: true
+          - type: statistics-graph
+            chart_type: line
+            entities:
+              - sensor.driveway_env_pm2_5
+            stat_types:
+              - mean
+            days_to_show: 90
+            period: day
+            hide_legend: true
+
+      # ── Audio Analytics SPL ──────────────────────────────────
+      - title: AUDIO ANALYTICS (SPL)
+        cards:
+          - type: custom:mushroom-template-card
+            primary: >-
+              {% if states('sensor.driveway_wide_audio_spl') not in ['unknown', 'unavailable'] %}
+              {{ states('sensor.driveway_wide_audio_spl') }} dB
+              {% else %}Awaiting data{% endif %}
+            secondary: >-
+              {% if states('sensor.driveway_wide_audio_spl') in ['unknown', 'unavailable'] %}
+              Install AXIS Audio Analytics on driveway_wide, then run configure_audio_analytics.py
+              {% else %}Driveway wide · sound pressure level{% endif %}
+            icon: mdi:volume-high
+            icon_color: >-
+              {% if states('sensor.driveway_wide_audio_spl') not in ['unknown', 'unavailable'] %}blue
+              {% else %}disabled{% endif %}
+            fill_container: true
+            tap_action:
+              action: more-info
+              entity: sensor.driveway_wide_audio_spl
+          - type: history-graph
+            title: Sound Pressure Level
+            entities:
+              - entity: sensor.driveway_wide_audio_spl
+            hours_to_show: 168
+
+      # ── Occupancy activity (AOA) ─────────────────────────────
+      - title: ACTIVITY (AOA)
         cards:
           - type: custom:mushroom-chips-card
             chips:
@@ -580,7 +694,7 @@ views:
                 icon_color: >-
                   {{ 'red' if is_state('binary_sensor.backyard_aoa_person', 'on') else 'grey' }}
 
-      # ── Object Counts ─────────────────────────────────────────
+      # ── Object counts ────────────────────────────────────────
       - title: OBJECT COUNTS (24H)
         cards:
           - type: custom:mushroom-entity-card
@@ -614,33 +728,26 @@ views:
             layout: horizontal
             fill_container: true
 
-      # ── Face Recognition ─────────────────────────────────────
-      - title: FACE RECOGNITION
-        cards:
-          - type: custom:mushroom-template-card
-            primary: Not yet active
-            secondary: Double Take + CompreFace — Phase 4
-            icon: mdi:face-recognition
-            icon_color: amber
-            fill_container: true
-            tap_action:
-              action: none
-
-      # ── Event Log ────────────────────────────────────────────
-      - title: EVENT LOG
+      # ── Event timeline ───────────────────────────────────────
+      - title: TIMELINE
         cards:
           - type: logbook
-            hours_to_show: 24
+            hours_to_show: 48
             entities:
               - binary_sensor.front_motion
               - binary_sensor.front_person_occupancy
+              - binary_sensor.front_aoa_person
               - binary_sensor.driveway_wide_motion
               - binary_sensor.driveway_wide_car_occupancy
               - binary_sensor.driveway_wide_person_occupancy
+              - binary_sensor.driveway_wide_aoa_person
+              - binary_sensor.driveway_wide_aoa_vehicle
               - binary_sensor.driveway_id_motion
               - binary_sensor.driveway_id_person_occupancy
+              - binary_sensor.driveway_id_aoa_person
               - binary_sensor.backyard_motion
               - binary_sensor.backyard_person_occupancy
+              - binary_sensor.backyard_aoa_person
               - binary_sensor.storage_ext_motion
               - binary_sensor.storage_ext_person_occupancy
               - binary_sensor.storage_int_motion
@@ -648,7 +755,7 @@ views:
 
 
   # ═══════════════════════════════════════════════════════════════
-  # VIEW 4 — ROOMS
+  # VIEW 5 — ROOMS
   # Lights and devices by area
   # ═══════════════════════════════════════════════════════════════
   - title: Rooms
@@ -818,17 +925,16 @@ views:
             tap_action:
               action: none
 
-      # ── Household Devices ────────────────────────────────────
-      - title: DEVICES
+      # ── Vacuum (Roborock) ────────────────────────────────────
+      - title: VACUUM
         column_span: 2
         cards:
+          - type: custom:mushroom-vacuum-card
+            entity: vacuum.hoover
+            name: Vacuum
+            fill_container: true
           - type: horizontal-stack
             cards:
-              - type: custom:mushroom-entity-card
-                entity: vacuum.hoover
-                name: Hoover
-                icon: mdi:robot-vacuum
-                layout: vertical
               - type: custom:mushroom-entity-card
                 entity: sensor.hoover_batteri
                 name: Batteri
@@ -839,6 +945,49 @@ views:
                 name: Status
                 icon: mdi:information
                 layout: vertical
+              - type: custom:mushroom-entity-card
+                entity: sensor.hoover_nuvarande_rum
+                name: Rum
+                icon: mdi:floor-plan
+                layout: vertical
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: action
+                icon: mdi:play
+                content: Start
+                tap_action:
+                  action: call-service
+                  service: vacuum.start
+                  target:
+                    entity_id: vacuum.hoover
+              - type: action
+                icon: mdi:pause
+                content: Pause
+                tap_action:
+                  action: call-service
+                  service: vacuum.pause
+                  target:
+                    entity_id: vacuum.hoover
+              - type: action
+                icon: mdi:stop
+                content: Stop
+                tap_action:
+                  action: call-service
+                  service: vacuum.stop
+                  target:
+                    entity_id: vacuum.hoover
+              - type: action
+                icon: mdi:home-import-outline
+                content: Dock
+                tap_action:
+                  action: call-service
+                  service: vacuum.return_to_base
+                  target:
+                    entity_id: vacuum.hoover
+              - type: entity
+                entity: button.hoover_full_cleaning
+                icon: mdi:broom
+                content_info: name
           - type: custom:mushroom-template-card
             primary: >-
               {% if is_state('vacuum.hoover', 'cleaning') %}Städar — {{ states('sensor.hoover_nuvarande_rum') }}
@@ -852,10 +1001,16 @@ views:
             tap_action:
               action: more-info
               entity: vacuum.hoover
+          - type: picture-entity
+            entity: image.hoover_bottenvaning
+            name: Bottenvåning
+            show_state: false
+            tap_action:
+              action: more-info
 
 
   # ═══════════════════════════════════════════════════════════════
-  # VIEW 5 — OPERATIONS
+  # VIEW 6 — OPERATIONS
   # ═══════════════════════════════════════════════════════════════
   - title: Operations
     path: ops
