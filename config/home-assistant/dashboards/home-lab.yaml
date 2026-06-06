@@ -61,20 +61,127 @@ views:
               {{ 'green' if states('sensor.house_people_home_count') | int > 0 else 'grey' }}
             layout: horizontal
             fill_container: true
-          - type: custom:mushroom-template-card
-            primary: "AQI {{ states('sensor.driveway_env_aqi') }}"
-            secondary: >-
-              {{ states('sensor.driveway_env_temperature') }}°C ·
-              CO₂ {{ states('sensor.driveway_env_co2') }} ppm
-            icon: mdi:air-filter
-            icon_color: >-
-              {% set aqi = states('sensor.driveway_env_aqi') | int(0) %}
-              {{ 'green' if aqi <= 50 else 'amber' if aqi <= 100 else 'red' }}
-            layout: horizontal
-            fill_container: true
-            tap_action:
-              action: navigate
-              navigation_path: /lovelace/ops
+
+      # ── Outdoor Environment (D6210) ────────────────────────────
+      - title: OUTDOOR ENVIRONMENT
+        cards:
+          - type: horizontal-stack
+            cards:
+              - type: custom:mushroom-template-card
+                primary: "{{ states('sensor.driveway_env_temperature') }}°C"
+                secondary: Humidity {{ states('sensor.driveway_env_humidity') }}%
+                icon: mdi:thermometer
+                layout: vertical
+                fill_container: true
+              - type: custom:mushroom-template-card
+                primary: "{{ states('sensor.driveway_env_co2') }}"
+                secondary: CO₂ ppm
+                icon: mdi:molecule-co2
+                layout: vertical
+                fill_container: true
+              - type: custom:mushroom-template-card
+                primary: "{{ states('sensor.driveway_env_aqi') }}"
+                secondary: Air Quality
+                icon: mdi:air-filter
+                icon_color: >-
+                  {% set aqi = states('sensor.driveway_env_aqi') | int(0) %}
+                  {{ 'green' if aqi <= 50 else 'amber' if aqi <= 100 else 'red' }}
+                layout: vertical
+                fill_container: true
+              - type: custom:mushroom-template-card
+                primary: "{{ states('sensor.driveway_env_pm25') }}"
+                secondary: PM2.5 µg/m³
+                icon: mdi:blur
+                layout: vertical
+                fill_container: true
+          - type: custom:mini-graph-card
+            entities:
+              - entity: sensor.driveway_env_temperature
+                name: Temperature
+            name: Temperature · 24 h
+            hours_to_show: 24
+            points_per_hour: 4
+            line_width: 2
+            show:
+              state: true
+              extrema: true
+              fill: fade
+              labels: false
+            color_thresholds:
+              - value: 0
+                color: "#2196F3"
+              - value: 20
+                color: "#4CAF50"
+              - value: 28
+                color: "#FF9800"
+          - type: custom:mini-graph-card
+            entities:
+              - entity: sensor.driveway_env_humidity
+                name: Humidity
+            name: Humidity · 24 h
+            hours_to_show: 24
+            points_per_hour: 4
+            line_width: 2
+            show:
+              state: true
+              extrema: true
+              fill: fade
+              labels: false
+          - type: custom:mini-graph-card
+            entities:
+              - entity: sensor.driveway_env_co2
+                name: CO₂
+            name: CO₂ · 24 h
+            hours_to_show: 24
+            points_per_hour: 4
+            line_width: 2
+            show:
+              state: true
+              extrema: true
+              fill: fade
+              labels: false
+            color_thresholds:
+              - value: 0
+                color: "#4CAF50"
+              - value: 800
+                color: "#FF9800"
+              - value: 1200
+                color: "#F44336"
+          - type: custom:mini-graph-card
+            entities:
+              - entity: sensor.driveway_env_aqi
+                name: AQI
+            name: Air Quality · 24 h
+            hours_to_show: 24
+            points_per_hour: 4
+            line_width: 2
+            show:
+              state: true
+              extrema: true
+              fill: fade
+              labels: false
+            color_thresholds:
+              - value: 0
+                color: "#4CAF50"
+              - value: 51
+                color: "#FFEB3B"
+              - value: 101
+                color: "#FF9800"
+              - value: 151
+                color: "#F44336"
+          - type: custom:mini-graph-card
+            entities:
+              - entity: sensor.driveway_env_pm25
+                name: PM2.5
+            name: PM2.5 · 24 h
+            hours_to_show: 24
+            points_per_hour: 4
+            line_width: 2
+            show:
+              state: true
+              extrema: true
+              fill: fade
+              labels: false
 
       # ── Quick Status ─────────────────────────────────────────
       - title: QUICK STATUS
@@ -743,50 +850,6 @@ views:
               service: backup.create
               confirmation:
                 text: Create a full backup?
-
-      # ── Outdoor Environment (D6210) ────────────────────────────
-      - title: OUTDOOR ENVIRONMENT
-        column_span: 2
-        cards:
-          - type: horizontal-stack
-            cards:
-              - type: custom:mushroom-template-card
-                primary: "{{ states('sensor.driveway_env_temperature') }}°C"
-                secondary: Humidity {{ states('sensor.driveway_env_humidity') }}%
-                icon: mdi:thermometer
-                layout: vertical
-                fill_container: true
-              - type: custom:mushroom-template-card
-                primary: "{{ states('sensor.driveway_env_co2') }}"
-                secondary: CO₂ ppm
-                icon: mdi:molecule-co2
-                layout: vertical
-                fill_container: true
-              - type: custom:mushroom-template-card
-                primary: "{{ states('sensor.driveway_env_aqi') }}"
-                secondary: Air Quality Index
-                icon: mdi:air-filter
-                icon_color: >-
-                  {% set aqi = states('sensor.driveway_env_aqi') | int(0) %}
-                  {{ 'green' if aqi <= 50 else 'amber' if aqi <= 100 else 'red' }}
-                layout: vertical
-                fill_container: true
-              - type: custom:mushroom-template-card
-                primary: "{{ states('sensor.driveway_env_pm25') }}"
-                secondary: PM2.5 µg/m³
-                icon: mdi:blur
-                layout: vertical
-                fill_container: true
-          - type: custom:mini-graph-card
-            entities:
-              - entity: sensor.driveway_env_temperature
-                name: Temp
-              - entity: sensor.driveway_env_co2
-                name: CO₂
-                y_axis: secondary
-            hours_to_show: 24
-            points_per_hour: 2
-            line_width: 2
 
       # ── AOA Presence (bridge) ──────────────────────────────────
       - title: AOA PRESENCE
