@@ -11,7 +11,7 @@ views:
     max_columns: 1
     sections:
 
-      # ── Greeting ─────────────────────────────────────────────
+      # ── Overview — compact status at top ─────────────────────
       - cards:
           - type: custom:mushroom-template-card
             primary: >-
@@ -25,78 +25,147 @@ views:
             fill_container: true
             tap_action:
               action: none
+          - type: horizontal-stack
+            cards:
+              - type: custom:mushroom-template-card
+                primary: "{{ states('sensor.house_people_home_count') }} home"
+                secondary: "{{ state_attr('sensor.house_people_home_count', 'who_home') }}"
+                icon: mdi:home-account
+                icon_color: >-
+                  {{ 'green' if states('sensor.house_people_home_count') | int > 0 else 'grey' }}
+                layout: vertical
+                fill_container: true
+              - type: custom:mushroom-template-card
+                primary: "{{ states('sensor.driveway_env_temperature') }}°C"
+                secondary: >-
+                  Ute · {{ relative_time(states.sensor.driveway_env_temperature.last_changed) }}
+                icon: mdi:thermometer
+                icon_color: >-
+                  {% set t = states('sensor.driveway_env_temperature') | float(0) %}
+                  {{ 'blue' if t < 10 else 'green' if t < 22 else 'orange' if t < 28 else 'red' }}
+                layout: vertical
+                fill_container: true
+              - type: custom:mushroom-chips-card
+                alignment: center
+                chips:
+                  - type: template
+                    icon: mdi:water-percent
+                    content: "{{ states('sensor.driveway_env_humidity') }}%"
+                    icon_color: blue
+                  - type: template
+                    icon: mdi:molecule-co2
+                    content: "{{ states('sensor.driveway_env_co2') | int(0) }}"
+                    icon_color: >-
+                      {% set c = states('sensor.driveway_env_co2') | int(0) %}
+                      {{ 'green' if c < 800 else 'amber' if c < 1200 else 'red' }}
+                  - type: template
+                    icon: mdi:air-filter
+                    content: "AQI {{ states('sensor.driveway_env_aqi') }}"
+                    icon_color: >-
+                      {% set aqi = states('sensor.driveway_env_aqi') | int(0) %}
+                      {{ 'green' if aqi <= 50 else 'amber' if aqi <= 100 else 'red' }}
+                  - type: template
+                    icon: mdi:blur
+                    content: "PM2.5 {{ states('sensor.driveway_env_pm2_5') }}"
+                    icon_color: grey
 
       # ── Who's Home ───────────────────────────────────────────
       - title: WHO'S HOME
         cards:
-          - type: custom:mushroom-person-card
-            entity: person.thomasx
-            layout: horizontal
-            fill_container: true
-            secondary_info: last_changed
-          - type: custom:mushroom-person-card
-            entity: person.nils_2
-            layout: horizontal
-            fill_container: true
-            secondary_info: last_changed
-          - type: custom:mushroom-person-card
-            entity: person.hugo
-            layout: horizontal
-            fill_container: true
-            secondary_info: last_changed
-          - type: custom:mushroom-person-card
-            entity: person.anna
-            layout: horizontal
-            fill_container: true
-            secondary_info: last_changed
+          - type: horizontal-stack
+            cards:
+              - type: custom:mushroom-person-card
+                entity: person.thomasx
+                layout: vertical
+                fill_container: true
+              - type: custom:mushroom-person-card
+                entity: person.nils_2
+                layout: vertical
+                fill_container: true
+              - type: custom:mushroom-person-card
+                entity: person.hugo
+                layout: vertical
+                fill_container: true
+              - type: custom:mushroom-person-card
+                entity: person.anna
+                layout: vertical
+                fill_container: true
 
-      # ── House Context ────────────────────────────────────────
-      - title: HOUSE CONTEXT
+      # ── Quick Status ─────────────────────────────────────────
+      - title: QUICK STATUS
         cards:
-          - type: custom:mushroom-template-card
-            primary: "{{ states('sensor.house_people_home_count') }} home"
-            secondary: "{{ state_attr('sensor.house_people_home_count', 'who_home') }}"
-            icon: mdi:home-account
-            icon_color: >-
-              {{ 'green' if states('sensor.house_people_home_count') | int > 0 else 'grey' }}
-            layout: horizontal
-            fill_container: true
-
-      # ── Outdoor Environment (D6210) ────────────────────────────
-      - title: OUTDOOR NOW
-        cards:
-          - type: custom:mushroom-template-card
-            primary: "{{ states('sensor.driveway_env_temperature') }}°C"
-            secondary: >-
-              Ute nu · uppdaterad {{ relative_time(states.sensor.driveway_env_temperature.last_changed) }}
-            icon: mdi:thermometer
-            icon_color: >-
-              {% set t = states('sensor.driveway_env_temperature') | float(0) %}
-              {{ 'blue' if t < 10 else 'green' if t < 22 else 'orange' if t < 28 else 'red' }}
-            layout: horizontal
-            fill_container: true
           - type: custom:mushroom-chips-card
             chips:
               - type: template
-                icon: mdi:water-percent
-                content: "{{ states('sensor.driveway_env_humidity') }}%"
+                icon: mdi:door
+                content: >-
+                  {% if is_state('binary_sensor.front_aoa_person', 'on') %}Entré · Person
+                  {% elif is_state('binary_sensor.front_motion', 'on') %}Entré · Rörelse
+                  {% else %}Entré · Lugnt{% endif %}
+                icon_color: >-
+                  {{ 'red' if is_state('binary_sensor.front_aoa_person', 'on')
+                     else 'amber' if is_state('binary_sensor.front_motion', 'on')
+                     else 'green' }}
+                tap_action:
+                  action: navigate
+                  navigation_path: /lovelace/home-lab/security
+              - type: template
+                icon: mdi:car
+                content: >-
+                  {% if is_state('binary_sensor.driveway_id_aoa_person', 'on') %}Uppfart · Person
+                  {% elif is_state('binary_sensor.driveway_wide_aoa_vehicle', 'on') %}Uppfart · Fordon
+                  {% elif is_state('binary_sensor.driveway_wide_motion', 'on') %}Uppfart · Rörelse
+                  {% else %}Uppfart · Lugnt{% endif %}
+                icon_color: >-
+                  {{ 'red' if is_state('binary_sensor.driveway_id_aoa_person', 'on')
+                     else 'amber' if is_state('binary_sensor.driveway_wide_aoa_vehicle', 'on')
+                        or is_state('binary_sensor.driveway_wide_motion', 'on')
+                     else 'green' }}
+                tap_action:
+                  action: navigate
+                  navigation_path: /lovelace/home-lab/cameras
+              - type: template
+                icon: mdi:walk
+                content: >-
+                  {{ 'Utomhus · Någon' if is_state('sensor.house_outdoor_presence', 'on')
+                     else 'Utomhus · Tomt' }}
+                icon_color: >-
+                  {{ 'red' if is_state('sensor.house_outdoor_presence', 'on') else 'grey' }}
+              - type: template
+                icon: mdi:weather-cloudy
+                content: "{{ states('weather.forecast_hem') | title }}"
                 icon_color: blue
-              - type: template
-                icon: mdi:molecule-co2
-                content: "CO₂ {{ states('sensor.driveway_env_co2') }}"
-                icon_color: >-
-                  {% set c = states('sensor.driveway_env_co2') | int(0) %}
-                  {{ 'green' if c < 800 else 'amber' if c < 1200 else 'red' }}
-              - type: template
-                icon: mdi:air-filter
-                content: "AQI {{ states('sensor.driveway_env_aqi') }}"
-                icon_color: >-
-                  {% set aqi = states('sensor.driveway_env_aqi') | int(0) %}
-                  {{ 'green' if aqi <= 50 else 'amber' if aqi <= 100 else 'red' }}
-              - type: template
-                icon: mdi:blur
-                content: "PM2.5 {{ states('sensor.driveway_env_pm2_5') }}"
-                icon_color: grey
+
+      # ── Lights On Now ────────────────────────────────────────
+      - title: LIGHTS ON NOW
+        cards:
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: entity
+                entity: light.anna_och_thomas_sovrum
+              - type: entity
+                entity: light.hugos_rum
+              - type: entity
+                entity: light.living_room
+              - type: entity
+                entity: light.fonsterlampor
+
+      # ── Recent Events ────────────────────────────────────────
+      - title: RECENT EVENTS
+        cards:
+          - type: logbook
+            hours_to_show: 6
+            entities:
+              - binary_sensor.front_motion
+              - binary_sensor.front_person_occupancy
+              - binary_sensor.driveway_wide_motion
+              - binary_sensor.driveway_wide_car_occupancy
+              - binary_sensor.driveway_id_motion
+              - binary_sensor.driveway_id_person_occupancy
+              - binary_sensor.backyard_motion
+              - binary_sensor.backyard_person_occupancy
+              - binary_sensor.storage_ext_motion
+              - binary_sensor.storage_int_motion
 
       - title: LAST 7 DAYS
         cards:
@@ -179,63 +248,6 @@ views:
             entities:
               - entity: sensor.driveway_env_pm2_5
 
-      # ── Quick Status ─────────────────────────────────────────
-      - title: QUICK STATUS
-        cards:
-          - type: custom:mushroom-chips-card
-            chips:
-              - type: template
-                icon: mdi:car
-                content: Driveway
-                icon_color: >-
-                  {{ 'red' if is_state('binary_sensor.driveway_id_person_occupancy', 'on')
-                     else 'amber' if is_state('binary_sensor.driveway_wide_motion', 'on')
-                     else 'green' }}
-                tap_action:
-                  action: navigate
-                  navigation_path: /lovelace/cameras
-              - type: template
-                icon: mdi:home-account
-                content: >-
-                  {{ states('person.thomasx') | title }}
-                icon_color: >-
-                  {{ 'green' if is_state('person.thomasx', 'home') else 'grey' }}
-              - type: template
-                icon: mdi:weather-cloudy
-                content: "{{ states('weather.forecast_hem') | title }}"
-                icon_color: blue
-
-      # ── Recent Events ────────────────────────────────────────
-      - title: RECENT EVENTS
-        cards:
-          - type: logbook
-            hours_to_show: 6
-            entities:
-              - binary_sensor.front_motion
-              - binary_sensor.front_person_occupancy
-              - binary_sensor.driveway_wide_motion
-              - binary_sensor.driveway_wide_car_occupancy
-              - binary_sensor.driveway_id_motion
-              - binary_sensor.driveway_id_person_occupancy
-              - binary_sensor.backyard_motion
-              - binary_sensor.backyard_person_occupancy
-              - binary_sensor.storage_ext_motion
-              - binary_sensor.storage_int_motion
-
-      # ── Lights On Now ────────────────────────────────────────
-      - title: LIGHTS ON NOW
-        cards:
-          - type: custom:mushroom-chips-card
-            chips:
-              - type: entity
-                entity: light.anna_och_thomas_sovrum
-              - type: entity
-                entity: light.hugos_rum
-              - type: entity
-                entity: light.living_room
-              - type: entity
-                entity: light.fonsterlampor
-
 
   # ═══════════════════════════════════════════════════════════════
   # VIEW 2 — CAMERAS
@@ -248,7 +260,55 @@ views:
     max_columns: 2
     sections:
 
-      # ── Driveway — full width ────────────────────────────────
+      # ── Front — primary entry view ───────────────────────────
+      - title: FRONT
+        column_span: 2
+        cards:
+          - type: custom:advanced-camera-card
+            cameras:
+              - camera_entity: camera.front
+                title: Front (P3288)
+            dimensions:
+              aspect_ratio: 16/9
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: template
+                icon: mdi:account
+                content: >-
+                  {{ 'Person' if is_state('binary_sensor.front_aoa_person', 'on')
+                     else 'Rörelse' if is_state('binary_sensor.front_motion', 'on')
+                     else 'Lugnt' }}
+                icon_color: >-
+                  {{ 'red' if is_state('binary_sensor.front_aoa_person', 'on')
+                     else 'amber' if is_state('binary_sensor.front_motion', 'on')
+                     else 'grey' }}
+
+      # ── Backyard + Storage — side by side ────────────────────
+      - title: BACKYARD
+        cards:
+          - type: custom:advanced-camera-card
+            cameras:
+              - camera_entity: camera.backyard
+                title: Backyard (Q1656)
+            dimensions:
+              aspect_ratio: 16/9
+
+      - title: STORAGE
+        cards:
+          - type: custom:advanced-camera-card
+            cameras:
+              - camera_entity: camera.storage_ext
+                title: Storage Exterior (Q1656)
+            dimensions:
+              aspect_ratio: 16/9
+          - type: custom:advanced-camera-card
+            cameras:
+              - camera_entity: camera.storage_int
+                title: Storage Interior (M1055)
+            dimensions:
+              aspect_ratio: 16/9
+
+      # ── Driveway — wide overview + ID cam below ──────────────
       - title: DRIVEWAY
         column_span: 2
         cards:
@@ -266,58 +326,30 @@ views:
                     title: Driveway ID (M2036)
                 dimensions:
                   aspect_ratio: 16/9
-              - type: custom:mushroom-template-card
-                primary: Uppfart
-                secondary: >-
-                  {% if is_state('binary_sensor.driveway_id_person_occupancy', 'on') %}Person
-                  {% elif is_state('binary_sensor.driveway_wide_motion', 'on') %}Rörelse
-                  {% else %}Lugnt{% endif %}
-                icon: mdi:car-arrow-right
-                icon_color: >-
-                  {{ 'red' if is_state('binary_sensor.driveway_id_person_occupancy', 'on')
-                     else 'amber' if is_state('binary_sensor.driveway_wide_motion', 'on')
-                     else 'grey' }}
-                layout: vertical
-                fill_container: true
-                tap_action:
-                  action: none
-
-      # ── Front — full width ───────────────────────────────────
-      - title: FRONT
-        column_span: 2
-        cards:
-          - type: custom:advanced-camera-card
-            cameras:
-              - camera_entity: camera.front
-                title: Front (P3288)
-            dimensions:
-              aspect_ratio: 16/9
-
-      # ── Backyard ─────────────────────────────────────────────
-      - title: BACKYARD
-        cards:
-          - type: custom:advanced-camera-card
-            cameras:
-              - camera_entity: camera.backyard
-                title: Backyard (Q1656)
-            dimensions:
-              aspect_ratio: 16/9
-
-      # ── Storage ──────────────────────────────────────────────
-      - title: STORAGE
-        cards:
-          - type: custom:advanced-camera-card
-            cameras:
-              - camera_entity: camera.storage_ext
-                title: Storage Exterior (Q1656)
-            dimensions:
-              aspect_ratio: 16/9
-          - type: custom:advanced-camera-card
-            cameras:
-              - camera_entity: camera.storage_int
-                title: Storage Interior (M1055)
-            dimensions:
-              aspect_ratio: 16/9
+              - type: custom:mushroom-chips-card
+                alignment: center
+                chips:
+                  - type: template
+                    icon: mdi:account
+                    content: >-
+                      {{ 'Person' if is_state('binary_sensor.driveway_id_aoa_person', 'on')
+                         else 'Ingen person' }}
+                    icon_color: >-
+                      {{ 'red' if is_state('binary_sensor.driveway_id_aoa_person', 'on') else 'grey' }}
+                  - type: template
+                    icon: mdi:car
+                    content: >-
+                      {{ 'Fordon' if is_state('binary_sensor.driveway_wide_aoa_vehicle', 'on')
+                         else 'Inget fordon' }}
+                    icon_color: >-
+                      {{ 'amber' if is_state('binary_sensor.driveway_wide_aoa_vehicle', 'on') else 'grey' }}
+                  - type: template
+                    icon: mdi:motion-sensor
+                    content: >-
+                      {{ 'Rörelse' if is_state('binary_sensor.driveway_wide_motion', 'on')
+                         else 'Ingen rörelse' }}
+                    icon_color: >-
+                      {{ 'blue' if is_state('binary_sensor.driveway_wide_motion', 'on') else 'grey' }}
 
 
   # ═══════════════════════════════════════════════════════════════
@@ -345,7 +377,7 @@ views:
                      else 'grey' }}
                 tap_action:
                   action: navigate
-                  navigation_path: /lovelace/cameras
+                  navigation_path: /lovelace/home-lab/cameras
               - type: template
                 icon: mdi:cctv
                 content: Driveway
@@ -357,7 +389,7 @@ views:
                      else 'grey' }}
                 tap_action:
                   action: navigate
-                  navigation_path: /lovelace/cameras
+                  navigation_path: /lovelace/home-lab/cameras
               - type: template
                 icon: mdi:cctv
                 content: Backyard
@@ -380,78 +412,87 @@ views:
                      else 'amber' if is_state('binary_sensor.storage_int_motion', 'on')
                      else 'grey' }}
 
-      # ── Scene Metadata — live räknare ───────────────────────────
-      - title: LIVE SCENE DATA
-        cards:
-          - type: horizontal-stack
-            cards:
-              - type: custom:mushroom-template-card
-                primary: "{{ states('sensor.front_scene_persons') }}"
-                secondary: Entrén · pers
-                icon: mdi:account-multiple
-                icon_color: >-
-                  {% set n = states('sensor.front_scene_persons') | int(0) %}
-                  {{ 'red' if n > 0 else 'grey' }}
-                layout: vertical
-                fill_container: true
-                tap_action:
-                  action: navigate
-                  navigation_path: /lovelace/cameras
-              - type: custom:mushroom-template-card
-                primary: "{{ states('sensor.front_scene_vehicles') }}"
-                secondary: Entrén · fordon
-                icon: mdi:car
-                icon_color: >-
-                  {% set n = states('sensor.front_scene_vehicles') | int(0) %}
-                  {{ 'amber' if n > 0 else 'grey' }}
-                layout: vertical
-                fill_container: true
-              - type: custom:mushroom-template-card
-                primary: "{{ states('sensor.driveway_wide_scene_persons') }}"
-                secondary: Uppfart · pers
-                icon: mdi:account-multiple
-                icon_color: >-
-                  {% set n = states('sensor.driveway_wide_scene_persons') | int(0) %}
-                  {{ 'red' if n > 0 else 'grey' }}
-                layout: vertical
-                fill_container: true
-                tap_action:
-                  action: navigate
-                  navigation_path: /lovelace/cameras
-              - type: custom:mushroom-template-card
-                primary: "{{ states('sensor.driveway_wide_scene_vehicles') }}"
-                secondary: Uppfart · fordon
-                icon: mdi:car
-                icon_color: >-
-                  {% set n = states('sensor.driveway_wide_scene_vehicles') | int(0) %}
-                  {{ 'amber' if n > 0 else 'grey' }}
-                layout: vertical
-                fill_container: true
-
-      # ── Latest detection snapshots ───────────────────────────
+      # ── Latest Frigate detection snapshots ───────────────────
       - title: SENASTE BILDER
-        column_span: 2
         cards:
           - type: horizontal-stack
             cards:
               - type: picture-entity
-                entity: image.front_latest_detection
-                name: Entrén
+                entity: image.front_person
+                name: Entrén · person
                 show_state: false
                 tap_action:
                   action: more-info
               - type: picture-entity
-                entity: image.driveway_wide_latest_detection
-                name: Uppfart bred
+                entity: image.driveway_wide_person
+                name: Uppfart · person
                 show_state: false
                 tap_action:
                   action: more-info
               - type: picture-entity
-                entity: image.driveway_id_latest_detection
-                name: Uppfart nära
+                entity: image.driveway_id_person
+                name: Uppfart ID · person
                 show_state: false
                 tap_action:
                   action: more-info
+          - type: horizontal-stack
+            cards:
+              - type: picture-entity
+                entity: image.front_car
+                name: Entrén · fordon
+                show_state: false
+                tap_action:
+                  action: more-info
+              - type: picture-entity
+                entity: image.driveway_wide_car
+                name: Uppfart · fordon
+                show_state: false
+                tap_action:
+                  action: more-info
+              - type: picture-entity
+                entity: image.driveway_id_car
+                name: Uppfart ID · fordon
+                show_state: false
+                tap_action:
+                  action: more-info
+
+      # ── AOA presence (live) — scene/frame often empty on FW 12.x ──
+      - title: LIVE PRESENCE (AOA)
+        cards:
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: template
+                icon: mdi:account
+                content: >-
+                  Entré · {{ 'På' if is_state('binary_sensor.front_aoa_person', 'on') else 'Av' }}
+                icon_color: >-
+                  {{ 'red' if is_state('binary_sensor.front_aoa_person', 'on') else 'grey' }}
+              - type: template
+                icon: mdi:account
+                content: >-
+                  Uppf. bred · {{ 'På' if is_state('binary_sensor.driveway_wide_aoa_person', 'on') else 'Av' }}
+                icon_color: >-
+                  {{ 'red' if is_state('binary_sensor.driveway_wide_aoa_person', 'on') else 'grey' }}
+              - type: template
+                icon: mdi:account
+                content: >-
+                  Uppf. ID · {{ 'På' if is_state('binary_sensor.driveway_id_aoa_person', 'on') else 'Av' }}
+                icon_color: >-
+                  {{ 'red' if is_state('binary_sensor.driveway_id_aoa_person', 'on') else 'grey' }}
+              - type: template
+                icon: mdi:car
+                content: >-
+                  Fordon · {{ 'På' if is_state('binary_sensor.driveway_wide_aoa_vehicle', 'on')
+                     or is_state('binary_sensor.front_aoa_vehicle', 'on') else 'Av' }}
+                icon_color: >-
+                  {{ 'amber' if is_state('binary_sensor.driveway_wide_aoa_vehicle', 'on')
+                     or is_state('binary_sensor.front_aoa_vehicle', 'on') else 'grey' }}
+              - type: template
+                icon: mdi:account
+                content: >-
+                  Backyard · {{ 'På' if is_state('binary_sensor.backyard_aoa_person', 'on') else 'Av' }}
+                icon_color: >-
+                  {{ 'red' if is_state('binary_sensor.backyard_aoa_person', 'on') else 'grey' }}
 
       # ── Object Counts ─────────────────────────────────────────
       - title: OBJECT COUNTS (24H)
@@ -737,28 +778,108 @@ views:
     max_columns: 2
     sections:
 
+      # ── Camera status ────────────────────────────────────────
+      - title: CAMERAS
+        column_span: 2
+        cards:
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: template
+                icon: mdi:cctv
+                content: Front
+                icon_color: >-
+                  {{ 'green' if is_state('camera.front', 'recording') else 'red' }}
+              - type: template
+                icon: mdi:cctv
+                content: Drwy Wide
+                icon_color: >-
+                  {{ 'green' if is_state('camera.driveway_wide', 'recording') else 'red' }}
+              - type: template
+                icon: mdi:cctv
+                content: Drwy ID
+                icon_color: >-
+                  {{ 'green' if is_state('camera.driveway_id', 'recording') else 'red' }}
+              - type: template
+                icon: mdi:cctv
+                content: Backyard
+                icon_color: >-
+                  {{ 'green' if is_state('camera.backyard', 'recording') else 'red' }}
+              - type: template
+                icon: mdi:cctv
+                content: Stor Ext
+                icon_color: >-
+                  {{ 'green' if is_state('camera.storage_ext', 'recording') else 'red' }}
+              - type: template
+                icon: mdi:cctv
+                content: Stor Int
+                icon_color: >-
+                  {{ 'green' if is_state('camera.storage_int', 'recording') else 'red' }}
+
+      # ── Recording toggles ────────────────────────────────────
+      - title: RECORDING
+        column_span: 2
+        cards:
+          - type: custom:mushroom-entity-card
+            entity: switch.front_recordings
+            name: Front
+            icon: mdi:record-rec
+            layout: horizontal
+            fill_container: true
+          - type: custom:mushroom-entity-card
+            entity: switch.driveway_wide_recordings
+            name: Driveway Wide
+            icon: mdi:record-rec
+            layout: horizontal
+            fill_container: true
+          - type: custom:mushroom-entity-card
+            entity: switch.driveway_id_recordings
+            name: Driveway ID
+            icon: mdi:record-rec
+            layout: horizontal
+            fill_container: true
+          - type: custom:mushroom-entity-card
+            entity: switch.backyard_recordings
+            name: Backyard
+            icon: mdi:record-rec
+            layout: horizontal
+            fill_container: true
+          - type: custom:mushroom-entity-card
+            entity: switch.storage_ext_recordings
+            name: Storage Ext
+            icon: mdi:record-rec
+            layout: horizontal
+            fill_container: true
+          - type: custom:mushroom-entity-card
+            entity: switch.storage_int_recordings
+            name: Storage Int
+            icon: mdi:record-rec
+            layout: horizontal
+            fill_container: true
+
       # ── System ───────────────────────────────────────────────
       - title: SYSTEM
         column_span: 2
         cards:
-          - type: custom:mushroom-entity-card
-            entity: update.home_assistant_core_update
-            name: Home Assistant Core
-            icon: mdi:home-assistant
-            layout: horizontal
-            fill_container: true
-          - type: custom:mushroom-entity-card
-            entity: update.home_assistant_supervisor_update
-            name: Supervisor
-            icon: mdi:update
-            layout: horizontal
-            fill_container: true
-          - type: custom:mushroom-entity-card
-            entity: update.home_assistant_operating_system_update
-            name: HAOS
-            icon: mdi:layers
-            layout: horizontal
-            fill_container: true
+          - type: horizontal-stack
+            cards:
+              - type: custom:mushroom-entity-card
+                entity: update.home_assistant_core_update
+                name: Core
+                icon: mdi:home-assistant
+                layout: vertical
+                fill_container: true
+              - type: custom:mushroom-entity-card
+                entity: update.home_assistant_supervisor_update
+                name: Supervisor
+                icon: mdi:update
+                layout: vertical
+                fill_container: true
+              - type: custom:mushroom-entity-card
+                entity: update.home_assistant_operating_system_update
+                name: HAOS
+                icon: mdi:layers
+                layout: vertical
+                fill_container: true
 
       # ── Add-ons ──────────────────────────────────────────────
       - title: ADD-ONS
@@ -849,82 +970,3 @@ views:
               service: backup.create
               confirmation:
                 text: Create a full backup?
-
-      # ── AOA Presence (bridge) ──────────────────────────────────
-      - title: AOA PRESENCE
-        column_span: 2
-        cards:
-          - type: custom:mushroom-chips-card
-            chips:
-              - type: template
-                icon: mdi:account
-                content: Front
-                icon_color: >-
-                  {{ 'red' if is_state('binary_sensor.front_aoa_person', 'on') else 'grey' }}
-              - type: template
-                icon: mdi:account
-                content: Drwy Wide
-                icon_color: >-
-                  {{ 'red' if is_state('binary_sensor.driveway_wide_aoa_person', 'on') else 'grey' }}
-              - type: template
-                icon: mdi:account
-                content: Drwy ID
-                icon_color: >-
-                  {{ 'red' if is_state('binary_sensor.driveway_id_aoa_person', 'on') else 'grey' }}
-              - type: template
-                icon: mdi:account
-                content: Backyard
-                icon_color: >-
-                  {{ 'red' if is_state('binary_sensor.backyard_aoa_person', 'on') else 'grey' }}
-              - type: template
-                icon: mdi:car
-                content: Vehicles
-                icon_color: >-
-                  {{ 'amber' if is_state('binary_sensor.front_aoa_vehicle', 'on')
-                     or is_state('binary_sensor.driveway_wide_aoa_vehicle', 'on')
-                     else 'grey' }}
-
-      # ── Camera Connectivity ──────────────────────────────────
-      - title: CAMERA CONNECTIVITY
-        column_span: 2
-        cards:
-          - type: entities
-            entities:
-              - entity: camera.front
-                name: front (P3288)
-              - entity: camera.driveway_wide
-                name: driveway_wide (Q3558-LVE)
-              - entity: camera.driveway_id
-                name: driveway_id (M2036)
-              - entity: camera.backyard
-                name: backyard (Q1656)
-              - entity: camera.storage_ext
-                name: storage_ext (Q1656)
-              - entity: camera.storage_int
-                name: storage_int (M1055)
-          - type: horizontal-stack
-            cards:
-              - type: custom:mushroom-entity-card
-                entity: switch.front_recordings
-                name: front rec
-                layout: vertical
-              - type: custom:mushroom-entity-card
-                entity: switch.driveway_wide_recordings
-                name: drwy wide
-                layout: vertical
-              - type: custom:mushroom-entity-card
-                entity: switch.driveway_id_recordings
-                name: drwy id
-                layout: vertical
-              - type: custom:mushroom-entity-card
-                entity: switch.backyard_recordings
-                name: back rec
-                layout: vertical
-              - type: custom:mushroom-entity-card
-                entity: switch.storage_ext_recordings
-                name: stor ext
-                layout: vertical
-              - type: custom:mushroom-entity-card
-                entity: switch.storage_int_recordings
-                name: stor int
-                layout: vertical
