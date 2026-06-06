@@ -82,6 +82,8 @@ Note: `docs/naming-conventions.md` specifies `camera.frigate_<zone_id>` as the i
 
 **D6210 air quality entity IDs** (Phase 5 — MQTT bridge via `air_quality_bridge.py`, see `docs/runbooks/d6210-setup.md`): `sensor.driveway_env_temperature`, `sensor.driveway_env_humidity`, `sensor.driveway_env_co2`, `sensor.driveway_env_voc`, `sensor.driveway_env_nox`, `sensor.driveway_env_pm2_5`, `sensor.driveway_env_pm10`, `sensor.driveway_env_aqi`
 
+**Audio SPL entity IDs** (Phase 5 — MQTT bridge via `audio_bridge.py`, see `docs/runbooks/audio-analytics-setup.md`): `sensor.front_audio_spl`, `sensor.driveway_wide_audio_spl`, `sensor.backyard_audio_spl`
+
 **Scene frame entity IDs** (Phase 5 — from `axis/<zone>/scene/frame` analytics stream):
 
 | Zone | Presence | Person count | Vehicle count |
@@ -132,6 +134,10 @@ CAM_USER=homeassistant
 CAM_PASS=change-me
 MQTT_USER=frigate
 MQTT_PASS=change-me
+
+# Required by audio_bridge.py (VAPIX WebSocket SPL stream):
+AXIS_ROOT_USER=root
+AXIS_ROOT_PASSWORD=change-me
 ```
 
 The script excludes `secrets.yaml`, `.storage/`, `*.db`, and `*.log` from sync. It pushes HA config, Frigate config, and Double Take config in three passes. The bash script uses `rsync`; the PowerShell script uses `scp` (Windows has no rsync by default).
@@ -167,6 +173,16 @@ python scripts/air_quality_bridge.py
 Requires: `pip install requests paho-mqtt python-dotenv`
 
 Polls the Axis D6210 air quality sensor every 60 s via the M2036 VAPIX proxy (`192.168.68.204`) and publishes readings to Mosquitto under `axis/driveway_env/air/<metric>`. Metrics published: TEMPERATURE, HUMIDITY, CO2, VOC, NOX, PM2.5, AQI. Reads `HA_HOST`, `MQTT_USER`, `MQTT_PASS` from `.env`. Run manually or schedule via Windows Task Scheduler.
+
+### Audio SPL Bridge
+
+```bash
+python scripts/audio_bridge.py
+```
+
+Requires: `pip install requests paho-mqtt python-dotenv websocket-client`
+
+Subscribes to SPL Summary events via VAPIX WebSocket (`wssession.cgi` + `ws-data-stream`) on `front`, `driveway_wide`, and `backyard`. Publishes to `axis/<zone>/audio/spl` as JSON `{"max_spl", "min_spl", "spl"}`. Needs `AXIS_ROOT_PASSWORD` in `.env`. Included in `.\scripts\start-bridges.ps1`.
 
 ### Event Normalizer (Danielsson Insights v0)
 
@@ -218,6 +234,7 @@ config/
     mqtt_sensors/        → merged via !include_dir_merge_list mqtt_sensors/
       scene_metadata.yaml # Axis scene metadata
       air_quality.yaml    # D6210 environmental metrics (temperature, humidity, CO2, VOC, NOX, PM2.5, AQI)
+      audio_analytics.yaml # Audio SPL (front, driveway_wide, backyard)
     mqtt_images/         → merged via !include_dir_merge_list mqtt_images/
       scene_snapshots.yaml # Axis snapshot images — declared under top-level image: key, NOT under mqtt:
     scripts/             → merged via !include_dir_merge_named scripts/
@@ -282,6 +299,9 @@ axis/<zone_id>/event/ObjectAnalytics/ScenarioLoitering/Loitering/Active
 axis/<zone_id>/scene/frame   # JSON {detections:[{type:"Human"|"Car"|..., score:0.xx, ...}]}
 axis/<zone_id>/scene/track   # used by backyard/storage zones (object track events)
 axis/<zone_id>/scene/snapshot # JPEG binary — latest detected object image
+
+# Audio SPL (front, driveway_wide, backyard — via audio_bridge.py):
+axis/<zone_id>/audio/spl      # JSON {"max_spl": 55.3, "min_spl": 36.8, "spl": 55.3}
 ```
 
 All AOA payloads are JSON `{Data: {active: bool}}` — use `value_template: "{{ 'on' if value_json.Data.active else 'off' }}"` in HA sensors.
@@ -301,7 +321,7 @@ All AOA payloads are JSON `{Data: {active: bool}}` — use `value_template: "{{ 
 | 2 | Cameras + Frigate — 6 cameras, recording, HA integration (99 entities) | Done |
 | 3 | Dashboard — 5 views live at `/lovelace/home-lab` | Done |
 | 4 | Face recognition (Double Take + CodeProject.AI) | In Progress — config done, CodeProject.AI install needed |
-| 5 | Axis analytics (ACAP + MQTT) | In Progress — entities defined; E2E verification needed |
+| 5 | Axis analytics (ACAP + MQTT) | In Progress — AOA, scene, air quality, audio SPL live; loitering manual step remains |
 | 6 | AI integration (Ollama + Qwen) | Future |
 | 7 | Data platform (InfluxDB, trends) | Future |
 | 8 | Digital twin (unified house state) | Future |
@@ -335,7 +355,7 @@ Fallback: CompreFace via `docker/compreface/` if accuracy is insufficient.
 - `docs/hardware/cameras.md` — per-camera specs, HA roles, Frigate roles
 - `docs/dashboard-design.md` — visual layout for all 5 dashboard views
 - `docs/decisions/` — Architecture Decision Records (ADRs)
-- `docs/runbooks/` — step-by-step operational procedures (initial-setup, frigate-setup, aoa-setup, d6210-setup, double-take-setup)
+- `docs/runbooks/` — step-by-step operational procedures (initial-setup, frigate-setup, aoa-setup, d6210-setup, audio-analytics-setup, double-take-setup)
 - `docs/cleanup-plan.md` — known cleanup tasks and tech debt
 
 ## User Context

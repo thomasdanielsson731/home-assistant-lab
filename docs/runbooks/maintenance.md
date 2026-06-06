@@ -40,7 +40,7 @@ Run once to register:
 | `HomeLab-AirQualityBridge` | At logon | D6210 air quality MQTT bridge |
 | `HomeLab-AOABridge` | At logon | AOA occupancy MQTT bridge |
 
-If logon tasks fail (access denied), use `scripts/start-bridges.ps1` in Windows Startup folder.
+`scripts/start-bridges.ps1` also starts **audio SPL**, event normalizer, and timeline server. Prefer a Startup-folder shortcut to `start-bridges.ps1` over separate logon tasks.
 
 Verify:
 

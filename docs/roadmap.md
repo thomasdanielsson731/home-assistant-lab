@@ -81,6 +81,8 @@ Vision: [vision.md](vision.md) · Scope: [scope.md](scope.md) · Work queue: [ba
 | HA MQTT entity config (AOA, scene, air quality) | ✅ |
 | `configure_cameras.py` — MQTT + AOA scenarios | ✅ |
 | `air_quality_bridge.py` — D6210 → MQTT | ✅ |
+| `audio_bridge.py` — SPL WebSocket → MQTT (3 cameras) | ✅ |
+| Audio SPL sensors verified in HA | ✅ |
 | Axis MQTT client enabled on all cameras | ✅ |
 | AOA Person Occupancy on all 6 cameras | ✅ |
 | AOA Vehicle on driveway cameras | ✅ |
@@ -97,10 +99,10 @@ Vision: [vision.md](vision.md) · Scope: [scope.md](scope.md) · Work queue: [ba
 
 **Config files:**
 - `mqtt_binary_sensors/aoa_*.yaml`, `scene_presence.yaml`
-- `mqtt_sensors/scene_metadata.yaml`, `air_quality.yaml`
+- `mqtt_sensors/scene_metadata.yaml`, `air_quality.yaml`, `audio_analytics.yaml`
 - `mqtt_images/scene_snapshots.yaml`
 
-**Runbooks:** [aoa-setup.md](runbooks/aoa-setup.md) · [d6210-setup.md](runbooks/d6210-setup.md)
+**Runbooks:** [aoa-setup.md](runbooks/aoa-setup.md) · [d6210-setup.md](runbooks/d6210-setup.md) · [audio-analytics-setup.md](runbooks/audio-analytics-setup.md)
 
 **Done when:** AOA + scene + air quality sensors verified live in HA for at least one week.
 

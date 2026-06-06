@@ -80,6 +80,16 @@ binary_sensor.driveway_env_motion
 sensor.driveway_env_<metric>
 ```
 
+### Audio analytics (SPL via `audio_bridge.py`)
+
+```
+sensor.<zone_id>_audio_spl
+```
+
+MQTT topic: `axis/<zone_id>/audio/spl` — JSON `{"max_spl", "min_spl", "spl"}`.
+
+Live zones: `front`, `driveway_wide`, `backyard`.
+
 ### Double Take sensors (face recognition)
 
 ```

@@ -18,59 +18,59 @@ Check from dev PC:
 python scripts/configure_audio_analytics.py
 ```
 
-## Why SPL is not in HA yet
+## Why SPL needs a bridge
 
 SPL **Summary** events (MaxSPL / MinSPL every ~60 s) are *application data*. They are **not** exposed via:
 
 - `analytics-mqtt` data sources (scene metadata only)
 - Standard MQTT event filters (`configureEventPublication`)
+- Reliable MQTT action-rule payloads over SOAP (`#MaxSPL` collides with `#M` MAC modifier)
 
-## Automated setup (preferred)
+## Recommended: `audio_bridge.py` (no camera UI step)
 
-```powershell
-python scripts/configure_audio_analytics.py   # verify plugin
-python scripts/configure_audio_spl_rules.py   # create MQTT action + rule
+Add root credentials to `.env`:
+
+```
+AXIS_ROOT_USER=root
+AXIS_ROOT_PASSWORD=<camera-root-password>
 ```
 
-The script creates the action rule on each camera. **Then edit the MQTT payload once per camera in the web UI** (System → Events → Actions → `ha_spl_mqtt_<zone>`) — SOAP cannot set SPL event modifiers reliably (`#MaxSPL` collides with `#M` MAC modifier).
+Start the bridge (included in `start-bridges.ps1`):
 
-Payload in UI:
+```powershell
+python scripts/audio_bridge.py
+# or
+.\scripts\start-bridges.ps1
+```
+
+The bridge uses the VAPIX WebSocket event API and publishes to:
+
+```
+axis/<zone>/audio/spl  {"max_spl": 55.3, "min_spl": 36.8, "spl": 55.3}
+```
+
+Expected: one message per camera every ~60 s.
+
+## Alternative: camera MQTT action rule (manual payload)
+
+If you prefer on-camera MQTT without the bridge:
+
+```powershell
+python scripts/configure_audio_spl_rules.py   # creates rule + action (SOAP)
+```
+
+Then edit **payload** once per camera in the web UI  
+(System → Events → Actions → `ha_spl_mqtt_<zone>`):
 
 ```json
 {"max_spl":#MaxSPL,"min_spl":#MinSPL,"spl":#MaxSPL}
 ```
 
-(Unquoted modifiers in the UI field.)
-
-## Manual setup per camera (web UI)
-
-On each camera with Audio Analytics:
-
-1. **System → Events → Rules → Add rule**
-2. **Condition:** Audio analytics → Sound pressure level → **Summary**
-3. **Action:** Send MQTT publish message
-4. **Topic:** `axis/<zone_id>/audio/spl`  
-   - front → `axis/front/audio/spl`  
-   - driveway_wide → `axis/driveway_wide/audio/spl`  
-   - backyard → `axis/backyard/audio/spl`
-5. **Payload (JSON):** `{"max_spl":#MaxSPL,"min_spl":#MinSPL,"spl":#MaxSPL}`  
-   Use **unquoted** modifiers (no `"#MaxSPL"` — `#M` is parsed as MAC address modifier).
-6. **QoS:** 0 · **Retained:** Yes
-7. Ensure MQTT client is connected (same broker as `configure_cameras.py`)
+Use **unquoted** modifiers in the UI field.
 
 ## Verify MQTT
 
-```powershell
-python scripts/mqtt-probe.py   # extend topics if needed
-```
-
-Or subscribe:
-
-```
-axis/+/audio/spl
-```
-
-Expected every ~60 s per camera.
+Subscribe to `axis/+/audio/spl` — expect JSON with numeric `max_spl` every ~60 s.
 
 ## HA entities
 
@@ -79,8 +79,6 @@ Defined in `mqtt_sensors/audio_analytics.yaml`:
 - `sensor.front_audio_spl`
 - `sensor.driveway_wide_audio_spl`
 - `sensor.backyard_audio_spl`
-
-After MQTT flows: **Developer Tools → MQTT → Reload** or restart HA.
 
 ## Dashboard
 
@@ -91,5 +89,5 @@ After MQTT flows: **Developer Tools → MQTT → Reload** or restart HA.
 | Script | Purpose |
 |---|---|
 | `configure_audio_analytics.py` | Verify plugin enabled on cameras |
-| `configure_audio_spl_rules.py` | Create MQTT action rules via VAPIX SOAP (preferred) |
-| `get_event_instances.py` | List SPL event topics on camera |
+| `audio_bridge.py` | **Preferred** — WebSocket SPL → MQTT (needs root in `.env`) |
+| `configure_audio_spl_rules.py` | Optional on-camera MQTT rules (payload needs UI edit) |

@@ -1,6 +1,6 @@
 # AXIS Audio Analytics — Sound Pressure Level (SPL)
 # Plugin enabled via firmware (audioanalytics.cgi), NOT a separate ACAP app.
-# SPL Summary (~60 s) must be published via camera action rule → MQTT.
+# SPL Summary (~60 s) published by scripts/audio_bridge.py (WebSocket → MQTT).
 # Setup: docs/runbooks/audio-analytics-setup.md
 # Topics: axis/<zone>/audio/spl  {"spl": 45.2, "max_spl": 45.2, "min_spl": 32.1}
 

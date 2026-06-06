@@ -27,7 +27,7 @@ Scheduled tasks (after `.\scripts\install-scheduled-tasks.ps1`):
 
 - **Every 6 h:** auto-commit + push + sync to HAOS
 - **Daily 04:00:** above + HA YAML reload (via `HA_TOKEN`)
-- **At logon:** `air_quality_bridge.py` + `aoa_bridge.py` + `event_normalizer.py` + `timeline_server.py`
+- **At logon:** `start-bridges.ps1` (air quality + audio SPL + AOA + event normalizer + timeline)
 
 Logs: `logs/maintenance.log` · Runbook: [maintenance.md](runbooks/maintenance.md)
 
@@ -51,7 +51,7 @@ Timeline: `http://localhost:8765` · Events: `events/timeline.jsonl`
 | Item | Action |
 |---|---|
 | AOA Loitering | Camera web UI — 3 cameras |
-| Audio SPL | Rules deployed via script; edit MQTT payload per camera in UI (modifier quirk) — audio-analytics-setup.md |
+| Audio SPL | `audio_bridge.py` running on dev PC (`AXIS_ROOT_PASSWORD` in `.env`) — see audio-analytics-setup.md |
 | Yale Doorman | Integrate when hardware arrives |
 | Unavailable lights | Re-pair HomeKit/Matter devices |
 | Face recognition | **On hold** — see ADR-003 when ready |
@@ -68,9 +68,11 @@ Timeline: `http://localhost:8765` · Events: `events/timeline.jsonl`
 | `mqtt_binary_sensors/scene_presence.yaml` | Fast presence from scene/frame + track |
 | `mqtt_sensors/scene_metadata.yaml` | Person/vehicle counts |
 | `mqtt_sensors/air_quality.yaml` | D6210 environmental metrics |
+| `mqtt_sensors/audio_analytics.yaml` | SPL sensors (front, driveway_wide, backyard) |
 | `mqtt_images/scene_snapshots.yaml` | Latest detection snapshots |
 | `scripts/configure_cameras.py` | VAPIX: MQTT + AOA scenarios |
 | `scripts/air_quality_bridge.py` | D6210 polling → MQTT |
+| `scripts/audio_bridge.py` | SPL WebSocket → MQTT (needs root creds) |
 
 ---
 

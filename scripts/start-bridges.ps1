@@ -1,4 +1,4 @@
-# start-bridges.ps1 — Start MQTT bridge processes (air quality + AOA)
+# start-bridges.ps1 — Start MQTT bridges (air quality, audio SPL, AOA) + event platform
 # Add to Windows Startup folder if scheduled tasks fail:
 #   shell:startup → shortcut to this script
 
@@ -19,6 +19,7 @@ function Start-Bridge {
 }
 
 Start-Bridge "AirQualityBridge"  "$repoRoot\scripts\air_quality_bridge.py"
+Start-Bridge "AudioBridge"       "$repoRoot\scripts\audio_bridge.py"
 Start-Bridge "AOABridge"         "$repoRoot\scripts\aoa_bridge.py"
 Start-Bridge "EventNormalizer"   "$repoRoot\scripts\event_normalizer.py"
 Start-Bridge "TimelineServer"    "$repoRoot\scripts\timeline_server.py"

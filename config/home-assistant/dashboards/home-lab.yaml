@@ -681,8 +681,8 @@ views:
             primary: Plugin active on all 3 cameras
             secondary: >-
               {% if states('sensor.driveway_wide_audio_spl') in ['unknown', 'unavailable'] %}
-              MQTT action rule needed — see docs/runbooks/audio-analytics-setup.md
-              {% else %}Live SPL via MQTT{% endif %}
+              Start audio_bridge.py on dev PC — see docs/runbooks/audio-analytics-setup.md
+              {% else %}Live SPL via audio_bridge{% endif %}
             icon: mdi:information-outline
             icon_color: amber
             fill_container: true
