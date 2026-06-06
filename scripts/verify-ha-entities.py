@@ -15,6 +15,8 @@ ENTITIES = [
     "sensor.driveway_env_co2",
     "sensor.driveway_env_aqi",
     "sensor.driveway_env_humidity",
+    "sensor.driveway_env_pm2_5",
+    "camera.driveway_wide",
     "binary_sensor.front_aoa_person",
     "binary_sensor.front_scene_object_present",
     "binary_sensor.driveway_wide_aoa_vehicle",

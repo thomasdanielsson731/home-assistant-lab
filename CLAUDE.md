@@ -80,7 +80,7 @@ Note: `docs/naming-conventions.md` specifies `camera.frigate_<zone_id>` as the i
 | `storage_ext` | `binary_sensor.storage_ext_aoa_person` | — | — |
 | `storage_int` | `binary_sensor.storage_int_aoa_person` | — | — |
 
-**D6210 air quality entity IDs** (Phase 5 — MQTT bridge via `air_quality_bridge.py`, see `docs/runbooks/d6210-setup.md`): `sensor.driveway_env_temperature`, `sensor.driveway_env_humidity`, `sensor.driveway_env_co2`, `sensor.driveway_env_voc`, `sensor.driveway_env_nox`, `sensor.driveway_env_pm25`, `sensor.driveway_env_aqi`
+**D6210 air quality entity IDs** (Phase 5 — MQTT bridge via `air_quality_bridge.py`, see `docs/runbooks/d6210-setup.md`): `sensor.driveway_env_temperature`, `sensor.driveway_env_humidity`, `sensor.driveway_env_co2`, `sensor.driveway_env_voc`, `sensor.driveway_env_nox`, `sensor.driveway_env_pm2_5`, `sensor.driveway_env_pm10`, `sensor.driveway_env_aqi`
 
 **Scene frame entity IDs** (Phase 5 — from `axis/<zone>/scene/frame` analytics stream):
 

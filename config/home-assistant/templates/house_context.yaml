@@ -40,4 +40,4 @@
         temperature: "{{ states('sensor.driveway_env_temperature') }}"
         humidity: "{{ states('sensor.driveway_env_humidity') }}"
         co2: "{{ states('sensor.driveway_env_co2') }}"
-        pm25: "{{ states('sensor.driveway_env_pm25') }}"
+        pm25: "{{ states('sensor.driveway_env_pm2_5') }}"

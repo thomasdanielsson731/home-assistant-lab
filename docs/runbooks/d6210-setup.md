@@ -20,7 +20,7 @@ Integrate the Axis D6210 Air Quality Sensor into Home Assistant via a Python MQT
 | CO₂ | ppm | `sensor.driveway_env_co2` |
 | VOC | ppb | `sensor.driveway_env_voc` |
 | NOx | ppb | `sensor.driveway_env_nox` |
-| PM2.5 | µg/m³ | `sensor.driveway_env_pm25` |
+| PM2.5 | µg/m³ | `sensor.driveway_env_pm2_5` |
 | PM10 | µg/m³ | `sensor.driveway_env_pm10` |
 | AQI | 0–500 | `sensor.driveway_env_aqi` |
 

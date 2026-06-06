@@ -95,175 +95,89 @@ views:
                   {{ 'green' if aqi <= 50 else 'amber' if aqi <= 100 else 'red' }}
               - type: template
                 icon: mdi:blur
-                content: "PM2.5 {{ states('sensor.driveway_env_pm25') }}"
+                content: "PM2.5 {{ states('sensor.driveway_env_pm2_5') }}"
                 icon_color: grey
 
       - title: LAST 7 DAYS
         cards:
-          - type: custom:mini-graph-card
+          - type: history-graph
+            title: Temperature
             entities:
               - entity: sensor.driveway_env_temperature
-                name: Temperature
-            name: Temperature
             hours_to_show: 168
-            points_per_hour: 2
-            line_width: 2
-            show:
-              state: true
-              extrema: true
-              fill: fade
-              labels: false
-            color_thresholds:
-              - value: 0
-                color: "#2196F3"
-              - value: 20
-                color: "#4CAF50"
-              - value: 28
-                color: "#FF9800"
-          - type: custom:mini-graph-card
+            refresh_interval: 300
+          - type: history-graph
+            title: Humidity
             entities:
               - entity: sensor.driveway_env_humidity
-                name: Humidity
-            name: Humidity
             hours_to_show: 168
-            points_per_hour: 2
-            line_width: 2
-            show:
-              state: true
-              extrema: true
-              fill: fade
-              labels: false
-          - type: custom:mini-graph-card
+            refresh_interval: 300
+          - type: history-graph
+            title: CO₂
             entities:
               - entity: sensor.driveway_env_co2
-                name: CO₂
-            name: CO₂
             hours_to_show: 168
-            points_per_hour: 2
-            line_width: 2
-            show:
-              state: true
-              extrema: true
-              fill: fade
-              labels: false
-            color_thresholds:
-              - value: 0
-                color: "#4CAF50"
-              - value: 800
-                color: "#FF9800"
-              - value: 1200
-                color: "#F44336"
-          - type: custom:mini-graph-card
+            refresh_interval: 300
+          - type: history-graph
+            title: Air Quality
             entities:
               - entity: sensor.driveway_env_aqi
-                name: AQI
-            name: Air Quality
             hours_to_show: 168
-            points_per_hour: 2
-            line_width: 2
-            show:
-              state: true
-              extrema: true
-              fill: fade
-              labels: false
-          - type: custom:mini-graph-card
+            refresh_interval: 300
+          - type: history-graph
+            title: PM2.5
             entities:
-              - entity: sensor.driveway_env_pm25
-                name: PM2.5
-            name: PM2.5
+              - entity: sensor.driveway_env_pm2_5
             hours_to_show: 168
-            points_per_hour: 2
-            line_width: 2
-            show:
-              state: true
-              extrema: true
-              fill: fade
-              labels: false
+            refresh_interval: 300
 
       - title: LAST 90 DAYS
         cards:
-          - type: custom:mini-graph-card
+          - type: statistics-graph
+            title: Temperature
+            chart_type: line
+            period: day
+            days_to_show: 90
+            stat_types:
+              - mean
             entities:
               - entity: sensor.driveway_env_temperature
-                name: Temperature
-            name: Temperature
-            hours_to_show: 2160
-            aggregate_func: avg
-            group_by:
-              duration: 6h
-            line_width: 2
-            show:
-              state: true
-              extrema: true
-              fill: fade
-              labels: false
-            color_thresholds:
-              - value: 0
-                color: "#2196F3"
-              - value: 20
-                color: "#4CAF50"
-              - value: 28
-                color: "#FF9800"
-          - type: custom:mini-graph-card
+          - type: statistics-graph
+            title: Humidity
+            chart_type: line
+            period: day
+            days_to_show: 90
+            stat_types:
+              - mean
             entities:
               - entity: sensor.driveway_env_humidity
-                name: Humidity
-            name: Humidity
-            hours_to_show: 2160
-            aggregate_func: avg
-            group_by:
-              duration: 6h
-            line_width: 2
-            show:
-              state: true
-              extrema: true
-              fill: fade
-              labels: false
-          - type: custom:mini-graph-card
+          - type: statistics-graph
+            title: CO₂
+            chart_type: line
+            period: day
+            days_to_show: 90
+            stat_types:
+              - mean
             entities:
               - entity: sensor.driveway_env_co2
-                name: CO₂
-            name: CO₂
-            hours_to_show: 2160
-            aggregate_func: avg
-            group_by:
-              duration: 6h
-            line_width: 2
-            show:
-              state: true
-              extrema: true
-              fill: fade
-              labels: false
-          - type: custom:mini-graph-card
+          - type: statistics-graph
+            title: Air Quality
+            chart_type: line
+            period: day
+            days_to_show: 90
+            stat_types:
+              - mean
             entities:
               - entity: sensor.driveway_env_aqi
-                name: AQI
-            name: Air Quality
-            hours_to_show: 2160
-            aggregate_func: avg
-            group_by:
-              duration: 6h
-            line_width: 2
-            show:
-              state: true
-              extrema: true
-              fill: fade
-              labels: false
-          - type: custom:mini-graph-card
+          - type: statistics-graph
+            title: PM2.5
+            chart_type: line
+            period: day
+            days_to_show: 90
+            stat_types:
+              - mean
             entities:
-              - entity: sensor.driveway_env_pm25
-                name: PM2.5
-            name: PM2.5
-            hours_to_show: 2160
-            aggregate_func: avg
-            group_by:
-              duration: 6h
-            line_width: 2
-            show:
-              state: true
-              extrema: true
-              fill: fade
-              labels: false
+              - entity: sensor.driveway_env_pm2_5
 
       # ── Quick Status ─────────────────────────────────────────
       - title: QUICK STATUS
@@ -520,19 +434,22 @@ views:
         cards:
           - type: horizontal-stack
             cards:
-              - type: image
+              - type: picture-entity
                 entity: image.front_latest_detection
-                title: Entrén
+                name: Entrén
+                show_state: false
                 tap_action:
                   action: more-info
-              - type: image
+              - type: picture-entity
                 entity: image.driveway_wide_latest_detection
-                title: Uppfart bred
+                name: Uppfart bred
+                show_state: false
                 tap_action:
                   action: more-info
-              - type: image
+              - type: picture-entity
                 entity: image.driveway_id_latest_detection
-                title: Uppfart nära
+                name: Uppfart nära
+                show_state: false
                 tap_action:
                   action: more-info
 

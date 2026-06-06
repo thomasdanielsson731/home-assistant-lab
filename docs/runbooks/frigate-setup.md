@@ -49,11 +49,28 @@ type: custom:frigate-card
 camera_entity: camera.front_door
 ```
 
+## Frigate (Full Access) add-on config
+
+If you use **Frigate (Full Access)**, the live config is at:
+
+```
+/addon_configs/ccab4aaf_frigate-fa/config.yaml
+```
+
+This file is **not** updated by `sync-config.ps1` (which only pushes `/config/frigate/config.yml`). Camera IPs here must match `secrets.yaml` and [CLAUDE.md](../../CLAUDE.md) zone table. After editing, restart the add-on:
+
+```bash
+ha apps restart ccab4aaf_frigate-fa
+```
+
+Symptom: one camera `unavailable` while others work — check Frigate logs for `No route to host` on a stale IP (e.g. `192.168.68.207` instead of `192.168.68.201` for `driveway_wide`).
+
 ## Troubleshooting
 
 | Symptom | Check |
 |---|---|
 | Black camera feed | RTSP URL wrong or camera unreachable |
+| One camera unavailable | Frigate FA `config.yaml` IP vs `secrets.yaml`; restart add-on |
 | No detections | `detect` FPS too low, wrong resolution, or model not loaded |
 | High CPU | Lower detect FPS or reduce concurrent cameras |
 | MQTT not receiving events | MQTT broker config in `config.yml` |
