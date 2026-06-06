@@ -30,3 +30,6 @@ Thumbs.db
 *.bak
 .vscode/settings.json
 .env
+
+# Maintenance logs
+logs/

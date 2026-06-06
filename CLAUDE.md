@@ -100,17 +100,24 @@ Scene entities expire after 10 s if no MQTT message received. Image entities (`i
 
 ## Commands
 
-### Config Sync
+### Config Sync and Maintenance
 
 ```bash
 # Linux/macOS
-./scripts/sync-config.sh             # sync to HAOS host
-./scripts/sync-config.sh --dry-run   # preview only
+./scripts/sync-config.sh               # sync only
+./scripts/repo-maintenance.sh          # commit + push + sync
+./scripts/repo-maintenance.sh --reload # + HA YAML reload
 
 # Windows (PowerShell)
 .\scripts\sync-config.ps1
-.\scripts\sync-config.ps1 -DryRun
+.\scripts\repo-maintenance.ps1
+.\scripts\repo-maintenance.ps1 -Reload
+
+# Register scheduled tasks (run once)
+.\scripts\install-scheduled-tasks.ps1
 ```
+
+Scheduled: `HomeLab-Maintenance` every 6 h, `HomeLab-MaintenanceDaily` at 04:00 (+ reload). See `docs/runbooks/maintenance.md`.
 
 Requires a `.env` file (copy `.env.example` and fill in values):
 

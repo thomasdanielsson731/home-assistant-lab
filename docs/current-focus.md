@@ -21,6 +21,18 @@ Phases 1–3 are done. Phases 6–8 (AI, data platform, digital twin) are future
 
 ---
 
+## Automated Maintenance
+
+Scheduled tasks (after `.\scripts\install-scheduled-tasks.ps1`):
+
+- **Every 6 h:** auto-commit + push + sync to HAOS
+- **Daily 04:00:** above + HA YAML reload
+- **At startup:** air quality bridge
+
+Logs: `logs/maintenance.log` · Runbook: [maintenance.md](runbooks/maintenance.md)
+
+---
+
 ## Immediate Next Tasks
 
 ### 1. Reload YAML in HA (sync already done)
