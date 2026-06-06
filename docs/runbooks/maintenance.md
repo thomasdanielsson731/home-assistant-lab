@@ -37,10 +37,9 @@ Run once to register:
 |---|---|---|
 | `HomeLab-Maintenance` | Every 6 hours | Commit + push + sync |
 | `HomeLab-MaintenanceDaily` | Daily 04:00 | Commit + push + sync + HA reload |
-| `HomeLab-AirQualityBridge` | At logon | D6210 air quality MQTT bridge |
-| `HomeLab-AOABridge` | At logon | AOA occupancy MQTT bridge |
+| `HomeLab-Bridges` | At logon | `start-bridges.ps1` — air quality, audio SPL, AOA, normalizer, timeline |
 
-`scripts/start-bridges.ps1` also starts **audio SPL**, event normalizer, and timeline server. Prefer a Startup-folder shortcut to `start-bridges.ps1` over separate logon tasks.
+Also creates a **Startup folder shortcut** (`HomeLab-Bridges.lnk`) as backup. Re-run `install-scheduled-tasks.ps1` to refresh.
 
 Verify:
 

@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import json
 import os
+import socket
+import subprocess
 import sys
 from pathlib import Path
 
@@ -43,6 +45,29 @@ AOA_SENSORS = [
     "binary_sensor.backyard_aoa_person",
 ]
 
+SPL_SENSORS = [
+    "sensor.front_audio_spl",
+    "sensor.driveway_wide_audio_spl",
+    "sensor.backyard_audio_spl",
+]
+
+SCENE_SENSORS = [
+    "binary_sensor.front_scene_object_present",
+    "binary_sensor.driveway_wide_scene_object_present",
+    "binary_sensor.driveway_id_scene_object_present",
+    "binary_sensor.backyard_scene_object_present",
+    "sensor.front_scene_persons",
+    "sensor.driveway_wide_scene_persons",
+]
+
+BRIDGE_SCRIPTS = [
+    "air_quality_bridge.py",
+    "audio_bridge.py",
+    "aoa_bridge.py",
+    "event_normalizer.py",
+    "timeline_server.py",
+]
+
 
 def get_state(entity_id: str) -> dict | None:
     r = requests.get(f"{BASE}/states/{entity_id}", headers=HEADERS, timeout=10)
@@ -55,59 +80,125 @@ def ok_state(state: str) -> bool:
     return state not in ("unavailable", "unknown", "")
 
 
-def main() -> int:
-    issues: list[str] = []
-    print("=== Danielsson Insights Health Check ===\n")
-
-    print("Cameras (Frigate):")
-    for cam in CAMERAS:
-        s = get_state(cam)
-        if not s:
-            print(f"  FAIL  {cam} — not found")
-            issues.append(cam)
-            continue
-        st = s["state"]
-        mark = "OK" if ok_state(st) else "WARN"
-        print(f"  {mark:4}  {cam}: {st}")
-        if not ok_state(st):
-            issues.append(cam)
-
-    print("\nOutdoor environment:")
-    for ent in ENV_SENSORS:
+def check_entity_group(
+    title: str, entities: list[str], issues: list[str], *, required: bool = True
+) -> None:
+    print(f"\n{title}:")
+    for ent in entities:
         s = get_state(ent)
         if not s:
-            print(f"  FAIL  {ent}")
-            issues.append(ent)
+            mark = "FAIL" if required else "WARN"
+            print(f"  {mark:4}  {ent} — not found")
+            if required:
+                issues.append(ent)
             continue
         st = s["state"]
         mark = "OK" if ok_state(st) else "WARN"
         print(f"  {mark:4}  {ent}: {st}")
-        if not ok_state(st):
+        if not ok_state(st) and required:
             issues.append(ent)
 
-    print("\nAOA presence:")
-    for ent in AOA_SENSORS:
-        s = get_state(ent)
-        if not s:
-            print(f"  FAIL  {ent}")
+
+def is_script_running(script: str) -> bool:
+    if sys.platform != "win32":
+        return True
+    ps = (
+        f"Get-CimInstance Win32_Process | "
+        f"Where-Object {{ $_.CommandLine -like '*{script}*' }} | "
+        f"Select-Object -First 1 | ConvertTo-Json"
+    )
+    try:
+        out = subprocess.check_output(
+            ["powershell", "-NoProfile", "-Command", ps],
+            text=True,
+            timeout=15,
+        ).strip()
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
+        return False
+    return bool(out and out != "null")
+
+
+def running_bridge_scripts() -> set[str]:
+    if sys.platform != "win32":
+        return set(BRIDGE_SCRIPTS)
+    return {s for s in BRIDGE_SCRIPTS if is_script_running(s)}
+
+
+def count_timeline_events(timeline: Path, event_type: str) -> int:
+    if not timeline.exists():
+        return 0
+    count = 0
+    for line in timeline.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
             continue
-        print(f"  OK    {ent}: {s['state']}")
+        try:
+            if json.loads(line).get("type") == event_type:
+                count += 1
+        except json.JSONDecodeError:
+            continue
+    return count
+
+
+def main() -> int:
+    issues: list[str] = []
+    print("=== Danielsson Insights Health Check ===\n")
+
+    check_entity_group("Cameras (Frigate)", CAMERAS, issues)
+
+    check_entity_group("Outdoor environment", ENV_SENSORS, issues)
+
+    check_entity_group("AOA presence", AOA_SENSORS, issues, required=False)
+
+    check_entity_group("Audio SPL", SPL_SENSORS, issues)
+
+    check_entity_group("Scene analytics", SCENE_SENSORS, issues, required=False)
+
+    print("\nDev PC bridges:")
+    if sys.platform != "win32":
+        print("  SKIP  bridge process check (not Windows)")
+    else:
+        running = running_bridge_scripts()
+        for script in BRIDGE_SCRIPTS:
+            name = script.replace(".py", "")
+            if script in running:
+                print(f"  OK    {name}")
+            else:
+                print(f"  WARN  {name} — not running (run start-bridges.ps1)")
+                issues.append(f"bridge:{name}")
+
+    print("\nTimeline UI:")
+    try:
+        with socket.create_connection(("127.0.0.1", 8765), timeout=2):
+            print("  OK    http://localhost:8765 (port open)")
+    except OSError:
+        print("  WARN  http://localhost:8765 — port not listening")
+        if "timeline_server.py" not in running_bridge_scripts():
+            issues.append("timeline_ui")
 
     timeline = Path(__file__).parent.parent / "events" / "timeline.jsonl"
     print("\nEvent timeline:")
     if timeline.exists():
-        lines = timeline.read_text(encoding="utf-8").strip().splitlines()
-        print(f"  OK    {len(lines)} events in {timeline}")
+        lines = [ln for ln in timeline.read_text(encoding="utf-8").splitlines() if ln.strip()]
+        person_n = count_timeline_events(timeline, "person")
+        vehicle_n = count_timeline_events(timeline, "vehicle")
+        print(f"  OK    {len(lines)} events in {timeline.name}")
+        print(f"        Frigate person: {person_n} · vehicle: {vehicle_n}")
+        if person_n == 0:
+            print("  WARN  No person events yet — normalizer needs Frigate activity")
         if lines:
             last = json.loads(lines[-1])
-            print(f"        Last: {last.get('type')} @ {last.get('location', {}).get('zone')} — {last.get('timestamp', '')[:19]}")
+            print(
+                f"        Last: {last.get('type')} @ "
+                f"{last.get('location', {}).get('zone')} — "
+                f"{last.get('timestamp', '')[:19]}"
+            )
     else:
-        print(f"  WARN  No timeline yet — run event_normalizer.py")
+        print("  WARN  No timeline yet — run event_normalizer.py")
         issues.append("timeline")
 
     print()
     if issues:
-        print(f"Issues: {len(issues)}")
+        print(f"Issues: {len(issues)} ({', '.join(issues[:8])}{'...' if len(issues) > 8 else ''})")
         return 1
     print("All checks passed.")
     return 0

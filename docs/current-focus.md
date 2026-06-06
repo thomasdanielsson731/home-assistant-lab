@@ -51,7 +51,7 @@ Timeline: `http://localhost:8765` · Events: `events/timeline.jsonl`
 | Item | Action |
 |---|---|
 | AOA Loitering | Camera web UI — 3 cameras |
-| Audio SPL | `audio_bridge.py` running on dev PC (`AXIS_ROOT_PASSWORD` in `.env`) — see audio-analytics-setup.md |
+| Audio SPL | Auto-started via `HomeLab-Bridges` task / Startup shortcut |
 | Yale Doorman | Integrate when hardware arrives |
 | Unavailable lights | Re-pair HomeKit/Matter devices |
 | Face recognition | **On hold** — see ADR-003 when ready |

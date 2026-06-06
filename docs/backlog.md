@@ -49,7 +49,7 @@ CodeProject.AI path — see [ADR-003](decisions/003-face-recognizer.md).
 |---|---|---|---|
 | P7-1 | Event normalizer — Frigate + DT + D6210 → JSON | M | ✅ |
 | P7-2 | Timeline v0 web UI (`:8765`) | S | ✅ |
-| P7-3 | Verify person events from live Frigate tracks | S | ⬜ |
+| P7-3 | Verify person events from live Frigate tracks | S | ✅ health-check |
 | P7-4 | Scheduled tasks for normalizer + timeline | S | ✅ |
 
 ---

@@ -200,6 +200,12 @@ See `docs/runbooks/event-normalizer.md`. Start all bridges: `.\scripts\start-bri
 python scripts/health-check.py
 ```
 
+### HA sidebar (automated)
+
+```bash
+python scripts/configure_ha_sidebar.py   # hide extra panels, default = Home Lab
+```
+
 Insights env graphs: built-in `history-graph` / `statistics-graph` — see `docs/runbooks/hacs-frontend-cards.md`.
 
 ### Python Tests

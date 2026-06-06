@@ -115,7 +115,20 @@ if ($Reload -and -not $DryRun) {
             Invoke-RestMethod -Method POST `
                 -Uri "http://${HA_HOST}:8123/api/services/homeassistant/reload_core_config" `
                 -Headers $headers -TimeoutSec 30 | Out-Null
-            Write-Log "HA YAML reload requested"
+            Write-Log "HA core config reload requested"
+
+            $entries = Invoke-RestMethod -Method GET `
+                -Uri "http://${HA_HOST}:8123/api/config/config_entries/entry" `
+                -Headers $headers -TimeoutSec 30
+            $mqttEntry = ($entries | Where-Object { $_.domain -eq "mqtt" } | Select-Object -First 1).entry_id
+            if ($mqttEntry) {
+                $body = @{ entry_id = $mqttEntry } | ConvertTo-Json
+                Invoke-RestMethod -Method POST `
+                    -Uri "http://${HA_HOST}:8123/api/services/homeassistant/reload_config_entry" `
+                    -Headers $headers -Body $body -ContentType "application/json" `
+                    -TimeoutSec 120 | Out-Null
+                Write-Log "MQTT config entry reload requested ($mqttEntry)"
+            }
         } catch {
             Write-Log "WARN: REST reload failed - $($_.Exception.Message)"
         }

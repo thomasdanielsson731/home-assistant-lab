@@ -118,11 +118,21 @@ class TestEventStoreWrite:
 
 
 class TestAttachIdentity:
-    def test_attaches_to_recent_person(self, store: EventStore, person_event: dict):
+    def test_attaches_to_recent_person(self, store: EventStore, person_event: dict, monkeypatch):
         person_event["summary"] = make_summary(person_event)
         event_id = store.write(person_event)
         assert event_id is not None
 
+        # attach_identity uses wall-clock time — pin "now" within the 2 min window
+        from datetime import datetime
+
+        from event_store import TZ
+
+        monkeypatch.setattr(
+            store,
+            "_now",
+            lambda: datetime(2026, 6, 6, 14, 1, 0, tzinfo=TZ),
+        )
         result = store.attach_identity("front", "thomas", 0.92)
         assert result == event_id
 

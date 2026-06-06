@@ -8,8 +8,9 @@ if (-not $python) { $python = "python" }
 
 function Start-Bridge {
     param([string]$Name, [string]$Script)
-    $running = Get-CimInstance Win32_Process -Filter "Name='python.exe'" |
-        Where-Object { $_.CommandLine -like "*$Script*" }
+    $scriptLeaf = Split-Path $Script -Leaf
+    $running = Get-CimInstance Win32_Process |
+        Where-Object { $_.CommandLine -like "*$scriptLeaf*" }
     if ($running) {
         Write-Host "$Name already running (pid $($running.ProcessId))"
         return

@@ -7,28 +7,31 @@
 
 $ErrorActionPreference = "Stop"
 $repoRoot = Split-Path $PSScriptRoot -Parent
-$python   = (Get-Command python -ErrorAction SilentlyContinue).Source
-if (-not $python) { $python = "python" }
 
 $maintCmd  = "powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$repoRoot\scripts\repo-maintenance.ps1`""
 $dailyCmd  = "powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$repoRoot\scripts\repo-maintenance.ps1`" -Reload"
-$airCmd  = "`"$python`" `"$repoRoot\scripts\air_quality_bridge.py`""
-$aoaCmd  = "`"$python`" `"$repoRoot\scripts\aoa_bridge.py`""
-$normCmd = "`"$python`" `"$repoRoot\scripts\event_normalizer.py`""
-$timeCmd = "`"$python`" `"$repoRoot\scripts\timeline_server.py`""
+$bridgesCmd = "powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$repoRoot\scripts\start-bridges.ps1`""
 
 Write-Host "Registering Home Lab scheduled tasks ..."
 Write-Host "  Repo: $repoRoot"
 Write-Host ""
 
-function Register-Task {
-    param([string]$Name, [string]$Args)
-    schtasks /create /tn $Name /tr $Args /f 2>&1 | Out-Null
-    if ($LASTEXITCODE -eq 0) {
-        Write-Host "  Registered: $Name"
-    } else {
-        Write-Host "  FAILED: $Name (exit $LASTEXITCODE)"
-    }
+function Remove-OldTask {
+    param([string]$Name)
+    $prev = $ErrorActionPreference
+    $ErrorActionPreference = "SilentlyContinue"
+    schtasks /delete /tn $Name /f 2>$null | Out-Null
+    $ErrorActionPreference = $prev
+}
+
+# Retire per-bridge logon tasks (replaced by HomeLab-Bridges)
+foreach ($old in @(
+    "HomeLab-AirQualityBridge",
+    "HomeLab-AOABridge",
+    "HomeLab-EventNormalizer",
+    "HomeLab-TimelineServer"
+)) {
+    Remove-OldTask $old
 }
 
 # Every 6 hours: commit + push + sync
@@ -39,16 +42,29 @@ if ($LASTEXITCODE -eq 0) { Write-Host "  Registered: HomeLab-Maintenance (every 
 schtasks /create /tn "HomeLab-MaintenanceDaily" /tr $dailyCmd /sc daily /st 04:00 /f
 if ($LASTEXITCODE -eq 0) { Write-Host "  Registered: HomeLab-MaintenanceDaily (04:00)" }
 
-# MQTT bridges at logon
-schtasks /create /tn "HomeLab-AirQualityBridge" /tr $airCmd /sc onlogon /f
-if ($LASTEXITCODE -eq 0) { Write-Host "  Registered: HomeLab-AirQualityBridge (on logon)" }
-schtasks /create /tn "HomeLab-AOABridge" /tr $aoaCmd /sc onlogon /f
-if ($LASTEXITCODE -eq 0) { Write-Host "  Registered: HomeLab-AOABridge (on logon)" }
-schtasks /create /tn "HomeLab-EventNormalizer" /tr $normCmd /sc onlogon /f
-if ($LASTEXITCODE -eq 0) { Write-Host "  Registered: HomeLab-EventNormalizer (on logon)" }
-schtasks /create /tn "HomeLab-TimelineServer" /tr $timeCmd /sc onlogon /f
-if ($LASTEXITCODE -eq 0) { Write-Host "  Registered: HomeLab-TimelineServer (on logon)" }
+# All MQTT bridges + event platform at logon (may need admin — Startup shortcut is fallback)
+$prev = $ErrorActionPreference
+$ErrorActionPreference = "SilentlyContinue"
+schtasks /create /tn "HomeLab-Bridges" /tr $bridgesCmd /sc onlogon /f 2>&1 | Out-Null
+$ErrorActionPreference = $prev
+if ($LASTEXITCODE -eq 0) {
+    Write-Host "  Registered: HomeLab-Bridges (on logon)"
+} else {
+    Write-Host "  SKIP  HomeLab-Bridges (access denied) — using Startup shortcut"
+}
+
+# Startup folder shortcut (backup if schtasks onlogon is delayed)
+$startup = [Environment]::GetFolderPath("Startup")
+$shortcutPath = Join-Path $startup "HomeLab-Bridges.lnk"
+$WshShell = New-Object -ComObject WScript.Shell
+$shortcut = $WshShell.CreateShortcut($shortcutPath)
+$shortcut.TargetPath = "powershell.exe"
+$shortcut.Arguments = "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$repoRoot\scripts\start-bridges.ps1`""
+$shortcut.WorkingDirectory = $repoRoot
+$shortcut.Description = "Danielsson Insights MQTT bridges"
+$shortcut.Save()
+Write-Host "  Startup shortcut: $shortcutPath"
 
 Write-Host ""
-Write-Host "Verify: schtasks /query /tn HomeLab-Maintenance"
+Write-Host "Verify: schtasks /query /tn HomeLab-Bridges"
 Write-Host "Logs:   $repoRoot\logs\maintenance.log"

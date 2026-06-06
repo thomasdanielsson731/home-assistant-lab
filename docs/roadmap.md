@@ -87,7 +87,7 @@ Vision: [vision.md](vision.md) · Scope: [scope.md](scope.md) · Work queue: [ba
 | AOA Person Occupancy on all 6 cameras | ✅ |
 | AOA Vehicle on driveway cameras | ✅ |
 | AOA Loitering (manual web UI setup) | ⬜ |
-| Scene frame/track sensors verified in HA | ⬜ |
+| Scene frame/track sensors verified in HA | ✅ health-check |
 | D6210 air quality bridge publishing to MQTT | ✅ |
 | D6210 air quality sensors verified in HA | ✅ |
 | AOA bridge (`aoa_bridge.py`) publishing to MQTT | ✅ |
