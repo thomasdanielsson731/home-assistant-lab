@@ -6,7 +6,7 @@ Quick-start context for AI assistants. Read this + [CLAUDE.md](../CLAUDE.md) + [
 
 ## Project Identity
 
-**Personal Data Insights Lab** — not a lamp-automation project. Home Assistant is the event hub; the goal is context and insight from sensor/camera data.
+**Danielsson Insights** — Home Analytics Platform. Everything is an event. HA ingests; analytics docs define the model. See [vision/danielsson-insights.md](vision/danielsson-insights.md) and [analytics/event-model.md](analytics/event-model.md).
 
 ---
 

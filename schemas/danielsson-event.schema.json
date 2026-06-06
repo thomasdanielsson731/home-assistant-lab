@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://danielsson-insights.local/schemas/event.json",
+  "title": "Danielsson Insights Event",
+  "description": "Canonical event schema for the Home Analytics Platform",
+  "type": "object",
+  "required": ["event_id", "timestamp", "type", "location"],
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "pattern": "^evt_",
+      "description": "Unique event identifier"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp with timezone"
+    },
+    "type": {
+      "type": "string",
+      "enum": ["person", "vehicle", "bicycle", "cat", "delivery", "environment", "door", "smoke"]
+    },
+    "location": {
+      "type": "object",
+      "required": ["zone"],
+      "properties": {
+        "zone": {
+          "type": "string",
+          "enum": ["front", "driveway", "backyard", "storage_ext", "storage_int", "driveway_env"]
+        },
+        "camera": {
+          "type": ["string", "null"],
+          "enum": ["front", "driveway_wide", "driveway_id", "backyard", "storage_ext", "storage_int", null]
+        }
+      }
+    },
+    "snapshot": {
+      "type": "object",
+      "properties": {
+        "best_picture": { "type": "string" },
+        "thumbnail": { "type": "string" },
+        "clip": { "type": "string" }
+      }
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "identity": {
+      "type": "object",
+      "properties": {
+        "type": { "type": "string" },
+        "name": { "type": "string" },
+        "person": { "type": "string" },
+        "cat": { "type": "string" },
+        "source": { "type": "string" },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Type-specific attributes"
+    },
+    "source": {
+      "type": "string",
+      "enum": ["frigate", "axis_aoa", "axis_scene", "double_take", "yale", "d6210", "ha", "normalizer"]
+    },
+    "enriched": {
+      "type": "boolean",
+      "default": false
+    },
+    "ai_summary": {
+      "type": ["string", "null"]
+    }
+  }
+}

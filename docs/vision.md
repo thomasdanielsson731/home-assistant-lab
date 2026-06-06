@@ -1,6 +1,9 @@
-# Vision — Personal Data Insights Lab
+# Vision — Danielsson Insights
 
-This is not a smart-home automation project. It is a **personal Data Insights Lab** where the house is the data source, Home Assistant is the event hub, and AI turns raw signals into context and insight.
+This is not a smart-home automation project. It is **Danielsson Insights** — a personal Home Analytics Platform where the house is the data source, everything is an event, and AI turns signals into understanding.
+
+> Detailed product vision and Cursor prompts: [vision/danielsson-insights.md](vision/danielsson-insights.md)
+> Event schema: [analytics/event-model.md](analytics/event-model.md)
 
 ---
 
@@ -137,10 +140,13 @@ See [roadmap.md](roadmap.md) for task-level detail and [backlog.md](backlog.md) 
 
 | Document | Purpose |
 |---|---|
-| [scope.md](scope.md) | Explicit in/out-of-scope boundaries |
-| [roadmap.md](roadmap.md) | Phase-by-phase plan with done criteria |
-| [backlog.md](backlog.md) | Prioritized work queue |
-| [current-focus.md](current-focus.md) | What to do right now (AI assistant entry point) |
-| [architecture/overview.md](architecture/overview.md) | System diagrams and data flows |
-| [../agents/](../agents/) | Cursor agent role definitions |
+| [vision/danielsson-insights.md](vision/danielsson-insights.md) | Product vision + Cursor prompts |
+| [analytics/](analytics/) | Event model, timeline, floorplan, cat/bike analytics |
+| [scope.md](scope.md) | In/out-of-scope boundaries |
+| [roadmap.md](roadmap.md) | Phase plan |
+| [backlog.md](backlog.md) | Work queue |
+| [current-focus.md](current-focus.md) | AI assistant entry point |
+| [architecture/overview.md](architecture/overview.md) | System diagrams |
+| [../events/README.md](../events/README.md) | Event store layout |
+| [../agents/](../agents/) | Cursor agent roles |
 | [../projects/](../projects/) | Sub-project briefs |

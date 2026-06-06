@@ -1,10 +1,19 @@
-# Home Assistant Lab
+# Danielsson Insights
 
-A personal **Data Insights Lab** managed as code. Home Assistant is the event hub; cameras and sensors are data sources; AI turns signals into context and insight.
+A personal **Home Analytics Platform** managed as code. Home Assistant ingests data; **events** are the core; timeline, floorplan, and dashboards are views on the same model.
 
-> Not a lamp-automation project — HomeKit handles that. This lab answers: *what can we learn from the data?*
+```
+Collect → Enrich → Analyze → Visualize → Understand
+```
 
-See [docs/vision.md](docs/vision.md) for the full vision and [docs/scope.md](docs/scope.md) for boundaries.
+> Not a lamp-automation project — HomeKit handles that.
+
+| Start here | Document |
+|---|---|
+| Vision + Cursor prompts | [docs/vision/danielsson-insights.md](docs/vision/danielsson-insights.md) |
+| Event schema | [docs/analytics/event-model.md](docs/analytics/event-model.md) |
+| Phase plan | [docs/roadmap.md](docs/roadmap.md) |
+| AI assistant context | [docs/current-focus.md](docs/current-focus.md) |
 
 ---
 
@@ -90,7 +99,10 @@ config/                  Service configuration (no secrets committed)
   frigate/               NVR config + per-camera masks
   double-take/           Face recognition middleware
 docs/
-  vision.md              Project vision and principles
+  vision/
+    danielsson-insights.md  Product vision + Cursor prompts
+  vision.md              Lab vision and phase map
+  analytics/             Event model, timeline, floorplan, analytics
   scope.md               In/out-of-scope boundaries
   current-focus.md       AI assistant quick-start (read this first)
   roadmap.md             Phase plan with done criteria
@@ -99,6 +111,8 @@ docs/
   hardware/              Server and camera reference
   decisions/             Architecture Decision Records (ADRs)
   runbooks/              Operational procedures
+events/                  Event store (person, vehicle, cat, …)
+schemas/                 JSON Schema (danielsson-event.schema.json)
 agents/                  Cursor agent role definitions
 projects/                Sub-project briefs
 integrations/            Integration design notes

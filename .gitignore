@@ -33,3 +33,7 @@ Thumbs.db
 
 # Maintenance logs
 logs/
+
+# Event store (JSON + media — not committed)
+events/**/*
+!events/README.md

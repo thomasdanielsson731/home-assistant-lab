@@ -295,7 +295,9 @@ Fallback: CompreFace via `docker/compreface/` if accuracy is insufficient.
 
 ## Key Docs
 
-- `docs/vision.md` — project vision (Data Insights Lab, not lamp automation)
+- `docs/vision/danielsson-insights.md` — Danielsson Insights product vision + Cursor prompts
+- `docs/analytics/event-model.md` — canonical event schema (read before building features)
+- `docs/vision.md` — lab vision and phase map
 - `docs/scope.md` — in/out-of-scope boundaries
 - `docs/current-focus.md` — AI assistant quick-start (read first)
 - `docs/naming-conventions.md` — authoritative naming reference
