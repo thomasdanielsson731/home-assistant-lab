@@ -51,7 +51,7 @@ Timeline: `http://localhost:8765` · Events: `events/timeline.jsonl`
 | Item | Action |
 |---|---|
 | AOA Loitering | Camera web UI — 3 cameras |
-| Audio SPL | Install AXIS Audio Analytics ACAP on Q3558 |
+| Audio SPL | Rules deployed via script; edit MQTT payload per camera in UI (modifier quirk) — audio-analytics-setup.md |
 | Yale Doorman | Integrate when hardware arrives |
 | Unavailable lights | Re-pair HomeKit/Matter devices |
 | Face recognition | **On hold** — see ADR-003 when ready |

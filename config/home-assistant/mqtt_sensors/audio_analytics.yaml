@@ -1,7 +1,8 @@
 # AXIS Audio Analytics — Sound Pressure Level (SPL)
-# Requires AXIS Audio Analytics ACAP on camera + analytics-mqtt publisher.
-# Configure: python scripts/configure_audio_analytics.py
-# Topics: axis/<zone>/audio/spl  (JSON or plain dB value)
+# Plugin enabled via firmware (audioanalytics.cgi), NOT a separate ACAP app.
+# SPL Summary (~60 s) must be published via camera action rule → MQTT.
+# Setup: docs/runbooks/audio-analytics-setup.md
+# Topics: axis/<zone>/audio/spl  {"spl": 45.2, "max_spl": 45.2, "min_spl": 32.1}
 
 - name: "Driveway Wide Audio SPL"
   unique_id: "driveway_wide_audio_spl"
@@ -9,10 +10,10 @@
   unit_of_measurement: "dB"
   icon: "mdi:volume-high"
   value_template: >-
-    {% if value_json is defined and value_json.spl is defined %}
+    {% if value_json is defined and value_json.max_spl is defined %}
+    {{ value_json.max_spl }}
+    {% elif value_json is defined and value_json.spl is defined %}
     {{ value_json.spl }}
-    {% elif value_json is defined and value_json.value is defined %}
-    {{ value_json.value }}
     {% else %}
     {{ value }}
     {% endif %}
@@ -23,10 +24,24 @@
   unit_of_measurement: "dB"
   icon: "mdi:volume-high"
   value_template: >-
-    {% if value_json is defined and value_json.spl is defined %}
+    {% if value_json is defined and value_json.max_spl is defined %}
+    {{ value_json.max_spl }}
+    {% elif value_json is defined and value_json.spl is defined %}
     {{ value_json.spl }}
-    {% elif value_json is defined and value_json.value is defined %}
-    {{ value_json.value }}
+    {% else %}
+    {{ value }}
+    {% endif %}
+
+- name: "Backyard Audio SPL"
+  unique_id: "backyard_audio_spl"
+  state_topic: "axis/backyard/audio/spl"
+  unit_of_measurement: "dB"
+  icon: "mdi:volume-high"
+  value_template: >-
+    {% if value_json is defined and value_json.max_spl is defined %}
+    {{ value_json.max_spl }}
+    {% elif value_json is defined and value_json.spl is defined %}
+    {{ value_json.spl }}
     {% else %}
     {{ value }}
     {% endif %}

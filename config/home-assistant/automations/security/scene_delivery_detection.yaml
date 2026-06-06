@@ -3,7 +3,7 @@
 
 - id: "scene_delivery_detection_front"
   alias: "Scene — leverans detekterad vid entrén"
-  enabled: false
+  initial_state: false
   description: >
     Person vid entrén 15–90 s utan att dörren öppnas = möjlig leverans.
     Max 1 notis per 10 minuter.
@@ -46,7 +46,7 @@
 
 - id: "scene_crowd_alert_front"
   alias: "Scene — folksamling vid entrén"
-  enabled: false
+  initial_state: false
   description: "Alert om 3+ personer samtidigt vid entrén. Max 1 notis per 5 min."
   mode: single
   max_exceeded: silent

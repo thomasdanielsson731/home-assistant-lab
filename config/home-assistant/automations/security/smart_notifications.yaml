@@ -5,11 +5,11 @@
 #   2. Persons who are NOT family (Thomas, Nils, Hugo, Anna)
 #
 # Requires Phase 4 (Double Take) for unknown-person filtering.
-# Enable individual automations below when recognizer is trained.
+# Set initial_state: true on individual automations when ready.
 
 - id: notify_cat_detected
   alias: "Notify — cat detected"
-  enabled: false
+  initial_state: false
   description: >
     Push when Frigate detects a cat. Enable after cat model is trained
     or Frigate label 'cat' is reliable.
@@ -34,7 +34,7 @@
 
 - id: notify_unknown_person_entry
   alias: "Notify — unknown person at entry"
-  enabled: false
+  initial_state: false
   description: >
     Push when a person is detected and no family member is identified.
     Enable after Double Take is trained for Thomas, Nils, Hugo, Anna.

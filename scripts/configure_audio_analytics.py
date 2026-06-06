@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
 """
-Configure AXIS Audio Analytics SPL MQTT publisher on cameras.
+Verify AXIS Audio Analytics SPL plugin on cameras.
 
-Requires AXIS Audio Analytics ACAP installed (Analytics > AXIS Audio analytics).
-Lists data_sources via analytics-mqtt API and creates publisher when audio key exists.
+Audio Analytics is a firmware plugin (audioanalytics.cgi), not a separate ACAP.
+SPL data reaches HA via MQTT action rules — see docs/runbooks/audio-analytics-setup.md
 
 Usage:  python scripts/configure_audio_analytics.py
 """
 
 import os
-import re
 import sys
 from pathlib import Path
 
@@ -34,105 +33,54 @@ def _require(key):
 CAM_USER = _require("CAM_USER")
 CAM_PASS = _require("CAM_PASS")
 
-# SPL via analytics-mqtt — Q3558 has microphone; front P3288 may follow later
-TARGETS = [
-    {"zone": "driveway_wide", "ip": "192.168.68.201"},
-    {"zone": "front", "ip": "192.168.68.200"},
+CAMERAS = [
+    {"zone": "front", "ip": "192.168.68.200", "model": "P3288-LVE"},
+    {"zone": "driveway_wide", "ip": "192.168.68.201", "model": "Q3558-LVE"},
+    {"zone": "backyard", "ip": "192.168.68.203", "model": "Q1656-LE"},
 ]
 
-AUDIO_KEY_RE = re.compile(r"audio|sound|spl", re.I)
 
-
-def list_data_sources(ip):
+def get_spl_settings(ip: str) -> dict | None:
     auth = HTTPDigestAuth(CAM_USER, CAM_PASS)
-    r = requests.get(
-        f"http://{ip}/config/rest/analytics-mqtt/v1/data_sources",
-        auth=auth,
-        timeout=12,
-    )
-    if r.status_code != 200:
-        return None, r.text[:200]
-    data = r.json().get("data", [])
-    if isinstance(data, dict):
-        data = data.get("data_sources", [])
-    keys = [d.get("key", d) if isinstance(d, dict) else d for d in data]
-    return keys, None
-
-
-def list_publishers(ip):
-    auth = HTTPDigestAuth(CAM_USER, CAM_PASS)
-    r = requests.get(
-        f"http://{ip}/config/rest/analytics-mqtt/v1/publishers",
-        auth=auth,
-        timeout=12,
-    )
-    if r.status_code != 200:
-        return []
-    return r.json().get("data", [])
-
-
-def create_publisher(ip, zone, data_source_key):
-    auth = HTTPDigestAuth(CAM_USER, CAM_PASS)
-    body = {
-        "data": {
-            "id": f"{zone}_audio_spl",
-            "data_source_key": data_source_key,
-            "mqtt_topic": f"axis/{zone}/audio/spl",
-            "qos": 0,
-            "retain": True,
-            "use_topic_prefix": False,
-        }
-    }
     r = requests.post(
-        f"http://{ip}/config/rest/analytics-mqtt/v1/publishers",
-        json=body,
+        f"http://{ip}/axis-cgi/audioanalytics.cgi",
+        json={"apiVersion": "1.0", "method": "getPluginsSettings", "params": {}},
         auth=auth,
         timeout=12,
     )
-    return r.status_code, r.text[:300]
-
-
-def pick_audio_key(keys):
-    for key in keys:
-        if AUDIO_KEY_RE.search(str(key)):
-            return key
+    if r.status_code != 200:
+        return None
+    data = r.json().get("data", {})
+    for device in data.get("devices", []):
+        for inp in device.get("inputs", []):
+            for plugin in inp.get("plugins", []):
+                if plugin.get("id") == "SoundPressureLevel":
+                    return plugin.get("settings", {})
     return None
 
 
 def main():
-    ok = True
-    for cam in TARGETS:
-        zone, ip = cam["zone"], cam["ip"]
-        print(f"\n{'=' * 50}")
-        print(f"{zone} ({ip})")
-
-        keys, err = list_data_sources(ip)
-        if keys is None:
-            print(f"  FAIL list data_sources: {err}")
-            ok = False
+    print("AXIS Audio Analytics — SPL plugin status\n")
+    all_ok = True
+    for cam in CAMERAS:
+        zone, ip, model = cam["zone"], cam["ip"], cam["model"]
+        settings = get_spl_settings(ip)
+        if not settings:
+            print(f"  {zone:15} ({model})  FAIL — no SoundPressureLevel plugin")
+            all_ok = False
             continue
+        enabled = settings.get("enable", False)
+        interval = settings.get("summaryEventInterval", "?")
+        mark = "OK" if enabled else "OFF"
+        print(f"  {zone:15} ({model})  {mark}  interval={interval}s  thresholds={settings.get('thresholdLower')}-{settings.get('thresholdUpper')} dB")
+        if not enabled:
+            all_ok = False
 
-        audio_key = pick_audio_key(keys)
-        if not audio_key:
-            print("  SKIP — no audio analytics data source (install AXIS Audio Analytics ACAP)")
-            print(f"  Available: {', '.join(keys)}")
-            ok = False
-            continue
-
-        existing = list_publishers(ip)
-        topic = f"axis/{zone}/audio/spl"
-        if any(p.get("mqtt_topic") == topic for p in existing):
-            print(f"  OK publisher already exists -> {topic}")
-            continue
-
-        code, text = create_publisher(ip, zone, audio_key)
-        if code in (200, 201):
-            print(f"  OK created publisher {audio_key} -> {topic}")
-        else:
-            print(f"  FAIL create publisher ({code}): {text}")
-            ok = False
-
-    print(f"\n{'Done' if ok else 'Some cameras need AXIS Audio Analytics ACAP first'}")
+    print()
+    if all_ok:
+        print("Plugins OK. Next: MQTT action rules per camera (see docs/runbooks/audio-analytics-setup.md)")
+    else:
+        print("Enable Sound pressure level in Analytics → AXIS Audio analytics on each camera.")
 
 
 if __name__ == "__main__":

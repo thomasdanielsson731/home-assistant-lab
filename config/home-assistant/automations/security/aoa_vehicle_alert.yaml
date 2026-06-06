@@ -1,6 +1,6 @@
 - id: "aoa_vehicle_detected_driveway"
   alias: "AOA — vehicle detected in driveway"
-  enabled: false
+  initial_state: false
   trigger:
     - platform: state
       entity_id:

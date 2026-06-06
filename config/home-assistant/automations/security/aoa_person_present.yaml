@@ -3,7 +3,7 @@
 
 - id: "aoa_person_detected_entry"
   alias: "AOA — person detected at entry point"
-  enabled: false
+  initial_state: false
   description: >
     Triggers when AOA detects a person at front or driveway.
     10 min cooldown to prevent notification spam.
@@ -28,7 +28,7 @@
 
 - id: "aoa_person_detected_perimeter"
   alias: "AOA — person detected at perimeter"
-  enabled: false
+  initial_state: false
   description: "Person vid bakgård/förråd. 15 min cooldown."
   mode: single
   max_exceeded: silent

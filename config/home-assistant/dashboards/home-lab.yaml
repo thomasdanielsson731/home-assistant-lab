@@ -630,30 +630,73 @@ views:
             period: day
             hide_legend: true
 
-      # ── Audio Analytics SPL ──────────────────────────────────
+      # ── Audio Analytics SPL (Q3558, P3288, Q1656-LE) ───────────
       - title: AUDIO ANALYTICS (SPL)
         cards:
+          - type: horizontal-stack
+            cards:
+              - type: custom:mushroom-template-card
+                primary: >-
+                  {% if states('sensor.front_audio_spl') not in ['unknown', 'unavailable'] %}
+                  {{ states('sensor.front_audio_spl') }} dB
+                  {% else %}—{% endif %}
+                secondary: Front
+                icon: mdi:volume-high
+                icon_color: >-
+                  {{ 'blue' if states('sensor.front_audio_spl') not in ['unknown', 'unavailable'] else 'disabled' }}
+                layout: vertical
+                fill_container: true
+                tap_action:
+                  action: more-info
+                  entity: sensor.front_audio_spl
+              - type: custom:mushroom-template-card
+                primary: >-
+                  {% if states('sensor.driveway_wide_audio_spl') not in ['unknown', 'unavailable'] %}
+                  {{ states('sensor.driveway_wide_audio_spl') }} dB
+                  {% else %}—{% endif %}
+                secondary: Driveway
+                icon: mdi:volume-high
+                icon_color: >-
+                  {{ 'blue' if states('sensor.driveway_wide_audio_spl') not in ['unknown', 'unavailable'] else 'disabled' }}
+                layout: vertical
+                fill_container: true
+                tap_action:
+                  action: more-info
+                  entity: sensor.driveway_wide_audio_spl
+              - type: custom:mushroom-template-card
+                primary: >-
+                  {% if states('sensor.backyard_audio_spl') not in ['unknown', 'unavailable'] %}
+                  {{ states('sensor.backyard_audio_spl') }} dB
+                  {% else %}—{% endif %}
+                secondary: Backyard
+                icon: mdi:volume-high
+                icon_color: >-
+                  {{ 'blue' if states('sensor.backyard_audio_spl') not in ['unknown', 'unavailable'] else 'disabled' }}
+                layout: vertical
+                fill_container: true
+                tap_action:
+                  action: more-info
+                  entity: sensor.backyard_audio_spl
           - type: custom:mushroom-template-card
-            primary: >-
-              {% if states('sensor.driveway_wide_audio_spl') not in ['unknown', 'unavailable'] %}
-              {{ states('sensor.driveway_wide_audio_spl') }} dB
-              {% else %}Awaiting data{% endif %}
+            primary: Plugin active on all 3 cameras
             secondary: >-
               {% if states('sensor.driveway_wide_audio_spl') in ['unknown', 'unavailable'] %}
-              Install AXIS Audio Analytics on driveway_wide, then run configure_audio_analytics.py
-              {% else %}Driveway wide · sound pressure level{% endif %}
-            icon: mdi:volume-high
-            icon_color: >-
-              {% if states('sensor.driveway_wide_audio_spl') not in ['unknown', 'unavailable'] %}blue
-              {% else %}disabled{% endif %}
+              MQTT action rule needed — see docs/runbooks/audio-analytics-setup.md
+              {% else %}Live SPL via MQTT{% endif %}
+            icon: mdi:information-outline
+            icon_color: amber
             fill_container: true
             tap_action:
-              action: more-info
-              entity: sensor.driveway_wide_audio_spl
+              action: none
           - type: history-graph
-            title: Sound Pressure Level
+            title: Sound Pressure Level (7 days)
             entities:
+              - entity: sensor.front_audio_spl
+                name: Front
               - entity: sensor.driveway_wide_audio_spl
+                name: Driveway
+              - entity: sensor.backyard_audio_spl
+                name: Backyard
             hours_to_show: 168
 
       # ── Occupancy activity (AOA) ─────────────────────────────
