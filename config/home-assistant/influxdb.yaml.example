@@ -1,0 +1,22 @@
+# Phase 7 — InfluxDB integration (not yet deployed)
+# Copy relevant sections to configuration.yaml after installing InfluxDB add-on.
+#
+# influxdb:
+#   host: localhost
+#   port: 8086
+#   database: home_lab
+#   tags:
+#     source: hass
+#   include:
+#     domains:
+#       - sensor
+#       - binary_sensor
+#     entities:
+#       - sensor.driveway_env_temperature
+#       - sensor.driveway_env_co2
+#       - sensor.driveway_env_aqi
+#       - sensor.driveway_env_humidity
+#       - sensor.driveway_env_pm25
+#       - sensor.house_people_home_count
+#       - binary_sensor.front_aoa_person
+#       - binary_sensor.driveway_wide_aoa_vehicle

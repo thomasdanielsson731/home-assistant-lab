@@ -26,10 +26,12 @@ Phases 1–3 are done. Phases 6–8 (AI, data platform, digital twin) are future
 Scheduled tasks (after `.\scripts\install-scheduled-tasks.ps1`):
 
 - **Every 6 h:** auto-commit + push + sync to HAOS
-- **Daily 04:00:** above + HA YAML reload
-- **At startup:** air quality bridge
+- **Daily 04:00:** above + HA YAML reload (via `HA_TOKEN`)
+- **At logon:** `air_quality_bridge.py` + `aoa_bridge.py`
 
 Logs: `logs/maintenance.log` · Runbook: [maintenance.md](runbooks/maintenance.md)
+
+**MQTT bridges on dev PC** (ADR-004): AOA events don't publish natively on FW 12.x without manual UI steps. `aoa_bridge.py` polls `getOccupancy` every 5 s.
 
 ---
 

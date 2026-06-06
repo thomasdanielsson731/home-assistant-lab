@@ -87,8 +87,11 @@ Vision: [vision.md](vision.md) · Scope: [scope.md](scope.md) · Work queue: [ba
 | AOA Loitering (manual web UI setup) | ⬜ |
 | Scene frame/track sensors verified in HA | ⬜ |
 | D6210 air quality bridge publishing to MQTT | ✅ |
-| D6210 air quality sensors verified in HA | ⬜ |
-| End-to-end MQTT pipeline validated | ⬜ |
+| D6210 air quality sensors verified in HA | ✅ |
+| AOA bridge (`aoa_bridge.py`) publishing to MQTT | ✅ |
+| AOA sensors verified in HA | ✅ |
+| House context template sensors | ✅ |
+| End-to-end MQTT pipeline validated | ✅ |
 | Audit installed ACAP apps per camera | ⬜ |
 | Custom ACAP model on lab footage | ⬜ |
 

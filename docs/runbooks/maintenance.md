@@ -37,7 +37,10 @@ Run once to register:
 |---|---|---|
 | `HomeLab-Maintenance` | Every 6 hours | Commit + push + sync |
 | `HomeLab-MaintenanceDaily` | Daily 04:00 | Commit + push + sync + HA reload |
-| `HomeLab-AirQualityBridge` | At startup | D6210 air quality MQTT bridge |
+| `HomeLab-AirQualityBridge` | At logon | D6210 air quality MQTT bridge |
+| `HomeLab-AOABridge` | At logon | AOA occupancy MQTT bridge |
+
+If logon tasks fail (access denied), use `scripts/start-bridges.ps1` in Windows Startup folder.
 
 Verify:
 
