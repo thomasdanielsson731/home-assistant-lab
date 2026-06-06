@@ -12,7 +12,8 @@ Classification, lifecycle, and retention for Danielsson Insights events.
 | `vehicle` | Car, truck, bus, motorcycle | Frigate, AOA | Live |
 | `bicycle` | Bicycle with optional rider attribution | Frigate + person correlation | Planned |
 | `cat` | Cat detected (neighbour cats) | Frigate / custom ACAP model | Planned |
-| `delivery` | Package or courier visit | Scene metadata + person + vehicle | Prototype |
+| `delivery` | Package or courier visit | Correlation: person + vehicle / scene | Live |
+| `arrival` | Household member arrived home | Correlation: identity or vehicle+person | Live |
 | `environment` | Air quality, temp, humidity | D6210 bridge | Live |
 | `occupancy` | Zone occupied (start/end blocks) | Axis AOA via MQTT | Live |
 | `scene` | Scene frame detection counts | Axis scene/frame | Live |

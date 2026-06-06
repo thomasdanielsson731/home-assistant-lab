@@ -40,6 +40,7 @@ TYPE_ICON = {
     "bicycle": "🚲",
     "cat": "🐈",
     "delivery": "📦",
+    "arrival": "🏠",
     "environment": "🌡️",
     "occupancy": "📍",
     "scene": "👁️",
@@ -125,8 +126,8 @@ TIMELINE_V1_HTML = """<!DOCTYPE html>
     let blocks = [];
     let metrics = [];
 
-    const LANES = ['occupancy', 'person', 'vehicle', 'scene', 'environment'];
-    const COLORS = { person: '#8ab4f8', vehicle: '#81c995', scene: '#c58af9', environment: '#78d9ec', occupancy: '#fdd663' };
+    const LANES = ['arrival', 'delivery', 'occupancy', 'person', 'vehicle', 'scene', 'environment'];
+    const COLORS = { arrival: '#f28b82', delivery: '#fdcfe8', person: '#8ab4f8', vehicle: '#81c995', scene: '#c58af9', environment: '#78d9ec', occupancy: '#fdd663' };
 
     async function load() {
       const [ev, occ, met] = await Promise.all([
@@ -366,7 +367,7 @@ class Handler(BaseHTTPRequestHandler):
         period_label = "Senaste 7 dagarna" if hours <= 168 else f"Senaste {hours}h"
         stats = " · ".join(f"{k}: {v}" for k, v in sorted(event_summary_stats(events).items())) or "Inga events ännu"
 
-        types = ["", "person", "vehicle", "occupancy", "scene", "environment"]
+        types = ["", "arrival", "delivery", "person", "vehicle", "occupancy", "scene", "environment"]
         filters = ""
         for t in types:
             label = t or "Alla"

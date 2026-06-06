@@ -32,6 +32,7 @@ from paho.mqtt.client import CallbackAPIVersion
 
 # Allow import from scripts/
 sys.path.insert(0, str(Path(__file__).parent))
+from correlation_engine import CorrelationEngine  # noqa: E402
 from event_store import (  # noqa: E402
     CAMERA_ZONE,
     FRIGATE_LABEL_TYPE,
@@ -58,6 +59,7 @@ logging.basicConfig(
 log = logging.getLogger("event_normalizer")
 
 store = EventStore()
+correlator = CorrelationEngine(store)
 _env_cache: dict[str, float | int] = {}
 _last_env_event = 0.0
 _aoa_state: dict[str, tuple[bool, datetime | None]] = {}
@@ -72,6 +74,11 @@ SPL_METRIC_INTERVAL = 300  # 5 min per zone
 
 def _ts_now() -> str:
     return datetime.now(TZ).isoformat(timespec="seconds")
+
+
+def _correlate(event: dict, event_id: str | None) -> None:
+    if event_id and not event.get("enriched"):
+        correlator.process({**event, "event_id": event_id})
 
 
 def _download_snapshot(frigate_event_id: str, dest: Path) -> bool:
@@ -151,7 +158,8 @@ def handle_frigate_event(payload: dict) -> None:
         }
 
     event["summary"] = make_summary(event)
-    store.write(event)
+    eid = store.write(event)
+    _correlate(event, eid)
 
 
 def handle_double_take(payload: dict) -> None:
@@ -165,7 +173,18 @@ def handle_double_take(payload: dict) -> None:
     conf = match.get("confidence", 0)
     if conf > 1:
         conf = conf / 100.0
-    store.attach_identity(camera, name, float(conf))
+    attached_id = store.attach_identity(camera, name, float(conf))
+    if attached_id and store.timeline_jsonl.exists():
+        for line in reversed(store.timeline_jsonl.read_text(encoding="utf-8").splitlines()):
+            if not line.strip():
+                continue
+            try:
+                ev = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if ev.get("event_id") == attached_id:
+                correlator.process(ev)
+                break
 
 
 def reset_env_state() -> None:
@@ -220,8 +239,9 @@ def handle_env_metric(topic: str, value: str) -> None:
         "identity": {},
     }
     event["summary"] = make_summary(event)
-    store.write(event)
-    store.write_metric(ts, "driveway_env", dict(_env_cache))
+    eid = store.write(event)
+    if eid:
+        store.write_metric(ts, "driveway_env", dict(_env_cache))
 
 
 def handle_aoa_occupancy(topic: str, payload: str) -> None:
@@ -254,7 +274,8 @@ def handle_aoa_occupancy(topic: str, payload: str) -> None:
             "identity": {},
         }
         event["summary"] = make_summary(event)
-        store.write(event)
+        eid = store.write(event)
+        _correlate(event, eid)
     elif not active and was_active:
         duration = int((now - started_at).total_seconds()) if started_at else None
         _aoa_state[key] = (False, None)
@@ -273,7 +294,8 @@ def handle_aoa_occupancy(topic: str, payload: str) -> None:
             "identity": {},
         }
         event["summary"] = make_summary(event)
-        store.write(event)
+        eid = store.write(event)
+        _correlate(event, eid)
 
 
 def handle_scene_frame(topic: str, payload: str) -> None:
@@ -303,7 +325,8 @@ def handle_scene_frame(topic: str, payload: str) -> None:
         "identity": {},
     }
     event["summary"] = make_summary(event)
-    store.write(event)
+    eid = store.write(event)
+    _correlate(event, eid)
 
 
 def handle_audio_spl(topic: str, payload: str) -> None:

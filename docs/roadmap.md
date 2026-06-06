@@ -139,7 +139,7 @@ Vision: [vision.md](vision.md) · Scope: [scope.md](scope.md) · Work queue: [ba
 | Event store (`timeline.jsonl`, `metrics.jsonl`) | ✅ |
 | Timeline API v1 (`/api/v1/events`, `metrics`, `occupancy`) | ✅ |
 | Timeline UI v1 — horizontal scale, occupancy blocks | ✅ `/timeline` |
-| Correlation engine (`arrival`, `delivery`, …) | ⬜ |
+| Correlation engine (`arrival`, `delivery`) | ✅ |
 | InfluxDB for long retention (optional) | ⬜ |
 | Grafana / 7-day trend dashboards | ⬜ |
 

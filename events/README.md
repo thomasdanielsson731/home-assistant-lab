@@ -8,8 +8,12 @@ events/
 ├── vehicle/      # Cars, trucks, motorcycles
 ├── bicycle/      # Bicycle trips with rider attribution
 ├── cat/          # Cat visits
-├── delivery/     # Package and courier events
+├── delivery/     # Package and courier events (enriched)
+├── arrival/      # Household arrivals (enriched)
+├── occupancy/    # AOA duration start/end
+├── scene/        # Scene frame detection counts
 ├── environment/  # D6210 air quality snapshots
+├── metrics.jsonl # Continuous env + SPL samples
 ├── door/         # Yale lock/unlock (planned)
 └── smoke/        # Smoke detector alerts (future)
 ```

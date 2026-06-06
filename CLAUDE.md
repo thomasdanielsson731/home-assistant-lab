@@ -195,7 +195,7 @@ python scripts/timeline_server.py    # Timeline API + UI
 - **House Intelligence Timeline v1:** `http://localhost:8765/timeline`
 - API: `/api/v1/events`, `/api/v1/metrics`, `/api/v1/occupancy`
 
-See `docs/decisions/005-home-intelligence-timeline.md`. Start all bridges: `.\scripts\start-bridges.ps1`.
+See `docs/decisions/005-home-intelligence-timeline.md` and `docs/runbooks/correlation-engine.md`. Start all bridges: `.\scripts\start-bridges.ps1`.
 
 ### Lab health check
 

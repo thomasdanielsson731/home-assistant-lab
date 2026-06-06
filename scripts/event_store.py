@@ -65,7 +65,7 @@ class EventStore:
 
     def __post_init__(self) -> None:
         for sub in (
-            "person", "vehicle", "bicycle", "cat", "delivery",
+            "person", "vehicle", "bicycle", "cat", "delivery", "arrival",
             "environment", "occupancy", "scene", "door", "smoke",
         ):
             (self.events_root / sub).mkdir(parents=True, exist_ok=True)
@@ -242,6 +242,11 @@ def make_summary(event: dict) -> str:
         return f"{cat} visited {zone}"
     if etype == "delivery":
         return f"Delivery detected at {zone}"
+    if etype == "arrival":
+        name = identity.get("name", "Someone")
+        if event.get("metadata", {}).get("direction") == "arriving":
+            return f"{name} arrived home"
+        return f"{name} arrived at {zone}"
     if etype == "door":
         person = identity.get("person", "Someone")
         action = event.get("metadata", {}).get("action", "unlocked")

@@ -60,7 +60,7 @@ python scripts/health-check.py
 | AOA Loitering | Camera web UI — 3 cameras |
 | Yale Doorman | Integrate when hardware arrives |
 | Face recognition | CodeProject.AI + training photos |
-| Correlation rules | `arrival`, `delivery` — Phase 7e |
+| Correlation rules | `arrival`, `delivery` live — see correlation-engine.md |
 
 ---
 
@@ -72,6 +72,7 @@ python scripts/health-check.py
 | `scripts/event_store.py` | Persist events, dedup, aggregates |
 | `scripts/timeline_api.py` | Query helpers for API v1 |
 | `scripts/timeline_server.py` | Timeline UI + REST API |
+| `scripts/correlation_engine.py` | Raw → enriched events (`arrival`, `delivery`) |
 | `scripts/configure_ha_sidebar.py` | Hide HA panels, default Home Lab |
 | `events/timeline.jsonl` | Event stream |
 | `events/metrics.jsonl` | Continuous metrics (env, SPL) |
