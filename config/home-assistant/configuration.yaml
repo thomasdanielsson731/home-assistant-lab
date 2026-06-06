@@ -35,6 +35,13 @@ lovelace:
       icon: mdi:home-assistant
       show_in_sidebar: true
       require_admin: false
+    house-timeline:
+      mode: yaml
+      filename: dashboards/house-timeline.yaml
+      title: Timeline
+      icon: mdi:chart-timeline-variant
+      show_in_sidebar: true
+      require_admin: false
 
 # Automations, scripts, scenes split into separate files
 automation: !include_dir_merge_list automations/

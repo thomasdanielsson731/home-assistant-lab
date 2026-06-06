@@ -122,7 +122,8 @@ Windows PC (dev)                    Dell Latitude 3120 (prod)
 | 4 | Face recognition — who is at the door | In progress |
 | 5 | Axis analytics — AOA, scene, air quality via MQTT | In progress |
 | 6 | AI integration — local LLM, scene understanding | Future |
-| 7 | Data platform — InfluxDB, Grafana, event history | Future |
+| 7 | Home Intelligence Timeline — events, correlation, HA sidebar | Done |
+| 7b | Metrics retention — InfluxDB bridge + Grafana | In progress |
 | 8 | Digital twin — unified house state + NL queries | Future |
 
 See [roadmap.md](roadmap.md) for task-level detail and [backlog.md](backlog.md) for prioritized work items.

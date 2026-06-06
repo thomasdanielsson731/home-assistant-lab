@@ -26,9 +26,11 @@ Axis Cameras (6)  ──RTSP──►  Frigate (NVR + detection)  ──MQTT─�
                                      │
                               Double Take  ──►  CodeProject.AI (face context)
                                      │
-                              AI Layer (Ollama / Qwen — planned)
+                              event_normalizer → correlation_engine
                                      │
-                              Storage (InfluxDB — planned)
+                              Timeline API (:8765) + HA sidebar Timeline
+                                     │
+                              InfluxDB bridge (optional — add-on pending)
 ```
 
 ---
@@ -55,7 +57,7 @@ Axis Cameras (6)  ──RTSP──►  Frigate (NVR + detection)  ──MQTT─�
 | Editors | VS Code + Cursor |
 | AI | Claude Code, Cursor agents (`agents/`) |
 | Local LLM | Ollama + Qwen |
-| Bridges | `air_quality_bridge.py` (D6210 → MQTT) |
+| Bridges | `start-bridges.ps1` — air quality, audio SPL, AOA, normalizer, timeline, Influx |
 | Config sync | `scripts/sync-config.ps1` / `.sh` via SSH |
 
 ---
@@ -84,7 +86,8 @@ Axis Cameras (6)  ──RTSP──►  Frigate (NVR + detection)  ──MQTT─�
 | 4 — Face Recognition | Double Take + CodeProject.AI | **In progress** |
 | 5 — Axis Analytics | AOA, scene metadata, air quality | **In progress** |
 | 6 — AI Integration | Ollama/Qwen, scene understanding | Planned |
-| 7 — Data Platform | InfluxDB, Grafana, event history | Planned |
+| 7 — Home Intelligence Timeline | Events, correlation, Timeline UI, HA sidebar | **Done** (InfluxDB add-on optional) |
+| 7b — Metrics retention | InfluxDB bridge + Grafana | In progress |
 | 8 — Digital Twin | Unified house state, NL queries | Planned |
 
 Full detail: [docs/roadmap.md](docs/roadmap.md) · Work queue: [docs/backlog.md](docs/backlog.md)

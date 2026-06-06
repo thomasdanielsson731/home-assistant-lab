@@ -12,7 +12,7 @@ from __future__ import annotations
 import json
 import logging
 from datetime import datetime
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 import sys
@@ -50,6 +50,8 @@ TYPE_ICON = {
 }
 
 # Re-export for backward-compatible tests
+HTTPServer = ThreadingHTTPServer  # backward-compatible name for tests
+
 __all__ = ["load_events", "Handler", "HTTPServer", "PORT"]
 
 
@@ -561,7 +563,7 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main() -> None:
-    server = HTTPServer(("0.0.0.0", PORT), Handler)
+    server = ThreadingHTTPServer(("0.0.0.0", PORT), Handler)
     log.info("Timeline → http://localhost:%d/timeline", PORT)
     server.serve_forever()
 

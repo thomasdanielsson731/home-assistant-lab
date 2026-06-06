@@ -14,6 +14,9 @@ Danielsson Home Intelligence — MQTT → canonical events + metrics on the dev 
 | `axis/+/audio/spl` | `metrics.jsonl` | SPL every 5 min per zone |
 | `axis/+/scene/frame` | `scene` | On detection count change |
 | `axis/+/event/ObjectAnalytics/ScenarioOccupancy/#` | `occupancy` | Start/end blocks for timeline |
+| `homeassistant/lock/+/state` | `door` | Lock/unlock — map `YALE_LOCK_ENTITIES` in `.env` |
+
+After each raw event, `correlation_engine.py` may write enriched `arrival`, `delivery`, or `bicycle` events.
 
 Output:
 
@@ -25,7 +28,7 @@ events/
 └── {type}/YYYY/MM/DD/{event_id}.json
 ```
 
-Timeline UI: `http://localhost:8765/timeline` · API: `/api/v1/*`
+Timeline UI: HA sidebar **Timeline** or `http://192.168.68.118:8765/timeline` · API: `/api/v1/*`
 
 Event JSON and media are gitignored.
 
@@ -50,11 +53,13 @@ python scripts/event_normalizer.py
 .\scripts\install-scheduled-tasks.ps1
 ```
 
-## Timeline v0
+## Timeline UI
 
 ```powershell
-python scripts/timeline_server.py
-# Open http://localhost:8765
+.\scripts\start-bridges.ps1
+# HA: sidebar → Timeline
+# Or direct: http://localhost:8765/timeline
+# LAN clients: .\scripts\open-timeline-firewall.ps1 (run as Administrator once)
 ```
 
 ## Verify

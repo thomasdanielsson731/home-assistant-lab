@@ -27,7 +27,7 @@
   unique_id: "driveway_env_voc"
   state_topic: "axis/driveway_env/air/voc"
   unit_of_measurement: "ppb"
-  device_class: volatile_organic_compounds
+  device_class: volatile_organic_compounds_parts
   state_class: measurement
 
 - name: "driveway env nox"

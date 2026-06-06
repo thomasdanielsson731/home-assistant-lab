@@ -6,7 +6,7 @@ Quick-start context for AI assistants. Read this + [CLAUDE.md](../CLAUDE.md) + [
 
 ## Project Identity
 
-**Danielsson Home Intelligence Platform** — event-driven situational awareness. Primary UX: **House Intelligence Timeline** at `http://localhost:8765/timeline`. HA dashboard = secondary (ops/security).
+**Danielsson Home Intelligence Platform** — event-driven situational awareness. Primary UX: **House Intelligence Timeline** — HA sidebar dashboard **Timeline** (`house-timeline` → `http://192.168.68.118:8765/timeline` on dev PC). HA Home Lab = secondary (ops/security).
 
 See [ADR-005](decisions/005-home-intelligence-timeline.md) · [event-model.md](analytics/event-model.md)
 
@@ -16,7 +16,7 @@ See [ADR-005](decisions/005-home-intelligence-timeline.md) · [event-model.md](a
 
 | Phase | Focus | Status |
 |---|---|---|
-| **7** | Home Intelligence Timeline — API + UI v1 + zoom | In progress |
+| **7** | Home Intelligence Timeline — API + UI + correlation + HA sidebar | Done (InfluxDB add-on optional) |
 | **5** | Axis analytics — MQTT to HA + events | Bridges running; loitering manual |
 | **4** | Face recognition — CodeProject.AI + Double Take | On hold |
 
@@ -47,7 +47,7 @@ Sources → event_normalizer.py → Event Store → correlation_engine.py → Ti
 python scripts/health-check.py
 ```
 
-- Timeline v1: `http://localhost:8765/timeline`
+- Timeline v1: HA sidebar **Timeline** or `http://localhost:8765/timeline`
 - Event list: `http://localhost:8765/`
 - API: `/api/v1/events`, `/api/v1/metrics`, `/api/v1/occupancy`
 
@@ -78,6 +78,8 @@ python scripts/health-check.py
 | `events/timeline.jsonl` | Event stream |
 | `events/metrics.jsonl` | Continuous metrics (env, SPL) |
 | `scripts/influx_metrics_bridge.py` | metrics.jsonl → InfluxDB (optional) |
+| `config/home-assistant/dashboards/house-timeline.yaml` | HA full-screen Timeline (replaces deprecated `panel_iframe`) |
+| `scripts/open-timeline-firewall.ps1` | Windows firewall for LAN access to `:8765` |
 
 ---
 
@@ -91,3 +93,4 @@ python scripts/health-check.py
 | [backlog.md](backlog.md) | Work queue |
 | [analytics/event-model.md](analytics/event-model.md) | Event schema |
 | [decisions/005-home-intelligence-timeline.md](decisions/005-home-intelligence-timeline.md) | Timeline architecture |
+| [runbooks/ha-timeline-dashboard.md](runbooks/ha-timeline-dashboard.md) | HA sidebar Timeline setup |

@@ -2,6 +2,17 @@
 
 Six Axis cameras covering all zones of the property, plus one environmental sensor.
 
+**Deployment status (2026-06):** All 6 cameras live in Frigate + HA. MQTT analytics (AOA, scene, SPL) via dev PC bridges. D6210 air quality via `air_quality_bridge.py`. Loitering scenarios still manual on 3 cameras.
+
+| Zone | IP |
+|---|---|
+| `front` | 192.168.68.200 |
+| `driveway_wide` | 192.168.68.201 |
+| `backyard` | 192.168.68.203 |
+| `driveway_id` | 192.168.68.204 |
+| `storage_ext` | 192.168.68.205 |
+| `storage_int` | 192.168.68.206 |
+
 ---
 
 ## Zone Map
@@ -82,7 +93,7 @@ Six Axis cameras covering all zones of the property, plus one environmental sens
 
 **Purpose:** Full driveway area situational awareness. Vehicle detection, general presence, and overview context for other driveway events.
 
-**Current status:** Not yet added to Frigate or HA.
+**Current status:** Live in Frigate + HA. AOA + scene MQTT active.
 
 **Planned HA role:**
 - `camera.frigate_driveway_wide` — overview feed
@@ -113,7 +124,7 @@ Six Axis cameras covering all zones of the property, plus one environmental sens
 
 **Purpose:** Identification-grade capture of persons and vehicles entering the driveway. Higher FPS and tighter field of view than the overview camera. Hosts the D6210 radar sensor on its I/O port.
 
-**Current status:** Not yet added to Frigate or HA.
+**Current status:** Live in Frigate + HA. AOA + scene MQTT active.
 
 **Planned HA role:**
 - `camera.frigate_driveway_id` — identification feed
@@ -146,7 +157,7 @@ Six Axis cameras covering all zones of the property, plus one environmental sens
 
 **Purpose:** Backyard perimeter monitoring. Person detection for after-hours alerts. Garden / outdoor activity context.
 
-**Current status:** Not yet added to Frigate or HA.
+**Current status:** Live in Frigate + HA. AOA + scene MQTT active.
 
 **Planned HA role:**
 - `camera.frigate_backyard` — backyard feed
@@ -174,7 +185,7 @@ Six Axis cameras covering all zones of the property, plus one environmental sens
 
 **Purpose:** Storage building exterior door monitoring. Detect approach and access events.
 
-**Current status:** Not yet added to Frigate or HA.
+**Current status:** Live in Frigate + HA. AOA + scene MQTT active.
 
 **Planned HA role:**
 - `camera.frigate_storage_ext` — exterior feed
@@ -199,7 +210,7 @@ Six Axis cameras covering all zones of the property, plus one environmental sens
 
 **Purpose:** Interior presence detection. Confirm whether someone entered after an exterior door event. Useful for intrusion confirmation.
 
-**Current status:** Not yet added to Frigate or HA.
+**Current status:** Live in Frigate + HA. AOA + scene MQTT active.
 
 **Planned HA role:**
 - `camera.frigate_storage_int` — interior feed
@@ -226,7 +237,7 @@ Six Axis cameras covering all zones of the property, plus one environmental sens
 
 **Purpose:** Radar-based motion detection with lower false-positive rate than optical detection. Provides environmental presence data that complements M2036's visual detection. Can detect objects through rain, fog, and darkness where cameras struggle.
 
-**Current status:** Not yet integrated.
+**Current status:** Live — 8 HA sensors via `air_quality_bridge.py` → MQTT.
 
 **Planned HA role:**
 - `binary_sensor.driveway_env_motion` — radar motion trigger

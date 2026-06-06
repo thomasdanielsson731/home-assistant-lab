@@ -191,9 +191,10 @@ python scripts/event_normalizer.py   # Frigate, Axis AOA/scene/SPL, D6210 → ev
 python scripts/timeline_server.py    # Timeline API + UI
 ```
 
-- List UI: `http://localhost:8765/`
-- **House Intelligence Timeline v1:** `http://localhost:8765/timeline`
+- HA sidebar: **Timeline** dashboard (`house-timeline` → dev PC `:8765`)
+- Direct: `http://localhost:8765/timeline` (dev PC) · `http://192.168.68.118:8765/timeline` (LAN)
 - API: `/api/v1/events`, `/api/v1/metrics`, `/api/v1/occupancy`
+- LAN access: run `.\scripts\open-timeline-firewall.ps1` as Administrator once
 
 See `docs/decisions/005-home-intelligence-timeline.md` and `docs/runbooks/correlation-engine.md`. Start all bridges: `.\scripts\start-bridges.ps1`.
 
@@ -251,7 +252,8 @@ config/
     themes/              → merged via !include_dir_merge_named themes
     lovelace/            # legacy dashboard YAML
     dashboards/
-      home-lab.yaml     # 5 views: Home, Cameras, Security, Rooms, Operations
+      home-lab.yaml        # 5 views: Home, Cameras, Security, Rooms, Operations
+      house-timeline.yaml  # House Intelligence Timeline (full-screen iframe)
     secrets.yaml.example  # shape only — real secrets.yaml lives on host, never committed
   frigate/
     config.yml          → rsync'd to HAOS /config/frigate/config.yml
@@ -333,7 +335,8 @@ All AOA payloads are JSON `{Data: {active: bool}}` — use `value_template: "{{ 
 | 4 | Face recognition (Double Take + CodeProject.AI) | In Progress — config done, CodeProject.AI install needed |
 | 5 | Axis analytics (ACAP + MQTT) | In Progress — AOA, scene, air quality, audio SPL live; loitering manual step remains |
 | 6 | AI integration (Ollama + Qwen) | Future |
-| 7 | Data platform (InfluxDB, trends) | Future |
+| 7 | Home Intelligence Timeline (events, correlation, HA sidebar) | Done |
+| 7b | InfluxDB metrics retention (bridge ready; add-on optional) | In progress |
 | 8 | Digital twin (unified house state) | Future |
 
 ### Phase 4: Face Recognizer

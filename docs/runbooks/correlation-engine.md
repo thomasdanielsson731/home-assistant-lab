@@ -48,5 +48,5 @@ Emits raw `door` events on lock state transitions (`locked` / `unlocked`).
 ```powershell
 python scripts/event_normalizer.py
 # Trigger Frigate person + vehicle at front within 10 min
-# Check http://localhost:8765/timeline for delivery/arrival entries
+# HA sidebar → Timeline, or http://192.168.68.118:8765/timeline
 ```

@@ -15,7 +15,7 @@ Answer:
 
 ---
 
-## Detection Pipeline (planned)
+## Detection Pipeline (v1 live)
 
 ```
 Frigate detects person at driveway_id

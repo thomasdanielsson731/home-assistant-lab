@@ -281,7 +281,7 @@ Produced nightly by an aggregate job (Phase 7). HA dashboards read aggregates; t
 
 ---
 
-## Event Store Layout (planned)
+## Event Store Layout
 
 ```
 events/
@@ -301,14 +301,16 @@ Each folder stores JSON event files and references to media assets. See [../../e
 
 ## Mapping from Home Assistant (today)
 
-| HA source | Event type | Normalizer |
+| HA source | Event type | Normalizer / correlation |
 |---|---|---|
-| Frigate MQTT `person` | `person` | Frigate webhook → event |
-| Frigate MQTT `car` | `vehicle` | Frigate webhook → event |
-| `binary_sensor.*_aoa_person` | `person` | AOA bridge → event (future) |
-| `sensor.driveway_env_*` | `environment` | air_quality_bridge → event (future) |
-| Double Take match | enriches `person` identity | DT MQTT → identity attach |
-| Yale lock | `door` | HA integration → event (future) |
-| Scene delivery automation | `delivery` | Automation → event (future) |
+| Frigate MQTT `person` | `person` | `event_normalizer.py` |
+| Frigate MQTT `car` / `bicycle` | `vehicle` / `bicycle` | `event_normalizer.py` |
+| AOA occupancy MQTT | `occupancy` | `event_normalizer.py` |
+| Scene frame MQTT | `scene` | `event_normalizer.py` |
+| D6210 via `air_quality_bridge` | `environment` + metrics | `event_normalizer.py` |
+| Audio SPL MQTT | metrics | `event_normalizer.py` → `metrics.jsonl` |
+| Double Take match | enriches `person` identity | DT MQTT → identity attach → correlation |
+| HA lock MQTT | `door` | `homeassistant/lock/+/state` |
+| Correlation engine | `arrival`, `delivery`, `bicycle` | `correlation_engine.py` |
 
-**v0 implemented:** `scripts/event_normalizer.py` logs events as JSONL on dev PC. `scripts/timeline_server.py` serves Timeline UI on `:8765`. Phase 2: InfluxDB or SQLite.
+**Live:** `event_normalizer.py` + `correlation_engine.py` → `timeline.jsonl`. Timeline UI on `:8765` and HA sidebar `house-timeline`. Optional: `influx_metrics_bridge.py`.

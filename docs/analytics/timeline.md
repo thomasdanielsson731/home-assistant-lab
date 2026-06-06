@@ -2,6 +2,8 @@
 
 The timeline is the primary narrative view of Danielsson Insights — a chronological feed of enriched events.
 
+**Implemented (v1):** `scripts/timeline_server.py` — horizontal timeline at `/timeline` with zoom, pan, custom time range, occupancy blocks, env metric overlay. Access via HA sidebar **Timeline** (`house-timeline`) or `http://192.168.68.118:8765/timeline`. List view at `/`.
+
 ---
 
 ## Purpose
@@ -86,20 +88,17 @@ Phase 6 replaces templates with LLM-generated `ai_summary`.
 
 ---
 
-## Implementation Options
+## Implementation (current)
 
-| Option | Pros | Cons | Recommendation |
-|---|---|---|---|
-| HA Lovelace custom card | In existing dashboard | Limited UX, no native scroll feed | v0 prototype |
-| Separate web app (React) | Full timeline UX | Another service to host | v1 target |
-| Grafana annotations | Good for ops | Poor for photos/narrative | No |
-| Canvas / static report | Rich layout | Not live | Weekly report only |
-
-**v0 (now):** Extend HA Security view logbook with event-type filters.
-
-**v1:** Lightweight timeline app on dev PC reading event JSONL/API.
-
-**v2:** Timeline tab in Danielsson Insights web UI with floorplan cross-links.
+| Layer | Status | Detail |
+|---|---|---|
+| Event store | ✅ | `events/timeline.jsonl` |
+| API v1 | ✅ | `/api/v1/events`, `metrics`, `occupancy` |
+| Timeline UI v1 | ✅ | Horizontal scale, zoom, pan, custom range |
+| HA access | ✅ | Sidebar dashboard `house-timeline` |
+| List view | ✅ | `http://localhost:8765/` |
+| Floorplan cross-links | ⬜ | Phase 8 |
+| LLM `ai_summary` | ⬜ | Phase 6 |
 
 ---
 

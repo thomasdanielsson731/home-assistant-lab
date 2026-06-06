@@ -10,7 +10,7 @@ Explicit boundaries for the Home Assistant Lab / Data Insights Lab. When in doub
 |---|---|
 | **Name** | Home Assistant Lab (repo) / **Danielsson Home Intelligence Platform** (product) |
 | **Primary purpose** | Event-driven situational awareness — *what happened*, not just current state |
-| **Primary UX** | **House Intelligence Timeline** (`http://localhost:8765/timeline`) — see [ADR-005](decisions/005-home-intelligence-timeline.md) |
+| **Primary UX** | **House Intelligence Timeline** — HA sidebar **Timeline** or `http://192.168.68.118:8765/timeline` — [ADR-005](decisions/005-home-intelligence-timeline.md) |
 | **Secondary UX** | HA `home-lab` dashboard — operations, security, live entity cards |
 | **Not** | A replacement for HomeKit lighting and blind automation |
 
@@ -43,11 +43,13 @@ Explicit boundaries for the Home Assistant Lab / Data Insights Lab. When in doub
 - Face recognition for household context (Double Take + CodeProject.AI)
 - Future: local LLM scene descriptions, anomaly detection
 
-### Storage and Insights (planned)
+### Storage and Insights
 
-- Time-series database (InfluxDB) for metrics and event rates
-- Dashboards (HA + Grafana) for trends and baselines
-- Digital twin state model (who, what, where, when)
+- Event store (`events/timeline.jsonl`, `metrics.jsonl`) — **live**
+- Correlation engine (`arrival`, `delivery`, `bicycle`) — **live**
+- InfluxDB metrics retention — bridge ready; add-on deployment optional
+- Grafana / baselines — planned
+- Digital twin state model — Phase 8
 
 ### Development Tooling
 

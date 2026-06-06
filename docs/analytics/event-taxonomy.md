@@ -33,7 +33,7 @@ Detect → Normalize → Store → Enrich → Aggregate → Visualize
 | **Detect** | Camera, sensor, or lock produces raw signal | Frigate, Axis, HA |
 | **Normalize** | Raw signal → canonical Event JSON | `event_normalizer.py` |
 | **Store** | Event persisted with snapshot refs | `event_store.py` + `metrics.jsonl` |
-| **Enrich** | AI caption, identity attach, correlation | Enrichment pipeline (Phase 6) |
+| **Enrich** | Identity attach, correlation (`arrival`, `delivery`, `bicycle`) | `correlation_engine.py` (live); AI caption Phase 6 |
 | **Aggregate** | Daily/weekly rollups per zone | Aggregate job (Phase 7) |
 | **Visualize** | Timeline, floorplan, dashboard | UI layers |
 

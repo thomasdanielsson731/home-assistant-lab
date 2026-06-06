@@ -54,7 +54,8 @@ CodeProject.AI path — see [ADR-003](decisions/003-face-recognizer.md).
 | P7-5 | ADR-005 + scope/vision docs | S | ✅ |
 | P7-6 | Normalizer — AOA occupancy, scene, SPL metrics | M | ✅ |
 | P7-7 | Timeline API v1 + `/timeline` UI | M | ✅ |
-| P7-8 | Correlation engine (`arrival`, `delivery`) | L | ✅ |
+| P7-8 | Correlation engine (`arrival`, `delivery`, `bicycle`, door) | L | ✅ |
+| P7-11 | HA Timeline dashboard (`house-timeline`) | S | ✅ |
 | P7-9 | Timeline zoom + custom time range | M | ✅ |
 | P7-10 | InfluxDB metrics retention | M | ✅ bridge ready — install HA add-on + set INFLUX_URL |
 

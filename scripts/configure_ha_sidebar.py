@@ -19,7 +19,8 @@ if not TOKEN:
 
 URI = f"ws://{HOST}:8123/api/websocket"
 DEFAULT_PANEL = "home-lab"
-KEEP_VISIBLE = {DEFAULT_PANEL, "config"}
+TIMELINE_PANEL = "house-timeline"
+KEEP_VISIBLE = {DEFAULT_PANEL, TIMELINE_PANEL, "config"}
 
 # Panels to hide (from get_panels inventory on this lab)
 HIDE_PANELS = [
@@ -76,7 +77,7 @@ def main() -> int:
     hide = sorted(set(hide))
 
     sidebar = {
-        "panelOrder": [DEFAULT_PANEL],
+        "panelOrder": [DEFAULT_PANEL, TIMELINE_PANEL],
         "hiddenPanels": hide,
         "defaultPanel": DEFAULT_PANEL,
     }

@@ -8,7 +8,7 @@ Collect → Enrich → Analyze → Visualize → Understand
 
 **Focus:** event collection, correlation, timeline API, House Intelligence Timeline UI, metrics layer, AI insights.
 
-**Primary UX:** `http://localhost:8765/timeline` — not the HA Lovelace dashboard.
+**Primary UX:** House Intelligence Timeline — HA sidebar **Timeline** (`house-timeline`) or `http://192.168.68.118:8765/timeline` on dev PC.
 
 **Not:** lamp automation (HomeKit handles that). The goal is understanding what happens around the house.
 
@@ -22,9 +22,9 @@ Collect → Enrich → Analyze → Visualize → Understand
 | Vision | Frigate + 6× Axis cameras | Detections, snapshots, clips |
 | On-camera analytics | Axis AOA + scene metadata | Fast presence, counts |
 | Face context | Double Take + CodeProject.AI | Person identity |
-| Access | Yale Doorman V3 (planned) | Door events |
+| Access | Yale Doorman V3 (hardware pending) | Door events via HA MQTT (`door` type live in normalizer) |
 | Environment | D6210 via MQTT bridge | Environmental events |
-| Future | Zigbee, custom ACAP models | Door, smoke, cat, bicycle |
+| Future | Zigbee, custom ACAP models | Smoke, cat |
 
 ---
 
@@ -34,11 +34,12 @@ Collect → Enrich → Analyze → Visualize → Understand
 |---|---|---|
 | Persons | `person` | Frigate + AOA live; face recognition in progress |
 | Vehicles | `vehicle` | Frigate + AOA on driveway cameras |
-| Bicycles | `bicycle` | Planned — correlate person + vehicle shape |
+| Bicycles | `bicycle` | Live — correlation engine (person + scene bike + optional door) |
 | Cats | `cat` | Planned — custom model or Frigate label |
-| Deliveries | `delivery` | Scene automation prototype exists |
+| Deliveries | `delivery` | Live — correlation engine + scene automation |
+| Arrivals | `arrival` | Live — identity, vehicle→person, door unlock |
 | Environment | `environment` | D6210 live via `air_quality_bridge.py` |
-| Doors | `door` | Yale integration planned |
+| Doors | `door` | Live — `homeassistant/lock/+/state` (map `YALE_LOCK_ENTITIES`) |
 | Smoke | `smoke` | Future Zigbee |
 
 ---

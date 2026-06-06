@@ -92,10 +92,13 @@ Implementation options:
 ## Next Steps
 
 1. Install InfluxDB add-on on HAOS
-2. Add `influxdb:` block to `configuration.yaml` with selective entity filter
-3. Verify data flowing: InfluxDB UI → query `home_lab` database
-4. Add `mini-graph-card` trends to Operations dashboard
-5. After 2 weeks: compute first baseline
+2. Set `INFLUX_URL`, `INFLUX_TOKEN` in dev PC `.env` — `influx_metrics_bridge.py` tails `metrics.jsonl`
+3. Add `influxdb:` block to `configuration.yaml` with selective entity filter (HA sensors)
+4. Verify data flowing: InfluxDB UI → query `home_metrics` measurement
+5. Add `mini-graph-card` trends to Operations dashboard
+6. After 2 weeks: compute first baseline
+
+See [docs/runbooks/influxdb-setup.md](../../docs/runbooks/influxdb-setup.md).
 
 ## Related
 

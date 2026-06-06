@@ -14,11 +14,11 @@ events/
 ├── scene/        # Scene frame detection counts
 ├── environment/  # D6210 air quality snapshots
 ├── metrics.jsonl # Continuous env + SPL samples
-├── door/         # Yale lock/unlock (planned)
+├── door/         # Yale / HA lock unlock (live via MQTT)
 └── smoke/        # Smoke detector alerts (future)
 ```
 
-## File Layout (planned)
+## File Layout
 
 ```
 events/{type}/{yyyy}/{mm}/{dd}/{event_id}.json
@@ -28,13 +28,14 @@ events/{type}/{yyyy}/{mm}/{dd}/{event_id}_thumb.jpg
 
 ## Status
 
-**v0 implemented** — `scripts/event_normalizer.py` writes JSON events here from Frigate, Double Take, and D6210 MQTT.
+**Live** — `scripts/event_normalizer.py` writes from Frigate, Double Take, D6210, AOA, scene, SPL metrics, HA door locks.
 
 - Timeline log: `events/timeline.jsonl`
+- Metrics: `events/metrics.jsonl`
 - Daily counts: `events/aggregates/YYYY-MM-DD.json`
-- Viewer: `python scripts/timeline_server.py` → http://localhost:8765
-
-Phase 7 next: InfluxDB/SQLite for time-series; keep media in this tree.
+- Viewer: `timeline_server.py` → `http://localhost:8765/timeline` or HA sidebar **Timeline**
+- Correlation: `correlation_engine.py` → enriched `arrival`, `delivery`, `bicycle`
+- Long retention: `influx_metrics_bridge.py` (optional)
 
 ## Schema
 

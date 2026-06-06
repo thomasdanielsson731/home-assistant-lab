@@ -6,7 +6,7 @@
 
 ## Decision
 
-The primary insights UX is **House Intelligence Timeline** — a dedicated web application served by `timeline_server.py` on the dev PC (`http://localhost:8765/timeline`), **not** a Lovelace dashboard.
+The primary insights UX is **House Intelligence Timeline** — served by `timeline_server.py` on the dev PC (`http://192.168.68.118:8765/timeline`), embedded in HA via YAML dashboard **`house-timeline`** (replaces removed `panel_iframe`). Lovelace `home-lab` remains secondary.
 
 Architecture:
 
@@ -14,7 +14,7 @@ Architecture:
 Sources (Frigate, Axis, D6210, Yale, HA)
     → event_normalizer.py
     → Event Store (events/, timeline.jsonl, metrics.jsonl)
-    → Correlation Layer (future)
+    → correlation_engine.py (arrival, delivery, bicycle)
     → Timeline API (/api/v1/*)
     → Timeline UI (horizontal time scale, event layers, metrics, occupancy blocks)
 ```
@@ -38,7 +38,7 @@ Home Assistant remains:
 
 - **Do:** Extend `event_normalizer.py` for all MQTT sources; keep Lovelace for operations/security
 - **Do:** Version REST API under `/api/v1/`
-- **Do:** Store raw + enriched events; correlation adds `parent_event_ids` later
+- **Do:** Store raw + enriched events; correlation writes `parent_event_ids` and `metadata.correlations`
 - **Don't:** Build timeline features inside `home-lab.yaml`
 - **Don't:** Couple timeline UI to HA entity IDs
 
@@ -49,8 +49,9 @@ Home Assistant remains:
 | 7b | All live sources → events + metrics |
 | 7c | Timeline API v1 (events, metrics, occupancy blocks) |
 | 7d | Timeline UI v1 (1h / 24h / 7d, click → snapshot) |
-| 7e | Correlation engine (`arrival`, `delivery`, …) |
-| 7f | InfluxDB for long retention metrics (optional) |
+| 7e | Correlation engine (`arrival`, `delivery`, `bicycle`, door boost) | ✅ |
+| 7f | HA sidebar Timeline dashboard (`house-timeline`) | ✅ |
+| 7g | InfluxDB metrics bridge (optional add-on) | ✅ bridge ready |
 
 ## References
 

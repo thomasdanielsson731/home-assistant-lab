@@ -1,6 +1,6 @@
 # Project: Data Platform
 
-**Phase:** 7 · **Status:** Planned (blocked on Phase 5 stability)
+**Phase:** 7b · **Status:** In progress — bridge ready, InfluxDB add-on not deployed
 
 ## Goal
 
@@ -8,7 +8,8 @@ Time-series storage for trend analysis. Answer "what's normal?" and "what change
 
 ## Done Criteria
 
-- [ ] InfluxDB running (HA add-on or external)
+- [x] `influx_metrics_bridge.py` (metrics.jsonl → InfluxDB when `INFLUX_URL` set)
+- [ ] InfluxDB add-on running on HAOS
 - [ ] HA → InfluxDB integration with selective entity filter
 - [ ] 30+ days of energy + environment + detection metrics stored
 - [ ] At least one dashboard showing 7-day trends
@@ -19,16 +20,19 @@ Time-series storage for trend analysis. Answer "what's normal?" and "what change
 | # | Task | Status |
 |---|---|---|
 | 1 | Install InfluxDB add-on on HAOS | ⬜ |
-| 2 | Add `influxdb:` block to `configuration.yaml` | ⬜ |
-| 3 | Filter: energy, driveway_env, detection entities | ⬜ |
-| 4 | Verify data in InfluxDB UI | ⬜ |
-| 5 | Add mini-graph-card trends to Operations view | ⬜ |
-| 6 | After 2 weeks: compute hourly detection baseline | ⬜ |
+| 2 | Set `INFLUX_URL` in dev PC `.env`; verify bridge | ⬜ |
+| 3 | Add `influxdb:` block to `configuration.yaml` (HA sensors) | ⬜ |
+| 4 | Filter: energy, driveway_env, detection entities | ⬜ |
+| 5 | Verify data in InfluxDB UI | ⬜ |
+| 6 | Add mini-graph-card trends to Operations view | ⬜ |
+| 7 | After 2 weeks: compute hourly detection baseline | ⬜ |
 
-## Key Files (future)
+## Key Files
 
-- `config/home-assistant/configuration.yaml` — influxdb block
-- `config/home-assistant/dashboards/home-lab.yaml` — trend cards
+- `scripts/influx_metrics_bridge.py` — metrics.jsonl exporter
+- `docs/runbooks/influxdb-setup.md` — setup runbook
+- `config/home-assistant/influxdb.yaml.example` — HA sensor integration sketch
+- `config/home-assistant/dashboards/home-lab.yaml` — trend cards (future)
 
 ## References
 

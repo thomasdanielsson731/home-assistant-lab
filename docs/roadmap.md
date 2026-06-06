@@ -126,7 +126,7 @@ Vision: [vision.md](vision.md) · Scope: [scope.md](scope.md) · Work queue: [ba
 
 ---
 
-## Phase 7 — Home Intelligence Timeline `[In Progress]`
+## Phase 7 — Home Intelligence Timeline `[Done — optional InfluxDB/Grafana]`
 
 **Goal:** API-first timeline platform — *what happened?* not entity state.
 
@@ -139,22 +139,27 @@ Vision: [vision.md](vision.md) · Scope: [scope.md](scope.md) · Work queue: [ba
 | Event store (`timeline.jsonl`, `metrics.jsonl`) | ✅ |
 | Timeline API v1 (`/api/v1/events`, `metrics`, `occupancy`) | ✅ |
 | Timeline UI v1 — horizontal scale, occupancy blocks | ✅ `/timeline` |
-| Correlation engine (`arrival`, `delivery`) | ✅ |
-| InfluxDB for long retention (optional) | ⬜ |
+| Correlation engine (`arrival`, `delivery`, `bicycle`, door boost) | ✅ |
+| Timeline zoom + custom time range | ✅ |
+| Door events (HA MQTT) + Yale-ready | ✅ |
+| HA sidebar Timeline dashboard (`house-timeline`) | ✅ |
+| InfluxDB bridge (`influx_metrics_bridge.py`) | ✅ ready — add-on + `INFLUX_URL` |
+| InfluxDB add-on deployed on HAOS | ⬜ |
 | Grafana / 7-day trend dashboards | ⬜ |
 
 **Done when:** Timeline shows detections, occupancy blocks, and env metrics for 24 h without opening HA.
 
 ---
 
-## Phase 7b — Data Platform (metrics retention) `[Future]`
+## Phase 7b — Data Platform (metrics retention) `[In Progress]`
 
 **Goal:** Long-term metrics storage and baselines.
 
 | Task | Status |
 |---|---|
-| InfluxDB deployed | ⬜ |
-| HA + event platform → InfluxDB | ⬜ |
+| `influx_metrics_bridge.py` (metrics.jsonl → InfluxDB) | ✅ |
+| InfluxDB add-on deployed on HAOS | ⬜ |
+| HA sensor → InfluxDB integration | ⬜ |
 | Event rate baselines per zone/time-of-day | ⬜ |
 
 **Design:** [integrations/data-platform/README.md](../integrations/data-platform/README.md)

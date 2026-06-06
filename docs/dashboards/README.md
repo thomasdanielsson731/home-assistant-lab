@@ -1,6 +1,12 @@
 # Dashboards
 
-HA Lovelace dashboards are **secondary** — live ops and security. Primary insights UX is **House Intelligence Timeline** (`http://localhost:8765/timeline`). See [ADR-005](../decisions/005-home-intelligence-timeline.md).
+HA Lovelace dashboards are **secondary** — live ops and security. Primary insights UX is **House Intelligence Timeline** — YAML dashboard **`house-timeline`** in the HA sidebar (full-screen iframe → dev PC `:8765`). Direct: `http://localhost:8765/timeline`. Requires `.\scripts\open-timeline-firewall.ps1` (admin) for LAN clients. See [ADR-005](../decisions/005-home-intelligence-timeline.md).
+
+| Dashboard | Path | Purpose |
+|---|---|---|
+| Home Lab | `home-lab` | Ops, security, cameras, rooms |
+| Timeline | `house-timeline` | House Intelligence Timeline (events, zoom, correlation) |
+| Insights | `home-lab/insights` | Env graphs only (CO₂, AQI, SPL history) |
 
 | Document | Purpose |
 |---|---|

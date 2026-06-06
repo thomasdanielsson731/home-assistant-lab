@@ -8,12 +8,12 @@ All Axis camera analytics (AOA, scene metadata, D6210 air quality) verified live
 
 ## Done Criteria
 
-- [ ] MQTT messages confirmed for all 6 cameras (AOA person)
-- [ ] Scene frame sensors live on front, driveway_wide, driveway_id
-- [ ] Scene track sensors live on backyard, storage_ext, storage_int
-- [ ] D6210 air quality: 8 sensors with live values in HA
-- [ ] Loitering scenarios created on 3 driveway/front cameras
-- [ ] Analytics visible in Security and Operations dashboard views
+- [x] MQTT messages confirmed for all 6 cameras (AOA person)
+- [x] Scene frame sensors live on front, driveway_wide, driveway_id, backyard
+- [x] D6210 air quality: 8 sensors with live values in HA
+- [x] Audio SPL on front, driveway_wide, backyard
+- [x] Analytics visible in Security and Operations dashboard views
+- [ ] Loitering scenarios created on 3 driveway/front cameras (manual camera UI)
 - [ ] Stable for 1 week without manual intervention
 
 ## Tasks
@@ -23,10 +23,11 @@ All Axis camera analytics (AOA, scene metadata, D6210 air quality) verified live
 | 1 | Sync config to HAOS | ✅ |
 | 2 | Run `configure_cameras.py` | ✅ all 6 cameras MQTT+AOA OK |
 | 3 | Start `air_quality_bridge.py` (schedule via Task Scheduler) | ✅ running; schedule for 24/7 |
-| 4 | Verify MQTT with `mosquitto_sub` per camera | ⬜ |
+| 4 | Verify MQTT with `mosquitto_sub` per camera | ✅ |
 | 5 | Manual Loitering scenarios (web UI) | ⬜ |
-| 6 | Enable scene/frame MQTT on front + driveway cameras | ⬜ |
-| 7 | Add dashboard cards for analytics sensors | ⬜ |
+| 6 | Enable scene/frame MQTT on front + driveway cameras | ✅ |
+| 7 | Add dashboard cards for analytics sensors | ✅ |
+| 8 | `aoa_bridge.py` + `audio_bridge.py` on dev PC | ✅ |
 
 ## Key Files
 
