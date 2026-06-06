@@ -53,7 +53,12 @@ The `-Reload` flag uses one of:
 1. **REST** (preferred, lightweight) — set `HA_TOKEN` in `.env`
 2. **SSH fallback** — `ha core restart` via SSH add-on (heavier, ~40 s downtime)
 
-Create a long-lived token: HA → Profile → Security → Long-Lived Access Tokens.
+Create a long-lived token:
+
+- **Automated:** `python scripts/create-ha-token.py` (uses existing `HA_TOKEN` in `.env` to mint a new one)
+- **Manual:** HA → Profile → Security → Long-Lived Access Tokens
+
+Current token name: `home-assistant-lab-maintenance` (10-year lifespan).
 
 ## What Gets Committed
 
