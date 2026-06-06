@@ -7,6 +7,10 @@ homeassistant:
 # Load default config set
 default_config:
 
+# Keep 90 days of history for outdoor env quarter graphs
+recorder:
+  purge_keep_days: 90
+
 # HTTP
 http:
   use_x_forwarded_for: true
