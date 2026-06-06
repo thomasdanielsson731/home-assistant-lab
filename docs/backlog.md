@@ -56,7 +56,7 @@ CodeProject.AI path — see [ADR-003](decisions/003-face-recognizer.md).
 | P7-7 | Timeline API v1 + `/timeline` UI | M | ✅ |
 | P7-8 | Correlation engine (`arrival`, `delivery`) | L | ✅ |
 | P7-9 | Timeline zoom + custom time range | M | ✅ |
-| P7-10 | InfluxDB metrics retention | M | ⬜ |
+| P7-10 | InfluxDB metrics retention | M | ✅ bridge ready — install HA add-on + set INFLUX_URL |
 
 ---
 

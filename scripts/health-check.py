@@ -66,6 +66,7 @@ BRIDGE_SCRIPTS = [
     "aoa_bridge.py",
     "event_normalizer.py",
     "timeline_server.py",
+    "influx_metrics_bridge.py",
 ]
 
 
@@ -165,6 +166,23 @@ def main() -> int:
             else:
                 print(f"  WARN  {name} — not running (run start-bridges.ps1)")
                 issues.append(f"bridge:{name}")
+
+    print("\nInfluxDB metrics:")
+    influx_url = os.environ.get("INFLUX_URL", "").strip()
+    if not influx_url:
+        print("  SKIP  INFLUX_URL not set (metrics stay in metrics.jsonl)")
+    else:
+        try:
+            sys.path.insert(0, str(Path(__file__).parent))
+            import influx_metrics_bridge as influx_bridge  # noqa: E402
+
+            if influx_bridge.ping():
+                print(f"  OK    {influx_url}")
+            else:
+                print(f"  WARN  {influx_url} — not reachable")
+                issues.append("influxdb")
+        except ImportError:
+            print("  WARN  influx_metrics_bridge not importable")
 
     print("\nTimeline UI:")
     try:

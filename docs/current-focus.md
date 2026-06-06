@@ -61,6 +61,7 @@ python scripts/health-check.py
 | Yale Doorman | Hardware + HA lock entity — door MQTT ingestion ready |
 | Face recognition | CodeProject.AI + training photos |
 | Correlation rules | `arrival`, `delivery`, `bicycle` + door boost — see correlation-engine.md |
+| InfluxDB add-on | Install on HAOS + `INFLUX_URL` in `.env` — see influxdb-setup.md |
 
 ---
 
@@ -76,6 +77,7 @@ python scripts/health-check.py
 | `scripts/configure_ha_sidebar.py` | Hide HA panels, default Home Lab |
 | `events/timeline.jsonl` | Event stream |
 | `events/metrics.jsonl` | Continuous metrics (env, SPL) |
+| `scripts/influx_metrics_bridge.py` | metrics.jsonl → InfluxDB (optional) |
 
 ---
 
