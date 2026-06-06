@@ -14,7 +14,7 @@ Quick-start context for AI assistants. Read this + [CLAUDE.md](../CLAUDE.md) + [
 
 | Phase | Focus | Status |
 |---|---|---|
-| **5** | Axis analytics — AOA, scene, air quality via MQTT | Config done, E2E verification needed |
+| **5** | Axis analytics — AOA, scene, air quality via MQTT | Bridges running, loitering manual step remains |
 | **4** | Face recognition — CodeProject.AI + Double Take | Config done, CodeProject.AI install needed |
 
 Phases 1–3 are done. Phases 6–8 (AI, data platform, digital twin) are future.

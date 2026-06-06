@@ -36,6 +36,9 @@ lovelace:
 automation: !include_dir_merge_list automations/
 script: !include_dir_merge_named scripts/
 
+# Template sensors (house context / digital twin foundation)
+template: !include templates/house_context.yaml
+
 # MQTT entities (broker configured via UI — stored in .storage/core.config_entries)
 mqtt:
   binary_sensor: !include_dir_merge_list mqtt_binary_sensors/

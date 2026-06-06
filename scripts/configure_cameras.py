@@ -146,24 +146,24 @@ def configure_event_publication(ip, zone):
     # axis/<zone>/event/tns1:Analytics/tnsaxis:ObjectAnalytics/...
     # HA sensors expect clean paths without namespaces:
     # axis/<zone>/event/ObjectAnalytics/ScenarioOccupancy/PersonOccupancy/Active
-    print(f"  [MQTT-EVT] setEventPublicationConfig  includeTopicNamespaces=false")
+    # FW 12.x: setEventPublicationConfig removed; use configureEventPublication (API 1.2).
+    # Note: scenario events still need UI "Add condition" OR the aoa_bridge.py poller.
+    print(f"  [MQTT-EVT] configureEventPublication  includeTopicNamespaces=false")
     result = vapix(ip, "/axis-cgi/mqtt/event.cgi", {
-        "apiVersion": "1.0",
-        "method": "setEventPublicationConfig",
+        "apiVersion": "1.2",
+        "method": "configureEventPublication",
         "params": {
-            "eventPublicationConfig": {
-                "topicPrefix":                "default",
-                "customTopicPrefix":          "",
-                "appendEventTopic":           True,
-                "includeTopicNamespaces":     False,
-                "includeSerialNumberInPayload": False,
-                "eventFilterList": [
-                    {"topicFilter": "tns1:Analytics/tnsaxis:ObjectAnalytics/ScenarioOccupancy",
-                     "qos": 0, "retain": "none"},
-                    {"topicFilter": "tns1:Analytics/tnsaxis:ObjectAnalytics/ScenarioLoitering",
-                     "qos": 0, "retain": "none"},
-                ],
-            }
+            "topicPrefix":                "default",
+            "customTopicPrefix":          "",
+            "appendEventTopic":           True,
+            "includeTopicNamespaces":     False,
+            "includeSerialNumberInPayload": False,
+            "eventFilterList": [
+                {"topicFilter": "tns1:Analytics/tnsaxis:ObjectAnalytics/ScenarioOccupancy",
+                 "qos": 0, "retain": "none"},
+                {"topicFilter": "tns1:Analytics/tnsaxis:ObjectAnalytics/ScenarioLoitering",
+                 "qos": 0, "retain": "none"},
+            ],
         }
     })
     err = result.get("error", {})

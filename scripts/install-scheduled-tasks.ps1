@@ -12,7 +12,8 @@ if (-not $python) { $python = "python" }
 
 $maintCmd  = "powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$repoRoot\scripts\repo-maintenance.ps1`""
 $dailyCmd  = "powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$repoRoot\scripts\repo-maintenance.ps1`" -Reload"
-$bridgeCmd = "`"$python`" `"$repoRoot\scripts\air_quality_bridge.py`""
+$airCmd = "`"$python`" `"$repoRoot\scripts\air_quality_bridge.py`""
+$aoaCmd = "`"$python`" `"$repoRoot\scripts\aoa_bridge.py`""
 
 Write-Host "Registering Home Lab scheduled tasks ..."
 Write-Host "  Repo: $repoRoot"
@@ -36,9 +37,11 @@ if ($LASTEXITCODE -eq 0) { Write-Host "  Registered: HomeLab-Maintenance (every 
 schtasks /create /tn "HomeLab-MaintenanceDaily" /tr $dailyCmd /sc daily /st 04:00 /f
 if ($LASTEXITCODE -eq 0) { Write-Host "  Registered: HomeLab-MaintenanceDaily (04:00)" }
 
-# Air quality bridge at logon (user-level ONLOGON)
-schtasks /create /tn "HomeLab-AirQualityBridge" /tr $bridgeCmd /sc onlogon /f
+# MQTT bridges at logon
+schtasks /create /tn "HomeLab-AirQualityBridge" /tr $airCmd /sc onlogon /f
 if ($LASTEXITCODE -eq 0) { Write-Host "  Registered: HomeLab-AirQualityBridge (on logon)" }
+schtasks /create /tn "HomeLab-AOABridge" /tr $aoaCmd /sc onlogon /f
+if ($LASTEXITCODE -eq 0) { Write-Host "  Registered: HomeLab-AOABridge (on logon)" }
 
 Write-Host ""
 Write-Host "Verify: schtasks /query /tn HomeLab-Maintenance"

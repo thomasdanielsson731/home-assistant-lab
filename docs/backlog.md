@@ -15,10 +15,11 @@ Complete the Axis analytics pipeline end-to-end.
 | P5-1 | Commit + sync pending config changes | S | ✅ |
 | P5-2 | Start `air_quality_bridge.py`, verify `sensor.driveway_env_*` | S | ✅ MQTT OK, HA reload needed |
 | P5-3 | Run `configure_cameras.py` — MQTT + AOA on all cameras | M | ✅ |
-| P5-4 | Verify scene/frame on `front` via MQTT subscribe | S | ⬜ |
-| P5-5 | Verify scene/track on `backyard` — `binary_sensor.*_scene_object_present` | S | ⬜ |
+| P5-4 | Verify scene/frame on `front` via MQTT subscribe | S | ✅ |
+| P5-5 | AOA via `aoa_bridge.py` — poll getOccupancy → MQTT | M | ✅ |
 | P5-6 | Create Loitering scenarios manually (3 cameras) | M | ⬜ |
-| P5-7 | Add analytics cards to Security + Operations dashboard views | M | ⬜ |
+| P5-7 | Add analytics cards to Security + Operations dashboard views | M | ✅ |
+| P5-8 | House context template sensors | S | ✅ |
 | P5-8 | Update stale docs (d6210 runbook ✅, backlog ✅, README ✅) | S | ✅ |
 
 ---
