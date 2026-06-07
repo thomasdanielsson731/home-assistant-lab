@@ -6,9 +6,9 @@ The Danielsson Home project is evolving from a smart home platform into a **Home
 Collect → Enrich → Analyze → Visualize → Understand
 ```
 
-**Focus:** event collection, correlation, timeline API, House Intelligence Timeline UI, metrics layer, AI insights.
+**Focus:** event collection, correlation, timeline API, Analytics UI, metrics layer, AI insights.
 
-**Primary UX:** House Intelligence Timeline — HA sidebar **Timeline** (`house-timeline`) or `http://192.168.68.118:8765/timeline` on dev PC.
+**Primary UX:** Analytics — HA sidebar **Analytics** (`house-timeline`) or `http://192.168.68.136:8765/timeline` on dev PC.
 
 **Not:** lamp automation (HomeKit handles that). The goal is understanding what happens around the house.
 

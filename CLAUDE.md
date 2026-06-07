@@ -16,7 +16,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 | Detail | Value |
 |---|---|
-| Workstation | Windows PC at 192.168.68.118 |
+| Workstation | Windows PC at 192.168.68.136 |
 | Editors | VS Code, Cursor |
 | AI | Claude Code (you), Ollama + Qwen (local LLM) |
 
@@ -207,7 +207,7 @@ python scripts/timeline_server.py    # Timeline API + UI
 ```
 
 - HA sidebar: **Timeline** dashboard (`house-timeline` → dev PC `:8765`)
-- Direct: `http://localhost:8765/timeline` (dev PC) · `http://192.168.68.118:8765/timeline` (LAN)
+- Direct: `http://localhost:8765/timeline` (dev PC) · `http://192.168.68.136:8765/timeline` (LAN)
 - API: `/api/v1/events`, `/api/v1/metrics`, `/api/v1/occupancy`, `/api/v1/story/today`, `/api/v1/story/<date>`
 - LAN access: run `.\scripts\open-timeline-firewall.ps1` as Administrator once
 
@@ -223,7 +223,7 @@ python scripts/health-check.py
 ### HA sidebar (automated)
 
 ```bash
-python scripts/configure_ha_sidebar.py   # hide extra panels, default = Home Lab
+python scripts/configure_ha_sidebar.py   # hide extra panels, default = Danielsson Home
 ```
 
 Insights env graphs: built-in `history-graph` / `statistics-graph` — see `docs/runbooks/hacs-frontend-cards.md`.
@@ -324,7 +324,7 @@ config/
     lovelace/            # legacy dashboard YAML
     dashboards/
       home-lab.yaml        # 5 views: Home, Cameras, Security, Rooms, Operations
-      house-timeline.yaml  # House Intelligence Timeline (full-screen iframe)
+      house-timeline.yaml  # Analytics (full-screen iframe)
     secrets.yaml.example  # shape only — real secrets.yaml lives on host, never committed
   frigate/
     config.yml          → rsync'd to HAOS /config/frigate/config.yml
@@ -404,17 +404,17 @@ All AOA payloads are JSON `{Data: {active: bool}}` — use `value_template: "{{ 
 | 2 | Cameras + Frigate — 6 cameras, recording, HA integration (99 entities) | Done |
 | 3 | Dashboard — 5 views live at `/lovelace/home-lab` | Done |
 | 4 | Face recognition (Double Take + CodeProject.AI) | In Progress — config done, CodeProject.AI install needed |
-| 5 | Axis analytics (ACAP + MQTT) | In Progress — AOA, scene, air quality, audio SPL live; loitering manual step remains |
-| 6 | AI integration / narratives | In Progress — `story_engine.py` ready (daily story API); `energy_bridge.py` stub awaiting Kraftringen credentials |
-| 7 | Home Intelligence Timeline (events, correlation, HA sidebar) | Done |
-| 7b | InfluxDB metrics retention (bridge ready; add-on optional) | In progress |
+| 5 | Axis analytics (ACAP + MQTT) | Done — all 6 cameras verified |
+| 6 | AI integration / narratives | In progress — story ready; Kraftringen credentials pending |
+| 7 | Analytics platform (events, correlation, HA sidebar) | Done |
+| 7b | InfluxDB metrics retention | Add-on OK; auth/write fix via Chronograf or disable auth |
 | 8 | Digital twin (unified house state) | Future |
 
 ### Phase 4: Face Recognizer
 
 **Decision:** CodeProject.AI on Windows dev PC — see `docs/decisions/003-face-recognizer.md`.
 
-Double Take config already points to `http://192.168.68.118:32168`. Next steps:
+Double Take config already points to `http://192.168.68.136:32168`. Next steps:
 
 1. Install CodeProject.AI on dev PC, enable Face Recognition module
 2. Restart Double Take add-on

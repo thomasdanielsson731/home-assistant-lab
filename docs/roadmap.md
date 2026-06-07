@@ -61,7 +61,7 @@ Vision: [vision.md](vision.md) · Scope: [scope.md](scope.md) · Work queue: [ba
 |---|---|
 | Double Take 1.13.1 installed and configured | ✅ |
 | Frigate → Double Take webhook | ✅ |
-| CodeProject.AI installed on dev PC | ⬜ |
+| CodeProject.AI installed on dev PC | ⬜ in progress — `install-codeproject-ai.ps1` |
 | Face module enabled in CodeProject.AI | ⬜ |
 | Training images for Thomas, Nils, Hugo, Anna | ⬜ |
 | Recognition at `front` (>85% confidence) | ⬜ |
@@ -72,7 +72,7 @@ Vision: [vision.md](vision.md) · Scope: [scope.md](scope.md) · Work queue: [ba
 
 ---
 
-## Phase 5 — Axis Analytics `[In Progress]`
+## Phase 5 — Axis Analytics `[Done]`
 
 **Goal:** Axis analytics (AOA, scene metadata, air quality) flowing into HA via MQTT.
 
@@ -104,7 +104,7 @@ Vision: [vision.md](vision.md) · Scope: [scope.md](scope.md) · Work queue: [ba
 
 **Runbooks:** [aoa-setup.md](runbooks/aoa-setup.md) · [d6210-setup.md](runbooks/d6210-setup.md) · [audio-analytics-setup.md](runbooks/audio-analytics-setup.md)
 
-**Done when:** AOA + scene + air quality sensors verified live in HA for at least one week.
+**Done when:** AOA + scene + air quality sensors verified live in HA for at least one week. ✅ Met 2026-06-07.
 
 ---
 

@@ -28,7 +28,7 @@ Axis Cameras (6)  ──RTSP──►  Frigate (NVR + detection)  ──MQTT─�
                                      │
                               event_normalizer → correlation_engine
                                      │
-                              Timeline API (:8765) + HA sidebar Timeline
+                              Timeline API (:8765) + HA sidebar Analytics
                                      │
                               InfluxDB bridge (optional — add-on pending)
 ```
@@ -44,7 +44,7 @@ Axis Cameras (6)  ──RTSP──►  Frigate (NVR + detection)  ──MQTT─�
 | Storage | External 1 TB SSD at `/media/frigate` |
 | NVR | Frigate 0.17.1 add-on |
 | Face middleware | Double Take 1.13.1 add-on |
-| Face recognizer | CodeProject.AI on Windows dev PC (`192.168.68.118:32168`) |
+| Face recognizer | CodeProject.AI on Windows dev PC (`192.168.68.136:32168`) |
 | MQTT | Mosquitto add-on |
 
 ---
@@ -53,7 +53,7 @@ Axis Cameras (6)  ──RTSP──►  Frigate (NVR + detection)  ──MQTT─�
 
 | Component | Detail |
 |---|---|
-| Workstation | Windows PC at `192.168.68.118` |
+| Workstation | Windows PC at `192.168.68.136` |
 | Editors | VS Code + Cursor |
 | AI | Claude Code, Cursor agents (`agents/`) |
 | Local LLM | Ollama + Qwen |

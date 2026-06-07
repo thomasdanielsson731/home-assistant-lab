@@ -2,11 +2,11 @@
 
 Prioritized work items. Effort: S (< 2h), M (half-day), L (full day), XL (multiple days).
 
-Vision: [vision.md](vision.md) · Active phase: **5 (Axis Analytics)** + **4 (Face Recognition)**
+Vision: [vision.md](vision.md) · Active phase: **4 (Face Recognition)**
 
 ---
 
-## Now — Phase 5 Verification
+## Done — Phase 5 Axis Analytics
 
 Complete the Axis analytics pipeline end-to-end.
 
@@ -28,23 +28,23 @@ Complete the Axis analytics pipeline end-to-end.
 
 ---
 
-## Next — Phase 4 Face Recognition
+## Now — Phase 4 Face Recognition
 
-CodeProject.AI path — see [ADR-003](decisions/003-face-recognizer.md).
+CodeProject.AI path — see [ADR-003](decisions/003-face-recognizer.md) · [runbook](runbooks/codeproject-ai-setup.md).
 
-| # | Item | Effort | Dependencies |
+| # | Item | Effort | Status |
 |---|---|---|---|
-| P4-1 | Install CodeProject.AI on Windows dev PC | S | None |
-| P4-2 | Enable Face Recognition module, verify `:32168` | S | P4-1 |
-| P4-3 | Restart Double Take, confirm detector connection | S | P4-2 |
-| P4-4 | Upload training photos (Thomas, Nils, Hugo, Anna) | M | P4-3 |
-| P4-5 | Test recognition at `front` — target >85% | M | P4-4 |
-| P4-6 | Unknown person alert automation | S | P4-3 |
-| P4-7 | Add face match status to Security dashboard | S | P4-5 |
+| P4-1 | Install CodeProject.AI on Windows dev PC | S | ⬜ `install-codeproject-ai.ps1` |
+| P4-2 | Enable Face Recognition module, verify `:32168` | S | ⬜ |
+| P4-3 | Sync DT config + restart Double Take | S | ⬜ URL → `192.168.68.136` |
+| P4-4 | Upload training photos (Thomas, Nils, Hugo, Anna) | M | ⬜ |
+| P4-5 | Test recognition at `front` — target >85% | M | ⬜ |
+| P4-6 | Unknown person alert automation | S | ⬜ exists, `initial_state: false` |
+| P4-7 | Add face match status to Security dashboard | S | ⬜ |
 
 ---
 
-## Now — Phase 7 Home Intelligence Timeline
+## Done — Phase 7 Analytics Platform
 
 | # | Item | Effort | Status |
 |---|---|---|---|
@@ -58,7 +58,7 @@ CodeProject.AI path — see [ADR-003](decisions/003-face-recognizer.md).
 | P7-8 | Correlation engine (`arrival`, `delivery`, `bicycle`, door) | L | ✅ |
 | P7-11 | HA Timeline dashboard (`house-timeline`) | S | ✅ |
 | P7-9 | Timeline zoom + custom time range | M | ✅ |
-| P7-10 | InfluxDB metrics retention | M | ✅ bridge ready — install HA add-on + set INFLUX_URL |
+| P7-10 | InfluxDB metrics retention | M | ⚠️ add-on OK, writes need auth fix — `verify-influxdb.py` |
 
 ---
 

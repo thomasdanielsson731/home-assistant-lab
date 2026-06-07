@@ -2,7 +2,7 @@
 
 The timeline is the primary narrative view of Danielsson Insights — a chronological feed of enriched events.
 
-**Implemented (v1):** `scripts/timeline_server.py` — horizontal timeline at `/timeline` with zoom, pan, custom time range, occupancy blocks, env metric overlay. Access via HA sidebar **Timeline** (`house-timeline`) or `http://192.168.68.118:8765/timeline`. List view at `/`.
+**Implemented (v1):** `scripts/timeline_server.py` — horizontal timeline at `/timeline` with zoom, pan, custom time range, occupancy blocks, env metric overlay. Access via HA sidebar **Analytics** (`house-timeline`) or `http://192.168.68.136:8765/timeline`. List view at `/`.
 
 ---
 

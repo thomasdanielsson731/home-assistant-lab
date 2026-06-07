@@ -12,7 +12,7 @@ CodeProject.AI on Windows dev PC — [ADR-003](../docs/decisions/003-face-recogn
 
 ## Done Criteria
 
-- [ ] CodeProject.AI running on `192.168.68.118:32168`
+- [ ] CodeProject.AI running on `192.168.68.136:32168`
 - [ ] Double Take connected to CodeProject.AI
 - [ ] All 4 household members recognized at `front` (>85% confidence)
 - [ ] Unknown person triggers push notification with snapshot

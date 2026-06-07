@@ -1,6 +1,6 @@
-# HA Timeline Dashboard Runbook
+# HA Analytics Dashboard Runbook
 
-Embed House Intelligence Timeline in Home Assistant sidebar.
+Embed Analytics (timeline UI) in Home Assistant sidebar.
 
 ## Background
 
@@ -38,8 +38,8 @@ python scripts/configure_ha_sidebar.py
 
 ## Verify
 
-- HA sidebar shows **Timeline** next to **Home Lab**
-- Click Timeline → full-screen House Intelligence UI loads
+- HA sidebar shows **Analytics** next to **Danielsson Home**
+- Click Analytics → full-screen timeline UI loads
 - If blank: test URL in browser on the same device; check firewall on dev PC
 
 ## Troubleshooting

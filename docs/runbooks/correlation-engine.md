@@ -27,7 +27,7 @@ Enriched events include:
 
 Written to the same event store as raw events (`events/timeline.jsonl`, `events/arrival/`, `events/delivery/`).
 
-Visible on **House Intelligence Timeline** (`/timeline`) in `arrival`, `delivery`, `bicycle`, and `door` lanes.
+Visible on **Analytics** (`/timeline`) in `arrival`, `delivery`, `bicycle`, and `door` lanes.
 
 ## Door ingestion
 
@@ -48,5 +48,5 @@ Emits raw `door` events on lock state transitions (`locked` / `unlocked`).
 ```powershell
 python scripts/event_normalizer.py
 # Trigger Frigate person + vehicle at front within 10 min
-# HA sidebar → Timeline, or http://192.168.68.118:8765/timeline
+# HA sidebar → Timeline, or http://192.168.68.136:8765/timeline
 ```

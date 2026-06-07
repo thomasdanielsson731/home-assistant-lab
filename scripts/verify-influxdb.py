@@ -73,9 +73,9 @@ def main() -> int:
         print(f"  FAIL  write: {exc}")
         return 1
 
-    print("\n  WARN  writes blocked — fix auth:")
-    print("    HA → Add-ons → InfluxDB → disable Authentication, restart")
-    print("    OR Chronograf → create user/database → .\\scripts\\setup-influxdb.ps1")
+    print("\n  WARN  writes blocked - fix auth:")
+    print("    HA -> Add-ons -> InfluxDB -> disable Authentication, restart")
+    print("    OR Chronograf -> create user/database -> .\\scripts\\setup-influxdb.ps1")
     return 1
 
 

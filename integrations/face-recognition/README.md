@@ -19,9 +19,9 @@ Frigate (person snapshot) → Double Take → Recognizer → MQTT → HA Automat
 
 **Decision:** [ADR-003](../../docs/decisions/003-face-recognizer.md) — CodeProject.AI on Windows dev PC.
 
-`config/double-take/config.yml` already points to `http://192.168.68.118:32168`.
+`config/double-take/config.yml` points to dev PC (`http://192.168.68.136:32168`).
 
-Install: https://www.codeproject.com/AI/docs/why/installing_on_windows.html
+Setup: `.\scripts\install-codeproject-ai.ps1` · [codeproject-ai-setup.md](../../docs/runbooks/codeproject-ai-setup.md)
 
 ## Alternative: CompreFace
 

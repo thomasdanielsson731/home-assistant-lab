@@ -181,7 +181,12 @@ def main() -> int:
             import influx_metrics_bridge as influx_bridge  # noqa: E402
 
             if influx_bridge.ping():
-                print(f"  OK    {influx_url}")
+                print(f"  OK    {influx_url} (ping)")
+                import verify_influxdb  # noqa: E402
+
+                if verify_influxdb.main() != 0:
+                    print("  WARN  Influx auth/write — run verify-influxdb.py")
+                    issues.append("influxdb_auth")
             else:
                 print(f"  WARN  {influx_url} — not reachable")
                 issues.append("influxdb")

@@ -6,7 +6,7 @@
 
 ## Decision
 
-The primary insights UX is **House Intelligence Timeline** — served by `timeline_server.py` on the dev PC (`http://192.168.68.118:8765/timeline`), embedded in HA via YAML dashboard **`house-timeline`** (replaces removed `panel_iframe`). Lovelace `home-lab` remains secondary.
+The primary insights UX is **Analytics** — served by `timeline_server.py` on the dev PC (`http://192.168.68.136:8765/timeline`), embedded in HA via YAML dashboard **`house-timeline`** (replaces removed `panel_iframe`). Lovelace `home-lab` remains secondary.
 
 Architecture:
 
@@ -50,7 +50,7 @@ Home Assistant remains:
 | 7c | Timeline API v1 (events, metrics, occupancy blocks) |
 | 7d | Timeline UI v1 (1h / 24h / 7d, click → snapshot) |
 | 7e | Correlation engine (`arrival`, `delivery`, `bicycle`, door boost) | ✅ |
-| 7f | HA sidebar Timeline dashboard (`house-timeline`) | ✅ |
+| 7f | HA sidebar Analytics dashboard (`house-timeline`) | ✅ |
 | 7g | InfluxDB metrics bridge (optional add-on) | ✅ bridge ready |
 
 ## References

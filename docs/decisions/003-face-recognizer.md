@@ -16,7 +16,7 @@ Phase 4 requires a face recognizer behind Double Take. Two options were evaluate
 | CodeProject.AI | Windows native service | Low — installer, no Docker | Medium–High | Only when dev PC is on |
 | CompreFace | Docker (requires VT-x) | High — BIOS, Docker Desktop, compose | High | Separate always-on host needed |
 
-Double Take is already configured in `config/double-take/config.yml` pointing to `http://192.168.68.118:32168`.
+Double Take is already configured in `config/double-take/config.yml` pointing to the dev PC (`DEV_PC_HOST`, currently `http://192.168.68.136:32168`).
 
 ## Decision
 
@@ -47,7 +47,7 @@ If recognition accuracy falls below target (>85% at `front`):
 
 ## Next Steps
 
-1. Install CodeProject.AI on Windows PC (`192.168.68.118`)
+1. Install CodeProject.AI on Windows PC — `.\scripts\install-codeproject-ai.ps1`
 2. Enable the Face Recognition module in CodeProject.AI dashboard
 3. Restart Double Take add-on on HAOS
 4. Upload training photos for Thomas, Nils, Hugo, Anna via Double Take UI (`http://192.168.68.175:3000`)

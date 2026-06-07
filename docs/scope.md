@@ -10,7 +10,7 @@ Explicit boundaries for the Home Assistant Lab / Data Insights Lab. When in doub
 |---|---|
 | **Name** | Home Assistant Lab (repo) / **Danielsson Home Intelligence Platform** (product) |
 | **Primary purpose** | Event-driven situational awareness — *what happened*, not just current state |
-| **Primary UX** | **House Intelligence Timeline** — HA sidebar **Timeline** or `http://192.168.68.118:8765/timeline` — [ADR-005](decisions/005-home-intelligence-timeline.md) |
+| **Primary UX** | **Analytics** — HA sidebar **Analytics** or `http://192.168.68.136:8765/timeline` — [ADR-005](decisions/005-home-intelligence-timeline.md) |
 | **Secondary UX** | HA `home-lab` dashboard — operations, security, live entity cards |
 | **Not** | A replacement for HomeKit lighting and blind automation |
 

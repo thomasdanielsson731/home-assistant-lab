@@ -28,7 +28,7 @@ events/
 └── {type}/YYYY/MM/DD/{event_id}.json
 ```
 
-Timeline UI: HA sidebar **Timeline** or `http://192.168.68.118:8765/timeline` · API: `/api/v1/*`
+Timeline UI: HA sidebar **Analytics** or `http://192.168.68.136:8765/timeline` · API: `/api/v1/*`
 
 Event JSON and media are gitignored.
 
