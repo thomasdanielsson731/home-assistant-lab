@@ -35,8 +35,8 @@ CAM_PASS = _require("CAM_PASS")
 
 CAMERAS = [
     {"zone": "front", "ip": "192.168.68.200", "model": "P3288-LVE"},
-    {"zone": "driveway_wide", "ip": "192.168.68.201", "model": "Q3558-LVE"},
-    {"zone": "backyard", "ip": "192.168.68.203", "model": "Q1656-LE"},
+    {"zone": "driveway_wide", "ip": "192.168.68.203", "model": "Q3558-LVE"},
+    {"zone": "backyard", "ip": "192.168.68.202", "model": "Q1656-LE"},
 ]
 
 

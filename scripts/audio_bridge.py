@@ -34,8 +34,8 @@ load_dotenv(Path(__file__).parent.parent / ".env")
 
 CAMERAS = [
     {"zone": "front", "ip": "192.168.68.200"},
-    {"zone": "driveway_wide", "ip": "192.168.68.201"},
-    {"zone": "backyard", "ip": "192.168.68.203"},
+    {"zone": "driveway_wide", "ip": "192.168.68.203"},
+    {"zone": "backyard", "ip": "192.168.68.202"},
 ]
 
 SPL_TOPIC_FILTER = "tnsaxis:SoundPressureLevel/tnsaxis:Summary"

@@ -44,9 +44,9 @@ CAM_PASS = _require("CAM_PASS")
 
 CAMERAS = [
     {"zone": "front",         "ip": "192.168.68.200"},  # P3288-LVE
-    {"zone": "driveway_wide", "ip": "192.168.68.201"},  # Q3558-LVE (was wrong as .207)
+    {"zone": "driveway_wide", "ip": "192.168.68.203"},  # Q3558-LVE
     {"zone": "driveway_id",   "ip": "192.168.68.204"},  # M2036-LE
-    {"zone": "backyard",      "ip": "192.168.68.203"},  # Q1656-LE (was wrong as .201)
+    {"zone": "backyard",      "ip": "192.168.68.202"},  # Q1656-LE
     {"zone": "storage_ext",   "ip": "192.168.68.205"},  # M1055-L
     {"zone": "storage_int",   "ip": "192.168.68.206"},  # Q1656
 ]

@@ -13,10 +13,13 @@ Event platform metrics (`co2`, `temperature`, `spl`, etc.) are written to `metri
 
 ## Option A — InfluxDB add-on on HAOS (recommended)
 
-1. **Settings → Add-ons → InfluxDB** — install and start
-2. Note URL (typically `http://192.168.68.175:8086`)
-3. Create API token with write access to bucket `home_lab`
-4. Add HA integration — copy from `config/home-assistant/influxdb.yaml.example`
+**Status (2026-06-07):** Add-on `a0d7b954_influxdb` v5.0.2 installed and running on `http://192.168.68.175:8086` (InfluxDB 1.8.x).
+
+1. **Settings → Add-ons → InfluxDB → Configuration** — set **Authentication** to `false` (home lab LAN), **SSL** to `false`, Save, Restart add-on  
+   *(Or create user/database in Chronograf: Open Web UI → database `home_lab`, user `homelab` with read/write.)*
+2. On dev PC: `.\scripts\setup-influxdb.ps1` — writes `INFLUX_*` to `.env`
+3. `.\scripts\start-bridges.ps1` — restarts `influx_metrics_bridge.py`
+4. Optional: HA integration — copy from `config/home-assistant/influxdb.yaml.example`
 
 ## Option B — Dev PC bridge only
 

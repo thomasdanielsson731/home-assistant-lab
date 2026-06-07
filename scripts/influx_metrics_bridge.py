@@ -30,6 +30,8 @@ POLL_INTERVAL = int(os.environ.get("INFLUX_POLL_SECONDS", "30"))
 
 INFLUX_URL = os.environ.get("INFLUX_URL", "").rstrip("/")
 INFLUX_TOKEN = os.environ.get("INFLUX_TOKEN", "")
+INFLUX_USER = os.environ.get("INFLUX_USER", "")
+INFLUX_PASSWORD = os.environ.get("INFLUX_PASSWORD", "")
 INFLUX_ORG = os.environ.get("INFLUX_ORG", "home")
 INFLUX_BUCKET = os.environ.get("INFLUX_BUCKET", "home_lab")
 INFLUX_DB = os.environ.get("INFLUX_DB", "home_lab")
@@ -139,8 +141,14 @@ def write_to_influx(lines: str) -> bool:
         url = f"{INFLUX_URL}/write"
         params = {"db": INFLUX_DB, "precision": "s"}
 
+    auth = None
+    if not INFLUX_V2 and INFLUX_USER:
+        auth = (INFLUX_USER, INFLUX_PASSWORD)
+
     try:
-        r = requests.post(url, params=params, data=lines, headers=headers, timeout=15)
+        r = requests.post(
+            url, params=params, data=lines, headers=headers, auth=auth, timeout=15
+        )
     except requests.RequestException as exc:
         log.error("Influx write failed: %s", exc)
         return False
@@ -165,8 +173,11 @@ def ping() -> bool:
                 timeout=5,
             )
         else:
+            r = requests.get(f"{INFLUX_URL}/health", timeout=5)
+            if r.status_code == 200:
+                return True
             r = requests.get(f"{INFLUX_URL}/ping", timeout=5)
-        return r.status_code == 200
+        return r.status_code in (200, 204)
     except requests.RequestException:
         return False
 

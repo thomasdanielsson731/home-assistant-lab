@@ -36,8 +36,8 @@ CAM_PASS = _require("CAM_PASS")
 
 CAMERAS = [
     {"zone": "front", "ip": "192.168.68.200"},
-    {"zone": "driveway_wide", "ip": "192.168.68.201"},
-    {"zone": "backyard", "ip": "192.168.68.203"},
+    {"zone": "driveway_wide", "ip": "192.168.68.203"},
+    {"zone": "backyard", "ip": "192.168.68.202"},
 ]
 
 ACTION_NS = "http://www.axis.com/vapix/ws/action1"

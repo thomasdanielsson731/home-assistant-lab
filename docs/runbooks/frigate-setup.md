@@ -63,7 +63,11 @@ This file is **not** updated by `sync-config.ps1` (which only pushes `/config/fr
 ha apps restart ccab4aaf_frigate-fa
 ```
 
-Symptom: one camera `unavailable` while others work — check Frigate logs for `No route to host` on a stale IP (e.g. `192.168.68.207` instead of `192.168.68.201` for `driveway_wide`).
+Symptom: one camera `unavailable` while others work:
+
+1. **Wrong device at IP** — verify with VAPIX `getAllProperties` (e.g. `.201` is an **AXIS S3008 Recorder**, not the Q3558; `driveway_wide` = `.203`, `backyard` = `.202`).
+2. **Stale IP in Frigate FA config** — `/addon_configs/ccab4aaf_frigate-fa/config.yaml` is not updated by `sync-config.ps1`; must match `secrets.yaml`.
+3. **RTSP 503** — often wrong device type or too many direct RTSP clients; use go2rtc restream for high-res cameras if needed.
 
 ## Troubleshooting
 

@@ -7,8 +7,9 @@ Six Axis cameras covering all zones of the property, plus one environmental sens
 | Zone | IP |
 |---|---|
 | `front` | 192.168.68.200 |
-| `driveway_wide` | 192.168.68.201 |
-| `backyard` | 192.168.68.203 |
+| `driveway_wide` | 192.168.68.203 |
+| `backyard` | 192.168.68.202 |
+| `recorder` (S3008, not a Frigate zone) | 192.168.68.201 |
 | `driveway_id` | 192.168.68.204 |
 | `storage_ext` | 192.168.68.205 |
 | `storage_int` | 192.168.68.206 |
