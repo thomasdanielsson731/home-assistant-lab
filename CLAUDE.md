@@ -77,9 +77,9 @@ Note: `docs/naming-conventions.md` specifies `camera.frigate_<zone_id>` as the i
 | `front` | `binary_sensor.front_aoa_person` | `binary_sensor.front_aoa_vehicle` | `binary_sensor.front_aoa_loitering` |
 | `driveway_wide` | `binary_sensor.driveway_wide_aoa_person` | `binary_sensor.driveway_wide_aoa_vehicle` | `binary_sensor.driveway_wide_aoa_loitering` |
 | `driveway_id` | `binary_sensor.driveway_id_aoa_person` | `binary_sensor.driveway_id_aoa_vehicle` | `binary_sensor.driveway_id_aoa_loitering` |
-| `backyard` | `binary_sensor.backyard_aoa_person` | — | — |
-| `storage_ext` | `binary_sensor.storage_ext_aoa_person` | — | — |
-| `storage_int` | `binary_sensor.storage_int_aoa_person` | — | — |
+| `backyard` | `binary_sensor.backyard_aoa_person` | — | `binary_sensor.backyard_aoa_loitering` |
+| `storage_ext` | `binary_sensor.storage_ext_aoa_person` | — | `binary_sensor.storage_ext_aoa_loitering` |
+| `storage_int` | `binary_sensor.storage_int_aoa_person` | — | `binary_sensor.storage_int_aoa_loitering` |
 
 **D6210 air quality entity IDs** (Phase 5 — MQTT bridge via `air_quality_bridge.py`, see `docs/runbooks/d6210-setup.md`): `sensor.driveway_env_temperature`, `sensor.driveway_env_humidity`, `sensor.driveway_env_co2`, `sensor.driveway_env_voc`, `sensor.driveway_env_nox`, `sensor.driveway_env_pm2_5`, `sensor.driveway_env_pm10`, `sensor.driveway_env_aqi`
 
@@ -308,7 +308,7 @@ config/
     mqtt_binary_sensors/ → merged via !include_dir_merge_list mqtt_binary_sensors/
       aoa_occupancy.yaml  # AOA Person Occupancy (all 6 cameras)
       aoa_vehicle.yaml    # AOA Vehicle Occupancy (front, driveway_wide, driveway_id)
-      aoa_loitering.yaml  # AOA Loitering (front, driveway_wide, driveway_id)
+      aoa_loitering.yaml  # AOA Loitering (all 6 cameras)
       scene_presence.yaml # Binary presence from scene/frame (faster than AOA)
     mqtt_sensors/        → merged via !include_dir_merge_list mqtt_sensors/
       scene_metadata.yaml # Axis scene metadata

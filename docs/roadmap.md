@@ -86,7 +86,7 @@ Vision: [vision.md](vision.md) · Scope: [scope.md](scope.md) · Work queue: [ba
 | Axis MQTT client enabled on all cameras | ✅ |
 | AOA Person Occupancy on all 6 cameras | ✅ verified live 2026-06-06 |
 | AOA Vehicle on driveway cameras | ✅ |
-| AOA Loitering (manual web UI setup) | ⬜ |
+| AOA Loitering (manual web UI setup) | ✅ all 6 cameras 2026-06-07 |
 | Scene frame/track sensors verified in HA | ✅ health-check |
 | D6210 air quality bridge publishing to MQTT | ✅ |
 | D6210 air quality sensors verified in HA | ✅ |

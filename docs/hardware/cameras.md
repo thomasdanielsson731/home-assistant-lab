@@ -2,7 +2,7 @@
 
 Six Axis cameras covering all zones of the property, plus one environmental sensor.
 
-**Deployment status (2026-06):** All 6 cameras live in Frigate + HA. MQTT analytics (AOA, scene, SPL) via dev PC bridges. D6210 air quality via `air_quality_bridge.py`. Loitering scenarios still manual on 3 cameras.
+**Deployment status (2026-06):** All 6 cameras live in Frigate + HA. MQTT analytics (AOA, scene, SPL) via dev PC bridges. D6210 air quality via `air_quality_bridge.py`. Loitering scenarios verified on all 6 cameras (2026-06-07).
 
 | Zone | IP |
 |---|---|

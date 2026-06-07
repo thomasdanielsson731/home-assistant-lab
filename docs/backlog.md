@@ -19,7 +19,7 @@ Complete the Axis analytics pipeline end-to-end.
 | P5-4 | Verify scene/frame on `front` via MQTT subscribe | S | ✅ |
 | P5-5 | AOA via `aoa_bridge.py` — poll getOccupancy → MQTT | M | ✅ |
 | P5-5b | Audio SPL via `audio_bridge.py` — WebSocket → MQTT | M | ✅ |
-| P5-6 | Create Loitering scenarios manually (3 cameras) | M | ⬜ |
+| P5-6 | Loitering scenarios on all 6 cameras (manual UI) | M | ✅ verified 2026-06-07 |
 | P5-7 | Add analytics cards to Security + Operations dashboard views | M | ✅ |
 | P5-9 | Insights graphs — built-in history/statistics cards | S | ✅ |
 | P5-10 | `scripts/health-check.py` — automated lab status | S | ✅ |

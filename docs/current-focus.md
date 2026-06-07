@@ -17,7 +17,7 @@ See [ADR-005](decisions/005-home-intelligence-timeline.md) · [event-model.md](a
 | Phase | Focus | Status |
 |---|---|---|
 | **7** | Home Intelligence Timeline — API + UI + correlation + HA sidebar | Done (InfluxDB add-on optional) |
-| **5** | Axis analytics — MQTT to HA + events | PersonOccupancy verified all 6 cameras (2026-06-06); loitering manual only |
+| **5** | Axis analytics — MQTT to HA + events | Done — PersonOccupancy + Loitering verified all 6 cameras |
 | **4** | Face recognition — CodeProject.AI + Double Take | On hold |
 
 Phases 1–3 done. Phase 6 (AI) and 8 (digital twin) follow Phase 7 correlation.
@@ -58,7 +58,7 @@ python scripts/health-check.py
 | Item | Action |
 |---|---|
 | AOA PersonOccupancy | ✅ Verified all 6 cameras (2026-06-06) |
-| AOA Loitering | Camera web UI — front, driveway_wide, driveway_id |
+| AOA Loitering | ✅ Verified all 6 cameras (2026-06-07) |
 | Yale Doorman | Hardware + HA lock entity — door MQTT ingestion ready |
 | Face recognition | CodeProject.AI + training photos |
 | Correlation rules | `arrival`, `delivery`, `bicycle` + door boost — see correlation-engine.md |

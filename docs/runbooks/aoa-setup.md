@@ -87,7 +87,7 @@ After syncing config and restarting HA, you will have:
 
 The `loitering` AOA scenario type is not supported via VAPIX API in current firmware (12.x). Configure manually in each camera's web UI.
 
-**Cameras needing loitering:** `front`, `driveway_wide`, `driveway_id`
+**Cameras:** all 6 zones (`front`, `driveway_wide`, `driveway_id`, `backyard`, `storage_ext`, `storage_int`)
 
 **Steps per camera:**
 
@@ -116,6 +116,9 @@ Stand in front of the camera for >10 s — expect a message on `.../Loitering/Ac
 | `binary_sensor.front_aoa_loitering` | front |
 | `binary_sensor.driveway_wide_aoa_loitering` | driveway_wide |
 | `binary_sensor.driveway_id_aoa_loitering` | driveway_id |
+| `binary_sensor.backyard_aoa_loitering` | backyard |
+| `binary_sensor.storage_ext_aoa_loitering` | storage_ext |
+| `binary_sensor.storage_int_aoa_loitering` | storage_int |
 
 ## Sync and Restart
 

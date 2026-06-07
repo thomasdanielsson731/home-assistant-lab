@@ -10,6 +10,9 @@
         - binary_sensor.front_aoa_loitering
         - binary_sensor.driveway_wide_aoa_loitering
         - binary_sensor.driveway_id_aoa_loitering
+        - binary_sensor.backyard_aoa_loitering
+        - binary_sensor.storage_ext_aoa_loitering
+        - binary_sensor.storage_int_aoa_loitering
       to: "on"
   action:
     - service: notify.mobile_app_thomas_iphone_15
