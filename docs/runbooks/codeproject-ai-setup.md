@@ -8,7 +8,7 @@ Face recognizer for Double Take. Decision: [ADR-003](../decisions/003-face-recog
 Frigate (person snapshot) → Double Take → CodeProject.AI :32168 → MQTT → HA
 ```
 
-Double Take config: `config/double-take/config.yml` → `detectors.codeproject.url` = dev PC (`DEV_PC_HOST` in `.env`).
+Double Take config: `config/double-take/config.yml` → `detectors.deepstack.url` = CodeProject.AI on dev PC (`DEV_PC_HOST`). Official Double Take 1.13 has no `codeproject` key — CPAI speaks the DeepStack face API.
 
 ## 1. Install on Windows dev PC
 
@@ -41,7 +41,9 @@ Invoke-WebRequest http://localhost:32168/v1/status/health -UseBasicParsing
 .\scripts\sync-config.ps1
 ```
 
-Ensure `detectors.codeproject.url` uses current dev PC IP (`192.168.68.136`).
+Ensure `detectors.deepstack.url` uses current dev PC IP (`192.168.68.136`).
+
+**Windows Firewall:** allow inbound TCP **32168** from the HA subnet (or `192.168.68.175`). Without this, Double Take on HA cannot reach CPAI even when the dashboard works locally.
 
 Restart Double Take add-on: HA → Add-ons → Double Take → Restart.
 
@@ -50,8 +52,9 @@ Check Double Take logs for detector connection errors.
 ## 4. Train faces
 
 1. Open Double Take UI: `http://192.168.68.175:3000`
-2. **Train** → upload 10+ photos per person: Thomas, Nils, Hugo, Anna
-3. Walk past `front` camera — verify match in UI
+2. **Train** → create person → upload 10+ photos (tydligt ansikte, inte bara silhuett på avstånd)
+3. Klicka **Train** efter uppladdning — DT skickar bilderna till CPAI (ingen manuell bounding-box)
+4. Gå förbi **`front`** eller **`driveway_id`** — endast dessa kameror är konfigurerade i DT
 
 ## 5. HA entities
 

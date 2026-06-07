@@ -5,6 +5,8 @@
 mqtt:
   host: core-mosquitto
   port: 1883
+  username: !secret mqtt_username
+  password: !secret mqtt_password
   topics:
     frigate: frigate
     matches: double_take/matches
@@ -16,12 +18,13 @@ frigate:
     - front
     - driveway_id
 
-# CodeProject.AI — native Windows service, no Docker required
-# Install: https://www.codeproject.com/AI/docs/why/installing_on_windows.html
-# After install, enable the Face Recognition module in the dashboard
+# CodeProject.AI — use deepstack key (jakowenko Double Take 1.13 API-compatible)
+# CPAI Face module must be Running on dev PC :32168
 detectors:
-  codeproject:
+  deepstack:
     url: http://192.168.68.136:32168
+    timeout: 15
+    opencv_face_required: false
 
 time:
   timezone: Europe/Stockholm
@@ -37,9 +40,6 @@ detect:
     base64: false
     confidence: 40
     purge: 24
-
-notify:
-  gotify: false
 
 # Persons to recognize — add training images via Double Take UI
 # Settings → Training → Upload photos for each person
