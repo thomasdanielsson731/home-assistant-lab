@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Configure HA sidebar: hide extra panels, set Home Lab as default."""
+"""Configure HA sidebar: hide extra panels, set Danielsson Home as default."""
 from __future__ import annotations
 
 import json

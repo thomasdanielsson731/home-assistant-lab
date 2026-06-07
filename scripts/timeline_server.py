@@ -71,7 +71,7 @@ TIMELINE_V1_HTML = """<!DOCTYPE html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>House Intelligence Timeline</title>
+  <title>Analytics</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: system-ui, -apple-system, sans-serif; background: #0f1117; color: #e8eaed; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
@@ -116,7 +116,7 @@ TIMELINE_V1_HTML = """<!DOCTYPE html>
 </head>
 <body>
   <header>
-    <h1>House Intelligence Timeline</h1>
+    <h1>Analytics</h1>
     <span class="sub">What happened — not just current state</span>
     <a href="/story" style="margin-left:auto;color:#8ab4f8;font-size:0.78rem;text-decoration:none;padding:0.3rem 0.7rem;border-radius:1rem;background:#2d2f36">📖 Story</a>
   </header>
@@ -671,7 +671,7 @@ HTML = """<!DOCTYPE html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Danielsson Insights — Timeline</title>
+  <title>Danielsson Insights — Analytics</title>
   <style>
     * {{ box-sizing: border-box; margin: 0; padding: 0; }}
     body {{ font-family: system-ui, sans-serif; background: #0f1117; color: #e8eaed; padding: 1rem; max-width: 640px; margin: 0 auto; }}
@@ -696,7 +696,7 @@ HTML = """<!DOCTYPE html>
 <body>
   <h1>Danielsson Insights</h1>
   <p class="sub">Event list · {period_label}</p>
-  <p class="nav"><a href="/timeline">→ House Intelligence Timeline (v1)</a></p>
+  <p class="nav"><a href="/timeline">→ Analytics</a></p>
   <div class="stats">{stats}</div>
   <div class="filters">{filters}</div>
   {entries}

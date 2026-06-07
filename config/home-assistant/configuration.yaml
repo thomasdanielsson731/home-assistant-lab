@@ -31,14 +31,14 @@ lovelace:
     home-lab:
       mode: yaml
       filename: dashboards/home-lab.yaml
-      title: Home Lab
+      title: Danielsson Home
       icon: mdi:home-assistant
       show_in_sidebar: true
       require_admin: false
     house-timeline:
       mode: yaml
       filename: dashboards/house-timeline.yaml
-      title: Timeline
+      title: Analytics
       icon: mdi:chart-timeline-variant
       show_in_sidebar: true
       require_admin: false

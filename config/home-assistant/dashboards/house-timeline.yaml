@@ -1,7 +1,7 @@
 # House Intelligence Timeline — full-screen webpage (replaces deprecated panel_iframe)
 # Served from Windows dev PC: scripts/timeline_server.py :8765
 views:
-  - title: Timeline
+  - title: Analytics
     panel: true
     cards:
       - type: iframe
