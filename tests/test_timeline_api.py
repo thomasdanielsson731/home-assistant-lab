@@ -155,6 +155,22 @@ def test_build_occupancy_blocks_gap_over_30s_not_merged(tmp_path: Path):
     assert len(blocks) == 2
 
 
+def test_build_occupancy_blocks_filters_short_blocks(tmp_path: Path):
+    now = datetime.now(TZ)
+    events = [
+        _occ_event(tmp_path, (now - timedelta(seconds=90)).isoformat(), "start"),
+        _occ_event(tmp_path, (now - timedelta(seconds=70)).isoformat(), "end", duration=20),
+        _occ_event(tmp_path, (now - timedelta(minutes=10)).isoformat(), "start"),
+        _occ_event(tmp_path, (now - timedelta(minutes=5)).isoformat(), "end", duration=300),
+    ]
+    path = tmp_path / "timeline.jsonl"
+    path.write_text("\n".join(json.dumps(e) for e in events) + "\n", encoding="utf-8")
+    all_events = load_events(hours=1, timeline_path=path, newest_first=False)
+    blocks = build_occupancy_blocks(all_events, hours=None)
+    assert len(blocks) == 1
+    assert blocks[0]["duration_seconds"] == 300
+
+
 def test_build_occupancy_blocks_separate_zones_not_merged(tmp_path: Path):
     now = datetime.now(TZ)
     events = [

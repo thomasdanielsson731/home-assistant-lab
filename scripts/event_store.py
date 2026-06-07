@@ -29,6 +29,9 @@ def local_tz():
 
 TZ = local_tz()
 
+# Ignore AOA occupancy shorter than this in timeline (seconds)
+MIN_OCCUPANCY_SECONDS = 60
+
 # Frigate camera zone_id → logical zone (event-model.md)
 CAMERA_ZONE = {
     "front": "front",

@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime, timedelta
 from unittest.mock import MagicMock, patch
 
 import pytest
 
-from event_store import make_summary
+from event_store import TZ, make_summary
 
 
 FRIGATE_END_PERSON = {
@@ -179,17 +180,48 @@ class TestDownloadSnapshot:
 
 
 class TestAoaAndScene:
-    def test_aoa_occupancy_start_end(self, normalizer, store):
+    def test_aoa_occupancy_ignores_short_duration(self, normalizer, store):
         topic = "axis/front/event/ObjectAnalytics/ScenarioOccupancy/PersonOccupancy/Active"
-        normalizer.handle_aoa_occupancy(topic, json.dumps({"Data": {"active": True}}))
-        normalizer.handle_aoa_occupancy(topic, json.dumps({"Data": {"active": False}}))
+        t0 = datetime(2026, 6, 7, 10, 0, 0, tzinfo=TZ)
+        t1 = t0 + timedelta(seconds=30)
+        with patch("event_normalizer.datetime") as mock_dt:
+            mock_dt.now.side_effect = [t0, t1]
+            normalizer.handle_aoa_occupancy(topic, json.dumps({"Data": {"active": True}}))
+            normalizer.handle_aoa_occupancy(topic, json.dumps({"Data": {"active": False}}))
+        assert not store.timeline_jsonl.exists()
+
+    def test_aoa_occupancy_writes_when_duration_ge_60s(self, normalizer, store):
+        topic = "axis/front/event/ObjectAnalytics/ScenarioOccupancy/PersonOccupancy/Active"
+        t0 = datetime(2026, 6, 7, 10, 0, 0, tzinfo=TZ)
+        t1 = t0 + timedelta(seconds=90)
+        with patch("event_normalizer.datetime") as mock_dt:
+            mock_dt.now.side_effect = [t0, t1]
+            normalizer.handle_aoa_occupancy(topic, json.dumps({"Data": {"active": True}}))
+            normalizer.handle_aoa_occupancy(topic, json.dumps({"Data": {"active": False}}))
         lines = store.timeline_jsonl.read_text().strip().splitlines()
         assert len(lines) == 2
         start = json.loads(lines[0])
         end = json.loads(lines[1])
-        assert start["type"] == "occupancy"
         assert start["metadata"]["phase"] == "start"
         assert end["metadata"]["phase"] == "end"
+        assert end["metadata"]["duration_seconds"] == 90
+
+    def test_aoa_occupancy_confirms_start_while_still_active(self, normalizer, store):
+        topic = "axis/storage_ext/event/ObjectAnalytics/ScenarioOccupancy/PersonOccupancy/Active"
+        t0 = datetime(2026, 6, 7, 10, 0, 0, tzinfo=TZ)
+        t60 = t0 + timedelta(seconds=60)
+        t90 = t0 + timedelta(seconds=90)
+        with patch("event_normalizer.datetime") as mock_dt:
+            mock_dt.now.side_effect = [t0, t60, t90]
+            normalizer.handle_aoa_occupancy(topic, json.dumps({"Data": {"active": True}}))
+            normalizer.handle_aoa_occupancy(topic, json.dumps({"Data": {"active": True}}))
+            normalizer.handle_aoa_occupancy(topic, json.dumps({"Data": {"active": False}}))
+        lines = store.timeline_jsonl.read_text().strip().splitlines()
+        assert len(lines) == 2
+        start = json.loads(lines[0])
+        end = json.loads(lines[1])
+        assert start["timestamp"] == t0.isoformat(timespec="seconds")
+        assert end["metadata"]["duration_seconds"] == 90
 
     def test_scene_frame_emits_on_change(self, normalizer, store):
         topic = "axis/front/scene/frame"

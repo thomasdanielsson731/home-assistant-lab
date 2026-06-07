@@ -6,7 +6,7 @@ import json
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from event_store import TZ
+from event_store import MIN_OCCUPANCY_SECONDS, TZ
 
 REPO_ROOT = Path(__file__).parent.parent
 DEFAULT_TIMELINE = REPO_ROOT / "events" / "timeline.jsonl"
@@ -223,7 +223,13 @@ def build_occupancy_blocks(
         merged.append(cur)
 
     merged.sort(key=lambda b: b["start"], reverse=True)
-    return merged
+    return [b for b in merged if _block_duration_seconds(b) >= MIN_OCCUPANCY_SECONDS]
+
+
+def _block_duration_seconds(block: dict) -> int:
+    if block.get("duration_seconds") is not None:
+        return int(block["duration_seconds"])
+    return int((_parse_ts(block["end"]) - _parse_ts(block["start"])).total_seconds())
 
 
 def latest_occupancy_by_zone(blocks: list[dict]) -> dict[str, dict]:

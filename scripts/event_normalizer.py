@@ -37,6 +37,7 @@ from correlation_engine import CorrelationEngine  # noqa: E402
 from event_store import (  # noqa: E402
     CAMERA_ZONE,
     FRIGATE_LABEL_TYPE,
+    MIN_OCCUPANCY_SECONDS,
     EventStore,
     TZ,
     make_summary,
@@ -63,7 +64,8 @@ store = EventStore()
 correlator = CorrelationEngine(store)
 _env_cache: dict[str, float | int] = {}
 _last_env_event = 0.0
-_aoa_state: dict[str, tuple[bool, datetime | None]] = {}
+# zone:scenario → (active, started_at, start_event_written)
+_aoa_state: dict[str, tuple[bool, datetime | None, bool]] = {}
 _scene_last: dict[str, tuple[int, int, int]] = {}
 _spl_last_written: dict[str, float] = {}
 _lock_state: dict[str, str] = {}
@@ -290,6 +292,31 @@ def handle_env_metric(topic: str, value: str) -> None:
         store.write_metric(ts, "driveway_env", dict(_env_cache))
 
 
+def _emit_aoa_occupancy(
+    zone: str,
+    scenario: str,
+    phase: str,
+    timestamp: str,
+    *,
+    duration_seconds: int | None = None,
+) -> None:
+    meta: dict = {"scenario": scenario, "phase": phase, "active": phase == "start"}
+    if duration_seconds is not None:
+        meta["duration_seconds"] = duration_seconds
+    event = {
+        "timestamp": timestamp,
+        "type": "occupancy",
+        "location": {"zone": zone, "camera": zone},
+        "metadata": meta,
+        "source": "axis_aoa",
+        "enriched": False,
+        "identity": {},
+    }
+    event["summary"] = make_summary(event)
+    eid = store.write(event)
+    _correlate(event, eid)
+
+
 def handle_aoa_occupancy(topic: str, payload: str) -> None:
     m = AOA_TOPIC_RE.match(topic)
     if not m:
@@ -303,45 +330,40 @@ def handle_aoa_occupancy(topic: str, payload: str) -> None:
         return
 
     key = f"{zone}:{scenario}"
-    prev = _aoa_state.get(key, (False, None))
-    was_active, started_at = prev
+    was_active, started_at, confirmed = _aoa_state.get(key, (False, None, False))
     now = datetime.now(TZ)
-    ts = now.isoformat(timespec="seconds")
 
     if active and not was_active:
-        _aoa_state[key] = (True, now)
-        event = {
-            "timestamp": ts,
-            "type": "occupancy",
-            "location": {"zone": zone, "camera": zone},
-            "metadata": {"scenario": scenario, "phase": "start", "active": True},
-            "source": "axis_aoa",
-            "enriched": False,
-            "identity": {},
-        }
-        event["summary"] = make_summary(event)
-        eid = store.write(event)
-        _correlate(event, eid)
-    elif not active and was_active:
-        duration = int((now - started_at).total_seconds()) if started_at else None
-        _aoa_state[key] = (False, None)
-        event = {
-            "timestamp": ts,
-            "type": "occupancy",
-            "location": {"zone": zone, "camera": zone},
-            "metadata": {
-                "scenario": scenario,
-                "phase": "end",
-                "active": False,
-                "duration_seconds": duration,
-            },
-            "source": "axis_aoa",
-            "enriched": False,
-            "identity": {},
-        }
-        event["summary"] = make_summary(event)
-        eid = store.write(event)
-        _correlate(event, eid)
+        _aoa_state[key] = (True, now, False)
+        return
+
+    if active and was_active:
+        if not confirmed and started_at:
+            elapsed = (now - started_at).total_seconds()
+            if elapsed >= MIN_OCCUPANCY_SECONDS:
+                _emit_aoa_occupancy(
+                    zone,
+                    scenario,
+                    "start",
+                    started_at.isoformat(timespec="seconds"),
+                )
+                _aoa_state[key] = (True, started_at, True)
+        return
+
+    if not active and was_active:
+        duration = int((now - started_at).total_seconds()) if started_at else 0
+        _aoa_state[key] = (False, None, False)
+        if duration < MIN_OCCUPANCY_SECONDS:
+            return
+        ts_end = now.isoformat(timespec="seconds")
+        if not confirmed and started_at:
+            _emit_aoa_occupancy(
+                zone,
+                scenario,
+                "start",
+                started_at.isoformat(timespec="seconds"),
+            )
+        _emit_aoa_occupancy(zone, scenario, "end", ts_end, duration_seconds=duration)
 
 
 def handle_scene_frame(topic: str, payload: str) -> None:
