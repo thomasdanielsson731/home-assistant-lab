@@ -67,7 +67,7 @@ class EventStore:
     def __post_init__(self) -> None:
         for sub in (
             "person", "vehicle", "bicycle", "cat", "delivery", "arrival",
-            "environment", "occupancy", "scene", "door", "smoke",
+            "environment", "occupancy", "scene", "door", "smoke", "behavior",
         ):
             (self.events_root / sub).mkdir(parents=True, exist_ok=True)
         self.aggregates_dir.mkdir(parents=True, exist_ok=True)
@@ -162,7 +162,7 @@ class EventStore:
                 "date": date_key,
                 "counts": {t: 0 for t in (
                     "person", "vehicle", "bicycle", "cat", "delivery",
-                    "environment", "occupancy", "scene", "door", "smoke",
+                    "environment", "occupancy", "scene", "door", "smoke", "behavior",
                 )},
                 "environment": {},
             }
@@ -270,6 +270,12 @@ def make_summary(event: dict) -> str:
                 return f"{label} occupancy ended · {zone} ({dur}s)"
             return f"{label} occupancy ended · {zone}"
         return f"{label} occupancy · {zone}"
+    if etype == "behavior":
+        meta = event.get("metadata", {})
+        behavior = meta.get("behavior", "present")
+        obj = meta.get("obj_type", "object")
+        dur = int(meta.get("duration_seconds", 0))
+        return f"{behavior.capitalize()} · {obj} at {zone} ({dur}s)"
     if etype == "scene":
         meta = event.get("metadata", {})
         humans = meta.get("persons", 0)

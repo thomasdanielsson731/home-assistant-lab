@@ -22,6 +22,7 @@ function Start-Bridge {
 Start-Bridge "AirQualityBridge"  "$repoRoot\scripts\air_quality_bridge.py"
 Start-Bridge "AudioBridge"       "$repoRoot\scripts\audio_bridge.py"
 Start-Bridge "AOABridge"         "$repoRoot\scripts\aoa_bridge.py"
+Start-Bridge "EnergyBridge"      "$repoRoot\scripts\energy_bridge.py"
 Start-Bridge "EventNormalizer"   "$repoRoot\scripts\event_normalizer.py"
 Start-Bridge "TimelineServer"    "$repoRoot\scripts\timeline_server.py"
 Start-Bridge "InfluxBridge"      "$repoRoot\scripts\influx_metrics_bridge.py"

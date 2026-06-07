@@ -91,6 +91,30 @@ AOA_TOPIC_RE = re.compile(
 )
 SPL_METRIC_INTERVAL = 300  # 5 min per zone
 
+# Scene track state: track_id → {zone, type, started_at, positions}
+_scene_tracks: dict[str, dict] = {}
+
+# Behavior classification thresholds (seconds)
+_BEHAVIOR_RULES = [
+    # (max_dur, obj_types, behavior)  — first match wins
+    (5,   {"Human", "Person"},  "passthrough"),
+    (30,  {"Human", "Person"},  "approach"),
+    (120, {"Human", "Person"},  "loitering"),
+    (3600,{"Human", "Person"},  "loitering"),
+    (60,  {"Car", "Vehicle", "Truck"}, "stopped"),
+    (3600,{"Car", "Vehicle", "Truck"}, "parked"),
+    (5,   None,                 "passthrough"),
+]
+
+
+def _classify_behavior(obj_type: str, duration_sec: float) -> str:
+    for max_dur, types, behavior in _BEHAVIOR_RULES:
+        if types is not None and obj_type not in types:
+            continue
+        if duration_sec <= max_dur:
+            return behavior
+    return "present"
+
 
 def _ts_now() -> str:
     return datetime.now(TZ).isoformat(timespec="seconds")
@@ -209,13 +233,14 @@ def handle_double_take(payload: dict) -> None:
 
 def reset_env_state() -> None:
     """Clear caches (for tests)."""
-    global _last_env_event, _env_cache, _aoa_state, _scene_last, _spl_last_written, _lock_state
+    global _last_env_event, _env_cache, _aoa_state, _scene_last, _spl_last_written, _lock_state, _scene_tracks
     _env_cache = {}
     _last_env_event = 0.0
     _aoa_state = {}
     _scene_last = {}
     _spl_last_written = {}
     _lock_state = {}
+    _scene_tracks = {}
 
 
 def handle_env_metric(topic: str, value: str) -> None:
@@ -356,6 +381,88 @@ def handle_scene_frame(topic: str, payload: str) -> None:
     _correlate(event, eid)
 
 
+def handle_scene_track(topic: str, payload: str) -> None:
+    """Process Axis scene/track events and classify behavior on LOST."""
+    zone = topic.split("/")[1]
+    try:
+        data = json.loads(payload)
+    except json.JSONDecodeError:
+        return
+
+    # Support both top-level and nested data formats
+    track_id = data.get("track_id") or data.get("id")
+    event_type = (data.get("event") or data.get("type", "")).upper()
+    obj_type = data.get("type") or data.get("objectType") or "Unknown"
+    duration_sec = data.get("duration_sec") or data.get("duration_seconds")
+
+    if not track_id:
+        return
+
+    key = f"{zone}:{track_id}"
+
+    if event_type == "NEW":
+        _scene_tracks[key] = {
+            "zone": zone,
+            "obj_type": obj_type,
+            "started_at": datetime.now(TZ),
+        }
+        return
+
+    if event_type in ("LOST", "ENDED", "END"):
+        track = _scene_tracks.pop(key, None)
+        started_at = track["started_at"] if track else None
+        if duration_sec is None and started_at:
+            duration_sec = (datetime.now(TZ) - started_at).total_seconds()
+        if duration_sec is None:
+            duration_sec = 0.0
+
+        behavior = _classify_behavior(obj_type, duration_sec)
+
+        ts = _ts_now()
+        # Map Axis object type to our event type vocabulary
+        event_obj_type = "vehicle" if obj_type in ("Car", "car", "Vehicle", "Truck") else (
+            "bicycle" if obj_type in BIKE_TYPES else "person"
+        )
+        meta = {
+            "track_id": track_id,
+            "obj_type": obj_type,
+            "duration_seconds": round(duration_sec, 1),
+            "behavior": behavior,
+            "track_event": "LOST",
+        }
+
+        # Write a raw person/vehicle/bicycle event for correlation
+        raw_event = {
+            "timestamp": ts,
+            "type": event_obj_type,
+            "location": {"zone": zone, "camera": zone},
+            "metadata": meta,
+            "source": "axis_scene_track",
+            "enriched": False,
+            "identity": {},
+        }
+        raw_event["summary"] = make_summary(raw_event)
+        eid = store.write(raw_event)
+        _correlate(raw_event, eid)
+
+        # Write a dedicated behavior event for the behavior timeline lane
+        # (skips passthrough — too noisy)
+        if behavior != "passthrough":
+            bev = {
+                "timestamp": ts,
+                "type": "behavior",
+                "location": {"zone": zone, "camera": zone},
+                "metadata": meta,
+                "source": "axis_scene_track",
+                "enriched": False,
+                "identity": {},
+            }
+            bev["summary"] = f"{behavior.capitalize()} · {event_obj_type} at {zone} ({int(duration_sec)}s)"
+            store.write(bev)
+
+        log.info("Scene track LOST: %s %s %s (%.0fs → %s)", zone, obj_type, track_id, duration_sec, behavior)
+
+
 def handle_door_lock(topic: str, payload: str) -> None:
     m = HA_LOCK_TOPIC_RE.match(topic)
     if not m:
@@ -427,6 +534,8 @@ def on_message(client, userdata, msg):
             handle_audio_spl(msg.topic, msg.payload.decode())
         elif msg.topic.endswith("/scene/frame"):
             handle_scene_frame(msg.topic, msg.payload.decode())
+        elif msg.topic.endswith("/scene/track"):
+            handle_scene_track(msg.topic, msg.payload.decode())
         elif "/ScenarioOccupancy/" in msg.topic:
             handle_aoa_occupancy(msg.topic, msg.payload.decode())
         elif HA_LOCK_TOPIC_RE.match(msg.topic):
@@ -449,6 +558,7 @@ def main() -> None:
     client.subscribe("axis/driveway_env/air/#")
     client.subscribe("axis/+/audio/spl")
     client.subscribe("axis/+/scene/frame")
+    client.subscribe("axis/+/scene/track")
     client.subscribe("axis/+/event/ObjectAnalytics/ScenarioOccupancy/#")
     client.subscribe("homeassistant/lock/+/state")
 

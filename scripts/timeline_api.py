@@ -72,7 +72,7 @@ def parse_time_range(
     now = datetime.now(TZ)
     if from_raw and to_raw:
         return _parse_ts(from_raw), _parse_ts(to_raw), None
-    hours = int(qs.get("hours", [str(default_hours)])[0])
+    hours = float(qs.get("hours", [str(default_hours)])[0])
     return now - timedelta(hours=hours), now, hours
 
 
@@ -133,11 +133,15 @@ def build_occupancy_blocks(
     since: datetime | None = None,
     until: datetime | None = None,
 ) -> list[dict]:
-    """Merge occupancy start/end events into duration blocks."""
+    """Merge occupancy start/end events into duration blocks.
+
+    Handles overlapping blocks from multiple sources (AOA + Frigate) by merging
+    blocks within the same zone+scenario that overlap or are within 30 s of each other.
+    """
     if since is None and hours is not None:
         since = datetime.now(TZ) - timedelta(hours=hours)
     open_blocks: dict[str, dict] = {}
-    blocks: list[dict] = []
+    raw_blocks: list[dict] = []
 
     sorted_events = sorted(events, key=lambda e: e["timestamp"])
     for e in sorted_events:
@@ -164,7 +168,7 @@ def build_occupancy_blocks(
             }
         elif phase == "end" and key in open_blocks:
             start = open_blocks.pop(key)
-            blocks.append(
+            raw_blocks.append(
                 {
                     "zone": start["zone"],
                     "scenario": start["scenario"],
@@ -176,8 +180,60 @@ def build_occupancy_blocks(
                 }
             )
 
-    blocks.sort(key=lambda b: b["start"], reverse=True)
-    return blocks
+    # Close any still-open blocks at `until`
+    end_ts = (until or datetime.now(TZ)).isoformat(timespec="seconds")
+    for key, start in open_blocks.items():
+        raw_blocks.append(
+            {
+                "zone": start["zone"],
+                "scenario": start["scenario"],
+                "camera": start.get("camera"),
+                "start": start["start"],
+                "end": end_ts,
+                "duration_seconds": None,
+                "source": start.get("source"),
+                "open": True,
+            }
+        )
+
+    # Merge overlapping/adjacent blocks (within 30 s) per zone+scenario
+    merge_gap = timedelta(seconds=30)
+    by_key: dict[str, list[dict]] = {}
+    for b in raw_blocks:
+        k = f"{b['zone']}:{b['scenario']}"
+        by_key.setdefault(k, []).append(b)
+
+    merged: list[dict] = []
+    for group in by_key.values():
+        group.sort(key=lambda b: b["start"])
+        cur = dict(group[0])
+        for nxt in group[1:]:
+            cur_end = _parse_ts(cur["end"])
+            nxt_start = _parse_ts(nxt["start"])
+            if nxt_start <= cur_end + merge_gap:
+                # Extend current block to cover nxt
+                if _parse_ts(nxt["end"]) > cur_end:
+                    cur["end"] = nxt["end"]
+                    start_ts = _parse_ts(cur["start"])
+                    end_ts_dt = _parse_ts(cur["end"])
+                    cur["duration_seconds"] = int((end_ts_dt - start_ts).total_seconds())
+            else:
+                merged.append(cur)
+                cur = dict(nxt)
+        merged.append(cur)
+
+    merged.sort(key=lambda b: b["start"], reverse=True)
+    return merged
+
+
+def latest_occupancy_by_zone(blocks: list[dict]) -> dict[str, dict]:
+    """Return the most recent occupancy block per zone (for dashboard presence cards)."""
+    out: dict[str, dict] = {}
+    for b in blocks:
+        zone = b["zone"]
+        if zone not in out:
+            out[zone] = b
+    return out
 
 
 def event_summary_stats(events: list[dict]) -> dict[str, int]:

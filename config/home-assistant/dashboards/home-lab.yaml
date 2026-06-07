@@ -40,11 +40,19 @@ views:
           - type: horizontal-stack
             cards:
               - type: custom:mushroom-template-card
-                primary: "{{ states('sensor.house_people_home_count') }} home"
-                secondary: "{{ state_attr('sensor.house_people_home_count', 'who_home') }}"
+                primary: >-
+                  {% set n = states('sensor.house_people_home_count') | int(0) %}
+                  {% if n == 0 %}Ingen hemma
+                  {% elif n == 1 %}1 person hemma
+                  {% else %}{{ n }} hemma{% endif %}
+                secondary: >-
+                  {% set who = state_attr('sensor.house_people_home_count', 'who_home') %}
+                  {% if who %}{{ who }}
+                  {% elif is_state('binary_sensor.driveway_wide_aoa_vehicle', 'on') %}Bil på uppfarten
+                  {% else %}—{% endif %}
                 icon: mdi:home-account
                 icon_color: >-
-                  {{ 'green' if states('sensor.house_people_home_count') | int > 0 else 'grey' }}
+                  {{ 'green' if states('sensor.house_people_home_count') | int(0) > 0 else 'grey' }}
                 layout: vertical
                 fill_container: true
               - type: custom:mushroom-template-card
@@ -503,18 +511,52 @@ views:
             fill_container: true
             tap_action:
               action: navigate
-              navigation_path: /lovelace/home-lab/insights
+              navigation_path: /lovelace/home-lab/intelligence
 
 
   # ═══════════════════════════════════════════════════════════════
-  # VIEW 4 — INSIGHTS (environment & metrics — timeline is sidebar tab)
+  # VIEW 4 — INTELLIGENCE (timeline, environment & metrics)
   # ═══════════════════════════════════════════════════════════════
-  - title: Insights
-    path: insights
-    icon: mdi:chart-areaspline
+  - title: Intelligence
+    path: intelligence
+    icon: mdi:brain
     type: sections
     max_columns: 1
     sections:
+
+      # ── Intelligence hub — quick links ────────────────────────
+      - title: HOUSE INTELLIGENCE
+        cards:
+          - type: custom:mushroom-template-card
+            primary: House Intelligence Timeline
+            secondary: Events · Occupancy · Correlations · Metrics
+            icon: mdi:chart-timeline-variant
+            icon_color: blue
+            fill_container: true
+            tap_action:
+              action: navigate
+              navigation_path: /house-timeline
+          - type: custom:mushroom-template-card
+            primary: House Story
+            secondary: Daily narrative · /api/v1/story/today
+            icon: mdi:book-open-outline
+            icon_color: purple
+            fill_container: true
+            tap_action:
+              action: url
+              url_path: http://192.168.68.118:8765/story
+
+      # ── Energy (Phase 5 — Kraftringen) ────────────────────────
+      - title: ENERGY
+        cards:
+          - type: custom:mushroom-template-card
+            primary: Kraftringen — coming soon
+            secondary: Electricity · District heating · Correlation with occupancy
+            icon: mdi:lightning-bolt
+            icon_color: disabled
+            fill_container: true
+            tap_action:
+              action: none
 
       # ── Outdoor environment — live ─────────────────────────────
       - title: OUTDOOR NOW
@@ -708,102 +750,6 @@ views:
                 name: Backyard
             hours_to_show: 168
 
-      # ── Occupancy activity (AOA) ─────────────────────────────
-      - title: ACTIVITY (AOA)
-        cards:
-          - type: custom:mushroom-chips-card
-            chips:
-              - type: template
-                icon: mdi:account
-                content: >-
-                  Entré · {{ 'På' if is_state('binary_sensor.front_aoa_person', 'on') else 'Av' }}
-                icon_color: >-
-                  {{ 'red' if is_state('binary_sensor.front_aoa_person', 'on') else 'grey' }}
-              - type: template
-                icon: mdi:account
-                content: >-
-                  Uppf. bred · {{ 'På' if is_state('binary_sensor.driveway_wide_aoa_person', 'on') else 'Av' }}
-                icon_color: >-
-                  {{ 'red' if is_state('binary_sensor.driveway_wide_aoa_person', 'on') else 'grey' }}
-              - type: template
-                icon: mdi:account
-                content: >-
-                  Uppf. ID · {{ 'På' if is_state('binary_sensor.driveway_id_aoa_person', 'on') else 'Av' }}
-                icon_color: >-
-                  {{ 'red' if is_state('binary_sensor.driveway_id_aoa_person', 'on') else 'grey' }}
-              - type: template
-                icon: mdi:car
-                content: >-
-                  Fordon · {{ 'På' if is_state('binary_sensor.driveway_wide_aoa_vehicle', 'on')
-                     or is_state('binary_sensor.front_aoa_vehicle', 'on') else 'Av' }}
-                icon_color: >-
-                  {{ 'amber' if is_state('binary_sensor.driveway_wide_aoa_vehicle', 'on')
-                     or is_state('binary_sensor.front_aoa_vehicle', 'on') else 'grey' }}
-              - type: template
-                icon: mdi:account
-                content: >-
-                  Backyard · {{ 'På' if is_state('binary_sensor.backyard_aoa_person', 'on') else 'Av' }}
-                icon_color: >-
-                  {{ 'red' if is_state('binary_sensor.backyard_aoa_person', 'on') else 'grey' }}
-
-      # ── Object counts ────────────────────────────────────────
-      - title: OBJECT COUNTS (24H)
-        cards:
-          - type: custom:mushroom-entity-card
-            entity: sensor.front_person_count
-            name: Front — persons
-            icon: mdi:account
-            layout: horizontal
-            fill_container: true
-          - type: custom:mushroom-entity-card
-            entity: sensor.driveway_wide_car_count
-            name: Driveway — cars
-            icon: mdi:car
-            layout: horizontal
-            fill_container: true
-          - type: custom:mushroom-entity-card
-            entity: sensor.driveway_id_person_count
-            name: Driveway ID — persons
-            icon: mdi:account
-            layout: horizontal
-            fill_container: true
-          - type: custom:mushroom-entity-card
-            entity: sensor.backyard_person_count
-            name: Backyard — persons
-            icon: mdi:account
-            layout: horizontal
-            fill_container: true
-          - type: custom:mushroom-entity-card
-            entity: sensor.storage_ext_person_count
-            name: Storage Ext — persons
-            icon: mdi:account
-            layout: horizontal
-            fill_container: true
-
-      # ── Event timeline ───────────────────────────────────────
-      - title: TIMELINE
-        cards:
-          - type: logbook
-            hours_to_show: 48
-            entities:
-              - binary_sensor.front_motion
-              - binary_sensor.front_person_occupancy
-              - binary_sensor.front_aoa_person
-              - binary_sensor.driveway_wide_motion
-              - binary_sensor.driveway_wide_car_occupancy
-              - binary_sensor.driveway_wide_person_occupancy
-              - binary_sensor.driveway_wide_aoa_person
-              - binary_sensor.driveway_wide_aoa_vehicle
-              - binary_sensor.driveway_id_motion
-              - binary_sensor.driveway_id_person_occupancy
-              - binary_sensor.driveway_id_aoa_person
-              - binary_sensor.backyard_motion
-              - binary_sensor.backyard_person_occupancy
-              - binary_sensor.backyard_aoa_person
-              - binary_sensor.storage_ext_motion
-              - binary_sensor.storage_ext_person_occupancy
-              - binary_sensor.storage_int_motion
-              - binary_sensor.storage_int_person_occupancy
 
 
   # ═══════════════════════════════════════════════════════════════
@@ -1107,6 +1053,45 @@ views:
                 content: Stor Int
                 icon_color: >-
                   {{ 'green' if is_state('camera.storage_int', 'recording') else 'red' }}
+
+      # ── AOA live occupancy ───────────────────────────────────
+      - title: OCCUPANCY (LIVE AOA)
+        column_span: 2
+        cards:
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: template
+                icon: mdi:account
+                content: >-
+                  Entré · {{ 'På' if is_state('binary_sensor.front_aoa_person', 'on') else 'Av' }}
+                icon_color: >-
+                  {{ 'red' if is_state('binary_sensor.front_aoa_person', 'on') else 'grey' }}
+              - type: template
+                icon: mdi:account
+                content: >-
+                  Uppf. bred · {{ 'På' if is_state('binary_sensor.driveway_wide_aoa_person', 'on') else 'Av' }}
+                icon_color: >-
+                  {{ 'red' if is_state('binary_sensor.driveway_wide_aoa_person', 'on') else 'grey' }}
+              - type: template
+                icon: mdi:account
+                content: >-
+                  Uppf. ID · {{ 'På' if is_state('binary_sensor.driveway_id_aoa_person', 'on') else 'Av' }}
+                icon_color: >-
+                  {{ 'red' if is_state('binary_sensor.driveway_id_aoa_person', 'on') else 'grey' }}
+              - type: template
+                icon: mdi:car
+                content: >-
+                  Fordon · {{ 'På' if is_state('binary_sensor.driveway_wide_aoa_vehicle', 'on')
+                     or is_state('binary_sensor.front_aoa_vehicle', 'on') else 'Av' }}
+                icon_color: >-
+                  {{ 'amber' if is_state('binary_sensor.driveway_wide_aoa_vehicle', 'on')
+                     or is_state('binary_sensor.front_aoa_vehicle', 'on') else 'grey' }}
+              - type: template
+                icon: mdi:account
+                content: >-
+                  Backyard · {{ 'På' if is_state('binary_sensor.backyard_aoa_person', 'on') else 'Av' }}
+                icon_color: >-
+                  {{ 'red' if is_state('binary_sensor.backyard_aoa_person', 'on') else 'grey' }}
 
       # ── Recording toggles ────────────────────────────────────
       - title: RECORDING

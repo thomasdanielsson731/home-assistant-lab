@@ -144,6 +144,105 @@ class TestTimelineHTTP:
         conn = HTTPConnection("127.0.0.1", server)
         conn.request("GET", "/timeline")
         body = conn.getresponse().read().decode()
-        assert "zoom-in" in body
+        assert "goto-now" in body       # Go to now button
+        assert "zoom-reset" in body     # Reset button
         assert "from-input" in body
         assert "bicycle" in body
+        assert "15 m" in body           # 15-minute range button
+
+    def test_story_page_returns_html(self, server):
+        conn = HTTPConnection("127.0.0.1", server)
+        conn.request("GET", "/story")
+        resp = conn.getresponse()
+        body = resp.read().decode()
+        assert resp.status == 200
+        assert "House Story" in body
+
+    def test_story_today_endpoint(self, server, tmp_path, monkeypatch):
+        import story_engine
+        import timeline_server
+        stories_dir = tmp_path / "stories"
+        stories_dir.mkdir(parents=True)
+        monkeypatch.setattr(story_engine, "STORIES_DIR", stories_dir)
+        monkeypatch.setattr(timeline_server, "STORIES_DIR", stories_dir)
+        conn = HTTPConnection("127.0.0.1", server)
+        conn.request("GET", "/api/v1/story/today")
+        resp = conn.getresponse()
+        assert resp.status == 200
+        data = json.loads(resp.read().decode())
+        assert "beats" in data
+        assert "date" in data
+
+    def test_story_date_endpoint_returns_cached(self, server, tmp_path, monkeypatch):
+        import timeline_server
+        stories_dir = tmp_path / "stories"
+        stories_dir.mkdir(parents=True)
+        monkeypatch.setattr(timeline_server, "STORIES_DIR", stories_dir)
+        cached = {
+            "date": "2026-06-06",
+            "generated_at": "2026-06-06T00:00:00+02:00",
+            "title": "Friday 6 June",
+            "summary": "A quiet day.",
+            "beats": [],
+            "stats": {},
+        }
+        (stories_dir / "2026-06-06.json").write_text(
+            json.dumps(cached), encoding="utf-8"
+        )
+        conn = HTTPConnection("127.0.0.1", server)
+        conn.request("GET", "/api/v1/story/2026-06-06")
+        resp = conn.getresponse()
+        assert resp.status == 200
+        data = json.loads(resp.read().decode())
+        assert data["title"] == "Friday 6 June"
+
+    def test_story_week_endpoint(self, server, tmp_path, monkeypatch):
+        import timeline_server
+        stories_dir = tmp_path / "stories"
+        stories_dir.mkdir(parents=True)
+        monkeypatch.setattr(timeline_server, "STORIES_DIR", stories_dir)
+        conn = HTTPConnection("127.0.0.1", server)
+        conn.request("GET", "/api/v1/story/week")
+        resp = conn.getresponse()
+        assert resp.status == 200
+        data = json.loads(resp.read().decode())
+        assert isinstance(data, list)
+
+    def test_api_v1_metrics(self, server):
+        conn = HTTPConnection("127.0.0.1", server)
+        conn.request("GET", "/api/v1/metrics?hours=24")
+        resp = conn.getresponse()
+        assert resp.status == 200
+        assert isinstance(json.loads(resp.read().decode()), list)
+
+    def test_story_invalid_date_returns_400(self, server):
+        conn = HTTPConnection("127.0.0.1", server)
+        conn.request("GET", "/api/v1/story/not-a-date")
+        resp = conn.getresponse()
+        resp.read()
+        assert resp.status == 400
+
+    def test_story_date_generates_when_no_cache(self, server, tmp_path, monkeypatch):
+        import story_engine
+        import timeline_server
+        stories_dir = tmp_path / "stories"
+        stories_dir.mkdir(parents=True)
+        monkeypatch.setattr(story_engine, "STORIES_DIR", stories_dir)
+        monkeypatch.setattr(timeline_server, "STORIES_DIR", stories_dir)
+        conn = HTTPConnection("127.0.0.1", server)
+        conn.request("GET", "/api/v1/story/2026-06-06")
+        resp = conn.getresponse()
+        assert resp.status == 200
+        data = json.loads(resp.read().decode())
+        assert "beats" in data
+
+    def test_html_index_high_hours(self, server):
+        # hits "Senaste {hours}h" branch (hours > 168)
+        conn = HTTPConnection("127.0.0.1", server)
+        conn.request("GET", "/?hours=200")
+        resp = conn.getresponse()
+        body = resp.read().decode()
+        assert resp.status == 200
+        # float renders as "200.0h" or similar — just check "200" appears and not the 7-day label
+        assert "200" in body
+        assert "7 dagarna" not in body

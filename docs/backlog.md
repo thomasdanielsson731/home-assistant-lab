@@ -61,7 +61,19 @@ CodeProject.AI path — see [ADR-003](decisions/003-face-recognizer.md).
 
 ---
 
-## Later — Phase 6 AI + Phase 7 Data Platform (full)
+## Now — Phase 6 AI / Narratives
+
+| # | Item | Effort | Status |
+|---|---|---|---|
+| P6-1 | `story_engine.py` — daily narrative beats | M | ✅ |
+| P6-2 | `/api/v1/story/today` + `/story` HTML page | S | ✅ |
+| P6-3 | `energy_bridge.py` stub (Kraftringen API) | M | ✅ stub ready — credentials pending |
+| P6-4 | Scene track behavior classification (`behavior` event type) | M | ✅ |
+| P6-5 | Dashboard Intelligence view (Timeline + Story links) | S | ✅ |
+| P6-6 | Implement Kraftringen API calls in `energy_bridge.py` | M | ⬜ awaiting credentials |
+| P6-7 | Energy events in timeline + story beats | S | ⬜ depends on P6-6 |
+
+## Later — Phase 6 Extended + Phase 7 Data Platform
 
 | # | Item | Effort | Dependencies |
 |---|---|---|---|

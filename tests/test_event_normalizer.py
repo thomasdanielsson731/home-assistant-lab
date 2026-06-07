@@ -224,3 +224,79 @@ class TestAoaAndScene:
         assert row["type"] == "door"
         assert row["metadata"]["action"] == "unlocked"
         assert row["location"]["zone"] == "front"
+
+
+class TestSceneTrack:
+    def test_classify_behavior_passthrough_human(self, normalizer):
+        assert normalizer._classify_behavior("Human", 3.0) == "passthrough"
+
+    def test_classify_behavior_approach_human(self, normalizer):
+        assert normalizer._classify_behavior("Human", 20.0) == "approach"
+
+    def test_classify_behavior_loitering_human(self, normalizer):
+        assert normalizer._classify_behavior("Human", 60.0) == "loitering"
+
+    def test_classify_behavior_stopped_car(self, normalizer):
+        assert normalizer._classify_behavior("Car", 30.0) == "stopped"
+
+    def test_classify_behavior_parked_car(self, normalizer):
+        assert normalizer._classify_behavior("Car", 200.0) == "parked"
+
+    def test_classify_behavior_unknown_type_short(self, normalizer):
+        assert normalizer._classify_behavior("Bicycle", 3.0) == "passthrough"
+
+    def test_scene_track_new_stores_and_lost_writes_events(self, normalizer, store):
+        topic_new = "axis/front/scene/track"
+        normalizer.handle_scene_track(
+            topic_new,
+            json.dumps({"track_id": "t1", "event": "NEW", "type": "Human"}),
+        )
+        # No events written yet on NEW
+        assert not store.timeline_jsonl.exists()
+
+        normalizer.handle_scene_track(
+            topic_new,
+            json.dumps({"track_id": "t1", "event": "LOST", "type": "Human", "duration_sec": 20.0}),
+        )
+        lines = store.timeline_jsonl.read_text().strip().splitlines()
+        # Approach (20s Human) → person event + behavior event
+        assert len(lines) == 2
+        person_ev = json.loads(lines[0])
+        behavior_ev = json.loads(lines[1])
+        assert person_ev["type"] == "person"
+        assert behavior_ev["type"] == "behavior"
+        assert behavior_ev["metadata"]["behavior"] == "approach"
+
+    def test_scene_track_skips_passthrough_behavior_event(self, normalizer, store):
+        topic = "axis/front/scene/track"
+        normalizer.handle_scene_track(
+            topic,
+            json.dumps({"track_id": "t2", "event": "LOST", "type": "Human", "duration_sec": 3.0}),
+        )
+        lines = store.timeline_jsonl.read_text().strip().splitlines()
+        # Passthrough → only the raw person event, no behavior event
+        assert len(lines) == 1
+        assert json.loads(lines[0])["type"] == "person"
+
+    def test_scene_track_lost_without_prior_new_uses_zero_duration(self, normalizer, store):
+        topic = "axis/driveway_wide/scene/track"
+        normalizer.handle_scene_track(
+            topic,
+            json.dumps({"track_id": "orphan", "event": "LOST", "type": "Car"}),
+        )
+        lines = store.timeline_jsonl.read_text().strip().splitlines()
+        ev = json.loads(lines[0])
+        assert ev["type"] == "vehicle"
+        # 0s Car → stopped behavior, so behavior event also written
+        assert any(json.loads(l)["type"] == "behavior" for l in lines)
+
+    def test_scene_track_ignores_missing_track_id(self, normalizer, store):
+        normalizer.handle_scene_track(
+            "axis/front/scene/track",
+            json.dumps({"event": "NEW", "type": "Human"}),
+        )
+        assert not store.timeline_jsonl.exists()
+
+    def test_scene_track_ignores_bad_json(self, normalizer, store):
+        normalizer.handle_scene_track("axis/front/scene/track", "{not json}")
+        assert not store.timeline_jsonl.exists()
