@@ -96,3 +96,25 @@
   unit_of_measurement: "pers"
   icon: mdi:account-multiple
   expire_after: 10
+
+# ── Backyard ──────────────────────────────────────────────────────────────────
+
+- name: "backyard scene detections"
+  unique_id: "scene_backyard_detections"
+  state_topic: "axis/backyard/scene/frame"
+  value_template: >
+    {{ value_json.detections | default([]) | length }}
+  unit_of_measurement: "obj"
+  icon: mdi:motion-sensor
+  expire_after: 10
+
+- name: "backyard scene persons"
+  unique_id: "scene_backyard_persons"
+  state_topic: "axis/backyard/scene/frame"
+  value_template: >
+    {{ value_json.detections | default([])
+       | selectattr('type', 'defined')
+       | selectattr('type', 'eq', 'Human') | list | length }}
+  unit_of_measurement: "pers"
+  icon: mdi:account-multiple
+  expire_after: 10

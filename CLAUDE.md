@@ -92,6 +92,7 @@ Note: `docs/naming-conventions.md` specifies `camera.frigate_<zone_id>` as the i
 | `front` | `binary_sensor.front_scene_object_present` | `sensor.front_scene_persons` | `sensor.front_scene_vehicles` |
 | `driveway_wide` | `binary_sensor.driveway_wide_scene_object_present` | `sensor.driveway_wide_scene_persons` | `sensor.driveway_wide_scene_vehicles` |
 | `driveway_id` | `binary_sensor.driveway_id_scene_object_present` | `sensor.driveway_id_scene_persons` | — |
+| `backyard` | `binary_sensor.backyard_scene_object_present` | `sensor.backyard_scene_persons` | — |
 
 Scene entities expire after 10 s if no MQTT message received. Image entities (`image.front_latest_detection` etc.) update on `axis/<zone>/scene/snapshot`.
 

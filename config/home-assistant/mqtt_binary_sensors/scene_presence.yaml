@@ -33,12 +33,13 @@
 
 - name: "backyard scene object present"
   unique_id: "scene_backyard_object_present"
-  state_topic: "axis/backyard/scene/track"
-  value_template: "on"
+  state_topic: "axis/backyard/scene/frame"
+  value_template: >
+    {{ 'on' if value_json.detections | default([]) | length > 0 else 'off' }}
   payload_on: "on"
   payload_off: "off"
   device_class: motion
-  expire_after: 30
+  expire_after: 10
 
 - name: "storage ext scene object present"
   unique_id: "scene_storage_ext_object_present"

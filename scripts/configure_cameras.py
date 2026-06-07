@@ -141,6 +141,68 @@ def configure_mqtt(ip, zone):
     return ok
 
 
+SCENE_FRAME_PUBLISHER = {
+    "data_source_key": "com.axis.scene.frame.v1#1",
+    "qos":             0,
+    "retain":          False,
+    "use_topic_prefix": False,
+}
+
+
+def get_scene_publishers(ip):
+    auth = HTTPDigestAuth(CAM_USER, CAM_PASS)
+    try:
+        r = requests.get(
+            f"http://{ip}/config/rest/analytics-mqtt/v1/publishers",
+            auth=auth, timeout=10,
+        )
+    except requests.exceptions.RequestException as exc:
+        return {"_error": str(exc)}
+    if r.status_code not in (200, 201):
+        return {"_error": f"HTTP {r.status_code}"}
+    try:
+        return r.json()
+    except Exception:
+        return {"_error": "invalid JSON"}
+
+
+def configure_scene_publishers(ip, zone):
+    """Ensure com.axis.scene.frame.v1 publisher exists (idempotent)."""
+    publishers = get_scene_publishers(ip)
+    if "_error" in publishers:
+        print(f"  [SCENE] SKIP — {publishers['_error']}")
+        return False
+
+    topic = f"axis/{zone}/scene/frame"
+    for pub in publishers:
+        if pub.get("data_source_key") == SCENE_FRAME_PUBLISHER["data_source_key"]:
+            print(f"  [SCENE] frame publisher already exists -> {pub.get('mqtt_topic', topic)}")
+            return True
+
+    print(f"  [SCENE] Creating frame publisher -> {topic}")
+    body = {
+        "data": {
+            "id":               f"{zone}_frame",
+            "mqtt_topic":       topic,
+            **SCENE_FRAME_PUBLISHER,
+        }
+    }
+    auth = HTTPDigestAuth(CAM_USER, CAM_PASS)
+    try:
+        r = requests.post(
+            f"http://{ip}/config/rest/analytics-mqtt/v1/publishers",
+            json=body, auth=auth, timeout=12,
+        )
+    except requests.exceptions.RequestException as exc:
+        print(f"    FAIL {exc}")
+        return False
+    if r.status_code not in (200, 201):
+        print(f"    FAIL HTTP {r.status_code}: {r.text[:200]}")
+        return False
+    print(f"    OK")
+    return True
+
+
 def configure_event_publication(ip, zone):
     # includeTopicNamespaces=True (default) adds ONVIF namespace prefixes, e.g.
     # axis/<zone>/event/tns1:Analytics/tnsaxis:ObjectAnalytics/...
@@ -262,6 +324,7 @@ def main():
 
         mqtt_ok = configure_mqtt(ip, zone)
         configure_event_publication(ip, zone)
+        configure_scene_publishers(ip, zone)
 
         current_cfg  = vapix(ip, "/local/objectanalytics/control.cgi",
                              {"apiVersion": "1.0", "method": "getConfiguration"})
