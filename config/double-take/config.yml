@@ -1,6 +1,6 @@
 # Double Take — Home Lab
 # Deployed to /config/double-take/config.yml on HA host
-# Face recognizer: CodeProject.AI running on Windows PC (192.168.68.118)
+# Face recognizer: CodeProject.AI on Windows dev PC (DEV_PC_HOST / 192.168.68.136)
 
 mqtt:
   host: core-mosquitto
@@ -21,7 +21,7 @@ frigate:
 # After install, enable the Face Recognition module in the dashboard
 detectors:
   codeproject:
-    url: http://192.168.68.118:32168
+    url: http://192.168.68.136:32168
 
 time:
   timezone: Europe/Stockholm

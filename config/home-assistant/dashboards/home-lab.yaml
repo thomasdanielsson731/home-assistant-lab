@@ -544,7 +544,7 @@ views:
             fill_container: true
             tap_action:
               action: url
-              url_path: http://192.168.68.118:8765/story
+              url_path: http://192.168.68.136:8765/story
 
       # ── Energy (Phase 5 — Kraftringen) ────────────────────────
       - title: ENERGY
