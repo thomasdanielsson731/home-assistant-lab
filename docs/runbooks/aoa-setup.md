@@ -39,7 +39,7 @@ Repeat for each camera. Open the camera web UI at `http://<camera-ip>`.
 2. Click **+ Add scenario**
 3. Choose **Occupancy in area** (or "Presence in area" depending on firmware)
 4. **Name the scenario exactly**: `PersonOccupancy`
-5. Draw the area: select **Full frame** (or drag corners to cover the entire view)
+5. Draw the area: **Full frame** on most cameras; **storage building** uses a door band only (see below)
 6. Under **Object classes**: enable **Person**, disable Vehicle / Other
 7. Set **Minimum size filter**: small (to catch persons at distance)
 8. Save
@@ -127,6 +127,17 @@ Stand in front of the camera for >10 s — expect a message on `.../Loitering/Ac
 # Then in HA: Developer Tools → YAML → Reload all YAML
 # Or restart HA for a full reload
 ```
+
+## Storage building — door-only PersonOccupancy
+
+`storage_ext` and `storage_int` use a **narrow door band** instead of full frame to cut false occupancy from wind, foliage, and reflections. Applied by `configure_cameras.py` (idempotent).
+
+| Zone | Area (Axis coords) | Purpose |
+|---|---|---|
+| `storage_ext` | Lower center band: x ±0.45, y 0.15→1.0 | Exterior door approach |
+| `storage_int` | Lower center half: x ±0.5, y 0.0→1.0 | Interior entry |
+
+Adjust vertices in `scripts/configure_cameras.py` → `PERSON_OCCUPANCY_VERTICES` if the door is off-center in the live view.
 
 ## Scene Frame Metadata (Phase 5 extension)
 

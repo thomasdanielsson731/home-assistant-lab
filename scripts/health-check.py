@@ -56,8 +56,12 @@ SCENE_SENSORS = [
     "binary_sensor.driveway_wide_scene_object_present",
     "binary_sensor.driveway_id_scene_object_present",
     "binary_sensor.backyard_scene_object_present",
+    "binary_sensor.storage_ext_scene_object_present",
+    "binary_sensor.storage_int_scene_object_present",
     "sensor.front_scene_persons",
     "sensor.driveway_wide_scene_persons",
+    "sensor.storage_ext_scene_persons",
+    "sensor.storage_int_scene_persons",
 ]
 
 BRIDGE_SCRIPTS = [

@@ -54,6 +54,14 @@ CAMERAS = [
 # Axis coordinate system: full frame = corners at (-1,-1)..(1,1)
 FULL_FRAME = [[-1, -1], [-1, 1], [1, 1], [1, -1]]
 
+# Door-focused PersonOccupancy zones (storage building — reduce perimeter false alarms)
+PERSON_OCCUPANCY_VERTICES = {
+    # Exterior camera faces door from under eave — lower-center band
+    "storage_ext": [[-0.45, 0.15], [-0.45, 1], [0.45, 1], [0.45, 0.15]],
+    # Interior camera — entry / door area, lower half center
+    "storage_int": [[-0.5, 0.0], [-0.5, 1], [0.5, 1], [0.5, 0.0]],
+}
+
 AOA_SCENARIOS = [
     {
         "name":    "PersonOccupancy",
@@ -161,15 +169,24 @@ def get_scene_publishers(ip):
     if r.status_code not in (200, 201):
         return {"_error": f"HTTP {r.status_code}"}
     try:
-        return r.json()
+        data = r.json()
     except Exception:
         return {"_error": "invalid JSON"}
+    if isinstance(data, dict):
+        pubs = data.get("data", [])
+    elif isinstance(data, list):
+        pubs = data
+    else:
+        return {"_error": "unexpected response"}
+    if not isinstance(pubs, list):
+        return {"_error": "invalid publishers list"}
+    return pubs
 
 
 def configure_scene_publishers(ip, zone):
     """Ensure com.axis.scene.frame.v1 publisher exists (idempotent)."""
     publishers = get_scene_publishers(ip)
-    if "_error" in publishers:
+    if isinstance(publishers, dict) and "_error" in publishers:
         print(f"  [SCENE] SKIP — {publishers['_error']}")
         return False
 
@@ -242,7 +259,69 @@ def get_aoa_scenarios(ip):
     return {s["name"]: s for s in r.get("data", {}).get("scenarios", [])}
 
 
-def create_aoa_scenario(ip, scenario_def, existing, current_data):
+def _person_occupancy_vertices(zone: str) -> list[list[float]]:
+    return PERSON_OCCUPANCY_VERTICES.get(zone, FULL_FRAME)
+
+
+def _vertices_equal(a: list, b: list, tol: float = 0.02) -> bool:
+    if len(a) != len(b):
+        return False
+    for (x, y), (u, v) in zip(a, b):
+        if abs(x - u) > tol or abs(y - v) > tol:
+            return False
+    return True
+
+
+def update_person_occupancy_zone(ip: str, zone: str, current_data: dict) -> bool:
+    """Set PersonOccupancy includeArea to door zone on storage cameras (idempotent)."""
+    target = _person_occupancy_vertices(zone)
+    if zone not in PERSON_OCCUPANCY_VERTICES:
+        return True
+
+    scenarios = list(current_data.get("scenarios", []))
+    updated = False
+    for scenario in scenarios:
+        if scenario.get("name") != "PersonOccupancy":
+            continue
+        triggers = scenario.get("triggers") or []
+        if not triggers:
+            continue
+        current = triggers[0].get("vertices", FULL_FRAME)
+        if _vertices_equal(current, target):
+            print(f"  [AOA] PersonOccupancy door zone already set")
+            return True
+        triggers[0]["vertices"] = target
+        scenario["triggers"] = triggers
+        updated = True
+        break
+
+    if not updated:
+        print(f"  [AOA] PersonOccupancy not found — skipping zone update")
+        return False
+
+    print(f"  [AOA] Updating PersonOccupancy -> door zone")
+    params = {
+        "devices":         current_data.get("devices", [{"id": 1}]),
+        "metadataOverlay": current_data.get("metadataOverlay", []),
+        "scenarios":       scenarios,
+    }
+    r = vapix(ip, "/local/objectanalytics/control.cgi",
+              {"apiVersion": "1.0", "method": "setConfiguration", "params": params})
+    err = r.get("error")
+    if err and isinstance(err, dict) and err.get("code", 0) != 0:
+        print(f"    FAIL {err}")
+        return False
+    if "_error" in r:
+        print(f"    FAIL {r}")
+        return False
+    print(f"    OK")
+    cfg = vapix(ip, "/local/objectanalytics/control.cgi",
+                {"apiVersion": "1.0", "method": "getConfiguration"})
+    current_data["scenarios"] = cfg.get("data", {}).get("scenarios", scenarios)
+    return True
+
+
+def create_aoa_scenario(ip, zone, scenario_def, existing, current_data):
     name = scenario_def["name"]
     if name in existing:
         print(f"  [AOA] {name} -- already exists, skipping")
@@ -258,7 +337,7 @@ def create_aoa_scenario(ip, scenario_def, existing, current_data):
         "type":    scenario_def["type"],
         "devices": [{"id": 1}],
         "objectClassifications": [{"type": c} for c in scenario_def["classes"]],
-        "triggers": [{"type": "includeArea", "vertices": FULL_FRAME}],
+        "triggers": [{"type": "includeArea", "vertices": _person_occupancy_vertices(zone)}],
         "filters": [],
         "eventInterval":   {"enabled": False},
         "metadataOverlay": None,
@@ -334,7 +413,12 @@ def main():
         for s in AOA_SCENARIOS:
             if zone not in s["zones"]:
                 continue
-            aoa_results[s["name"]] = create_aoa_scenario(ip, s, existing, current_data)
+            aoa_results[s["name"]] = create_aoa_scenario(ip, zone, s, existing, current_data)
+
+        if zone in PERSON_OCCUPANCY_VERTICES:
+            aoa_results["PersonOccupancyZone"] = update_person_occupancy_zone(
+                ip, zone, current_data
+            )
 
         results[zone] = {"mqtt": mqtt_ok, "aoa": aoa_results}
 

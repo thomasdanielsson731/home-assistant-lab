@@ -118,3 +118,47 @@
   unit_of_measurement: "pers"
   icon: mdi:account-multiple
   expire_after: 10
+
+# ── Storage Exterior ──────────────────────────────────────────────────────────
+
+- name: "storage ext scene detections"
+  unique_id: "scene_storage_ext_detections"
+  state_topic: "axis/storage_ext/scene/frame"
+  value_template: >
+    {{ value_json.detections | default([]) | length }}
+  unit_of_measurement: "obj"
+  icon: mdi:motion-sensor
+  expire_after: 10
+
+- name: "storage ext scene persons"
+  unique_id: "scene_storage_ext_persons"
+  state_topic: "axis/storage_ext/scene/frame"
+  value_template: >
+    {{ value_json.detections | default([])
+       | selectattr('type', 'defined')
+       | selectattr('type', 'eq', 'Human') | list | length }}
+  unit_of_measurement: "pers"
+  icon: mdi:account-multiple
+  expire_after: 10
+
+# ── Storage Interior ──────────────────────────────────────────────────────────
+
+- name: "storage int scene detections"
+  unique_id: "scene_storage_int_detections"
+  state_topic: "axis/storage_int/scene/frame"
+  value_template: >
+    {{ value_json.detections | default([]) | length }}
+  unit_of_measurement: "obj"
+  icon: mdi:motion-sensor
+  expire_after: 10
+
+- name: "storage int scene persons"
+  unique_id: "scene_storage_int_persons"
+  state_topic: "axis/storage_int/scene/frame"
+  value_template: >
+    {{ value_json.detections | default([])
+       | selectattr('type', 'defined')
+       | selectattr('type', 'eq', 'Human') | list | length }}
+  unit_of_measurement: "pers"
+  icon: mdi:account-multiple
+  expire_after: 10

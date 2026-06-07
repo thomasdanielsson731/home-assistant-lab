@@ -9,8 +9,8 @@ Axis camera analytics flowing into Home Assistant via MQTT. Core of Phase 5.
 | AOA Person Occupancy | All 6 | `axis/<zone>/event/.../PersonOccupancy/Active` | `binary_sensor.<zone>_aoa_person` |
 | AOA Vehicle | front, driveway_wide, driveway_id | `axis/<zone>/event/.../VehicleOcc/Active` | `binary_sensor.<zone>_aoa_vehicle` |
 | AOA Loitering | front, driveway_wide, driveway_id | `axis/<zone>/event/.../Loitering/Active` | `binary_sensor.<zone>_aoa_loitering` |
-| Scene frame | front, driveway_wide, driveway_id | `axis/<zone>/scene/frame` | presence + person/vehicle counts |
-| Scene track | backyard, storage_ext, storage_int | `axis/<zone>/scene/track` | `binary_sensor.<zone>_scene_object_present` |
+| Scene frame | all 6 | `axis/<zone>/scene/frame` | presence + person/vehicle counts |
+| Scene track | optional | `axis/<zone>/scene/track` | used by `event_normalizer` behavior classification |
 | Scene snapshot | All with scene analytics | `axis/<zone>/scene/snapshot` | `image.<zone>_latest_detection` |
 
 ## Setup

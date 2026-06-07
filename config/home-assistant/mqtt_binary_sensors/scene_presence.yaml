@@ -43,18 +43,20 @@
 
 - name: "storage ext scene object present"
   unique_id: "scene_storage_ext_object_present"
-  state_topic: "axis/storage_ext/scene/track"
-  value_template: "on"
+  state_topic: "axis/storage_ext/scene/frame"
+  value_template: >
+    {{ 'on' if value_json.detections | default([]) | length > 0 else 'off' }}
   payload_on: "on"
   payload_off: "off"
   device_class: motion
-  expire_after: 30
+  expire_after: 10
 
 - name: "storage int scene object present"
   unique_id: "scene_storage_int_object_present"
-  state_topic: "axis/storage_int/scene/track"
-  value_template: "on"
+  state_topic: "axis/storage_int/scene/frame"
+  value_template: >
+    {{ 'on' if value_json.detections | default([]) | length > 0 else 'off' }}
   payload_on: "on"
   payload_off: "off"
   device_class: motion
-  expire_after: 30
+  expire_after: 10
