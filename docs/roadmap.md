@@ -84,7 +84,7 @@ Vision: [vision.md](vision.md) · Scope: [scope.md](scope.md) · Work queue: [ba
 | `audio_bridge.py` — SPL WebSocket → MQTT (3 cameras) | ✅ |
 | Audio SPL sensors verified in HA | ✅ |
 | Axis MQTT client enabled on all cameras | ✅ |
-| AOA Person Occupancy on all 6 cameras | ✅ |
+| AOA Person Occupancy on all 6 cameras | ✅ verified live 2026-06-06 |
 | AOA Vehicle on driveway cameras | ✅ |
 | AOA Loitering (manual web UI setup) | ⬜ |
 | Scene frame/track sensors verified in HA | ✅ health-check |

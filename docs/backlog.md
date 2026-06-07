@@ -15,6 +15,7 @@ Complete the Axis analytics pipeline end-to-end.
 | P5-1 | Commit + sync pending config changes | S | ✅ |
 | P5-2 | Start `air_quality_bridge.py`, verify `sensor.driveway_env_*` | S | ✅ MQTT OK, HA reload needed |
 | P5-3 | Run `configure_cameras.py` — MQTT + AOA on all cameras | M | ✅ |
+| P5-3b | PersonOccupancy verified live on all 6 cameras | S | ✅ verified 2026-06-06 |
 | P5-4 | Verify scene/frame on `front` via MQTT subscribe | S | ✅ |
 | P5-5 | AOA via `aoa_bridge.py` — poll getOccupancy → MQTT | M | ✅ |
 | P5-5b | Audio SPL via `audio_bridge.py` — WebSocket → MQTT | M | ✅ |
