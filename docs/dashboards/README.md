@@ -6,7 +6,7 @@ HA Lovelace dashboards are **secondary** — live ops and security. Primary insi
 |---|---|---|
 | Danielsson Home | `home-lab` | Ops, security, cameras, rooms |
 | Analytics | `house-timeline` | Events, occupancy, metrics, zoom |
-| Environment | `house-graphs` | CO₂, AQI, SPL, 7/90-day graphs |
+| Environment | `house-graphs` | CO₂, AQI, SPL — shared time range, multi-series charts (`:8765/environment`) |
 
 | File | Notes |
 |---|---|

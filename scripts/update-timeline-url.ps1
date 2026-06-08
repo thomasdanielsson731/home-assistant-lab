@@ -33,10 +33,12 @@ if (-not $HostIp) {
 }
 
 $timelineUrl = "http://${HostIp}:8765/timeline"
+$environmentUrl = "http://${HostIp}:8765/environment"
 Write-Host "Timeline URL: $timelineUrl"
+Write-Host "Environment URL: $environmentUrl"
 
 # Update HA secrets on host
-& (Join-Path $PSScriptRoot "set-ha-timeline-secret.ps1") -TimelineUrl $timelineUrl
+& (Join-Path $PSScriptRoot "set-ha-timeline-secret.ps1") -TimelineUrl $timelineUrl -EnvironmentUrl $environmentUrl
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 # Quick reachability test
@@ -44,7 +46,7 @@ try {
     $r = Invoke-WebRequest -Uri $timelineUrl -UseBasicParsing -TimeoutSec 5
     Write-Host "Local test: HTTP $($r.StatusCode)"
 } catch {
-    Write-Warning "Timeline not reachable at $timelineUrl — run start-bridges.ps1"
+    Write-Warning "Timeline not reachable at $timelineUrl - run start-bridges.ps1"
 }
 
 Write-Host 'Next: sync-config.ps1 then ha core restart on HA host'

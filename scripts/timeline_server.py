@@ -26,6 +26,7 @@ from timeline_api import (  # noqa: E402
     load_metrics,
     parse_time_range,
 )
+from environment_page import ENVIRONMENT_HTML  # noqa: E402
 from story_engine import generate_story  # noqa: E402
 
 REPO_ROOT = Path(__file__).parent.parent
@@ -867,6 +868,15 @@ class Handler(BaseHTTPRequestHandler):
 
         if parsed.path == "/timeline":
             page = TIMELINE_V1_HTML.encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(page)))
+            self.end_headers()
+            self.wfile.write(page)
+            return
+
+        if parsed.path == "/environment":
+            page = ENVIRONMENT_HTML.encode("utf-8")
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.send_header("Content-Length", str(len(page)))

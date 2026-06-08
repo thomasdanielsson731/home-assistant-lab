@@ -72,7 +72,7 @@ python scripts/verify-influxdb.py   # Influx auth + write probe
 | Occupancy debounce (60 s) | ✅ |
 | **CodeProject.AI** | Install on dev PC → enable Face module → Double Take |
 | Training photos | Thomas, Nils, Hugo, Anna via Double Take UI |
-| **InfluxDB writes** | Auth enabled — run Chronograf user setup or `setup-influxdb.ps1` |
+| **InfluxDB writes** | ✅ `home_lab` DB + `influx_metrics_bridge.py` |
 | Yale Doorman | Hardware + HA lock entity |
 | Kraftringen energy | API credentials for `energy_bridge.py` |
 

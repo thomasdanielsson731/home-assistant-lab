@@ -13,11 +13,11 @@ Event platform metrics (`co2`, `temperature`, `spl`, etc.) are written to `metri
 
 ## Option A — InfluxDB add-on on HAOS (recommended)
 
-**Status (2026-06-07):** Add-on `a0d7b954_influxdb` v5.0.2 running on `http://192.168.68.175:8086` (InfluxDB 1.8.x). Ping OK; **writes return 401** until auth is configured — run `python scripts/verify-influxdb.py`.
+**Status:** Add-on `a0d7b954_influxdb` v5.0.2 on `http://192.168.68.175:8086` (InfluxDB 1.8.x). Verify: `python scripts/verify-influxdb.py`.
 
-1. **Settings → Add-ons → InfluxDB → Configuration** — set **Authentication** to `false` (Danielsson Home LAN), **SSL** to `false`, Save, Restart add-on  
-   *(Or create user/database in Chronograf: Open Web UI → database `home_lab`, user `homelab` with read/write.)*
-2. On dev PC: `.\scripts\setup-influxdb.ps1` — writes `INFLUX_*` to `.env`
+1. From SSH on HA host (or dev PC): `bash /path/to/configure-influxdb-addon.sh` — sets **auth** + **ssl** to `false` for LAN, restarts add-on  
+   *(UI alternative: Settings → Add-ons → InfluxDB → Configuration.)*
+2. On dev PC: `.\scripts\setup-influxdb.ps1` — creates `home_lab` DB + `homelab` user, updates `.env`
 3. `.\scripts\start-bridges.ps1` — restarts `influx_metrics_bridge.py`
 4. Optional: HA integration — copy from `config/home-assistant/influxdb.yaml.example`
 

@@ -58,7 +58,7 @@ CodeProject.AI path — see [ADR-003](decisions/003-face-recognizer.md) · [runb
 | P7-8 | Correlation engine (`arrival`, `delivery`, `bicycle`, door) | L | ✅ |
 | P7-11 | HA Timeline dashboard (`house-timeline`) | S | ✅ |
 | P7-9 | Timeline zoom + custom time range | M | ✅ |
-| P7-10 | InfluxDB metrics retention | M | ⚠️ add-on OK, writes need auth fix — `verify-influxdb.py` |
+| P7-10 | InfluxDB metrics retention | M | ✅ `configure-influxdb-addon.sh` + `verify-influxdb.py` |
 
 ---
 

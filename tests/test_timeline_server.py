@@ -120,7 +120,17 @@ class TestTimelineHTTP:
         conn = HTTPConnection("127.0.0.1", server)
         conn.request("GET", "/timeline")
         body = conn.getresponse().read().decode()
-        assert "House Intelligence Timeline" in body
+        assert "Analytics" in body
+
+    def test_environment_page(self, server):
+        conn = HTTPConnection("127.0.0.1", server)
+        conn.request("GET", "/environment")
+        resp = conn.getresponse()
+        body = resp.read().decode()
+        assert resp.status == 200
+        assert "Environment" in body
+        assert "chart-climate" in body
+        assert 'data-hours="168"' in body
 
     def test_api_v1_occupancy(self, server):
         conn = HTTPConnection("127.0.0.1", server)

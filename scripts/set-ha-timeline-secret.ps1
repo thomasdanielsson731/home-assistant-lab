@@ -1,6 +1,7 @@
 # set-ha-timeline-secret.ps1 — Safely set timeline_url in HA secrets.yaml
 param(
-    [string]$TimelineUrl = ""
+    [string]$TimelineUrl = "",
+    [string]$EnvironmentUrl = ""
 )
 
 $repoRoot = Split-Path $PSScriptRoot -Parent
@@ -28,13 +29,21 @@ if (-not $TimelineUrl) {
     if (-not $detected) { Write-Error "Set -TimelineUrl or DEV_PC_HOST in .env"; exit 1 }
     $TimelineUrl = "http://${detected}:8765/timeline"
 }
+if (-not $EnvironmentUrl) {
+    if ($TimelineUrl -match '^(https?://[^/]+)') {
+        $EnvironmentUrl = "$($Matches[1])/environment"
+    } else {
+        $EnvironmentUrl = "http://192.168.68.136:8765/environment"
+    }
+}
 Write-Host "Setting timeline_url on HA host: $TimelineUrl"
+Write-Host "Setting environment_url on HA host: $EnvironmentUrl"
 
 $cmd = @"
-grep -v 'House Intelligence Timeline' /config/secrets.yaml | grep -v '^timeline_url:' | sed -e '\${'$'}/^\$/d' > /tmp/secrets_fix.yaml
-printf '\n# House Intelligence Timeline (dev PC)\ntimeline_url: "%s"\n' '$TimelineUrl' >> /tmp/secrets_fix.yaml
+grep -v 'House Intelligence' /config/secrets.yaml | grep -v '^timeline_url:' | grep -v '^environment_url:' | sed -e '\${'$'}/^\$/d' > /tmp/secrets_fix.yaml
+printf '\n# House Intelligence (dev PC)\ntimeline_url: "%s"\nenvironment_url: "%s"\n' '$TimelineUrl' '$EnvironmentUrl' >> /tmp/secrets_fix.yaml
 mv /tmp/secrets_fix.yaml /config/secrets.yaml
-tail -3 /config/secrets.yaml
+tail -4 /config/secrets.yaml
 ha core check
 "@
 
