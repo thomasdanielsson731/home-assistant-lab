@@ -23,7 +23,7 @@ frigate:
 detectors:
   deepstack:
     url: http://192.168.68.136:32168
-    timeout: 15
+    timeout: 60
     opencv_face_required: false
 
 time:

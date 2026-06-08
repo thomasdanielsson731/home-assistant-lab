@@ -1,0 +1,199 @@
+# Environment graphs — sidebar panel (mirrors house-timeline / Analytics pattern)
+views:
+  - title: Environment
+    panel: true
+    cards:
+      - type: vertical-stack
+        cards:
+          - type: markdown
+            content: |
+              ## Outdoor environment
+              Live D6210 (driveway) · 7-day history · 90-day averages · camera SPL
+
+          - type: horizontal-stack
+            cards:
+              - type: custom:mushroom-template-card
+                primary: "{{ states('sensor.driveway_env_temperature') }}°C"
+                secondary: Temperature
+                icon: mdi:thermometer
+                icon_color: >-
+                  {% set t = states('sensor.driveway_env_temperature') | float(0) %}
+                  {{ 'blue' if t < 10 else 'green' if t < 22 else 'orange' if t < 28 else 'red' }}
+                layout: vertical
+                fill_container: true
+              - type: custom:mushroom-template-card
+                primary: "{{ states('sensor.driveway_env_humidity') }}%"
+                secondary: Humidity
+                icon: mdi:water-percent
+                icon_color: blue
+                layout: vertical
+                fill_container: true
+              - type: custom:mushroom-template-card
+                primary: "{{ states('sensor.driveway_env_co2') | int(0) }} ppm"
+                secondary: CO₂
+                icon: mdi:molecule-co2
+                icon_color: >-
+                  {% set c = states('sensor.driveway_env_co2') | int(0) %}
+                  {{ 'green' if c < 800 else 'amber' if c < 1200 else 'red' }}
+                layout: vertical
+                fill_container: true
+              - type: custom:mushroom-template-card
+                primary: "AQI {{ states('sensor.driveway_env_aqi') }}"
+                secondary: Air quality
+                icon: mdi:air-filter
+                icon_color: >-
+                  {% set aqi = states('sensor.driveway_env_aqi') | int(0) %}
+                  {{ 'green' if aqi <= 50 else 'amber' if aqi <= 100 else 'red' }}
+                layout: vertical
+                fill_container: true
+              - type: custom:mushroom-template-card
+                primary: "{{ states('sensor.driveway_env_pm2_5') }}"
+                secondary: PM2.5 µg/m³
+                icon: mdi:blur
+                icon_color: grey
+                layout: vertical
+                fill_container: true
+
+          - type: history-graph
+            title: Temperature — last 7 days
+            entities:
+              - entity: sensor.driveway_env_temperature
+            hours_to_show: 168
+          - type: history-graph
+            title: Humidity — last 7 days
+            entities:
+              - entity: sensor.driveway_env_humidity
+            hours_to_show: 168
+          - type: history-graph
+            title: CO₂ — last 7 days
+            entities:
+              - entity: sensor.driveway_env_co2
+            hours_to_show: 168
+          - type: history-graph
+            title: Air Quality (AQI) — last 7 days
+            entities:
+              - entity: sensor.driveway_env_aqi
+            hours_to_show: 168
+          - type: history-graph
+            title: PM2.5 — last 7 days
+            entities:
+              - entity: sensor.driveway_env_pm2_5
+            hours_to_show: 168
+
+          - type: markdown
+            content: "## 90-day averages"
+
+          - type: statistics-graph
+            chart_type: line
+            entities:
+              - sensor.driveway_env_temperature
+            stat_types:
+              - mean
+            days_to_show: 90
+            period: day
+            hide_legend: true
+          - type: statistics-graph
+            chart_type: line
+            entities:
+              - sensor.driveway_env_humidity
+            stat_types:
+              - mean
+            days_to_show: 90
+            period: day
+            hide_legend: true
+          - type: statistics-graph
+            chart_type: line
+            entities:
+              - sensor.driveway_env_co2
+            stat_types:
+              - mean
+            days_to_show: 90
+            period: day
+            hide_legend: true
+          - type: statistics-graph
+            chart_type: line
+            entities:
+              - sensor.driveway_env_aqi
+            stat_types:
+              - mean
+            days_to_show: 90
+            period: day
+            hide_legend: true
+          - type: statistics-graph
+            chart_type: line
+            entities:
+              - sensor.driveway_env_pm2_5
+            stat_types:
+              - mean
+            days_to_show: 90
+            period: day
+            hide_legend: true
+
+          - type: markdown
+            content: "## Audio analytics (SPL)"
+
+          - type: horizontal-stack
+            cards:
+              - type: custom:mushroom-template-card
+                primary: >-
+                  {% if states('sensor.front_audio_spl') not in ['unknown', 'unavailable'] %}
+                  {{ states('sensor.front_audio_spl') }} dB
+                  {% else %}—{% endif %}
+                secondary: Front
+                icon: mdi:volume-high
+                icon_color: >-
+                  {{ 'blue' if states('sensor.front_audio_spl') not in ['unknown', 'unavailable'] else 'disabled' }}
+                layout: vertical
+                fill_container: true
+                tap_action:
+                  action: more-info
+                  entity: sensor.front_audio_spl
+              - type: custom:mushroom-template-card
+                primary: >-
+                  {% if states('sensor.driveway_wide_audio_spl') not in ['unknown', 'unavailable'] %}
+                  {{ states('sensor.driveway_wide_audio_spl') }} dB
+                  {% else %}—{% endif %}
+                secondary: Driveway
+                icon: mdi:volume-high
+                icon_color: >-
+                  {{ 'blue' if states('sensor.driveway_wide_audio_spl') not in ['unknown', 'unavailable'] else 'disabled' }}
+                layout: vertical
+                fill_container: true
+                tap_action:
+                  action: more-info
+                  entity: sensor.driveway_wide_audio_spl
+              - type: custom:mushroom-template-card
+                primary: >-
+                  {% if states('sensor.backyard_audio_spl') not in ['unknown', 'unavailable'] %}
+                  {{ states('sensor.backyard_audio_spl') }} dB
+                  {% else %}—{% endif %}
+                secondary: Backyard
+                icon: mdi:volume-high
+                icon_color: >-
+                  {{ 'blue' if states('sensor.backyard_audio_spl') not in ['unknown', 'unavailable'] else 'disabled' }}
+                layout: vertical
+                fill_container: true
+                tap_action:
+                  action: more-info
+                  entity: sensor.backyard_audio_spl
+          - type: custom:mushroom-template-card
+            primary: Plugin active on all 3 cameras
+            secondary: >-
+              {% if states('sensor.driveway_wide_audio_spl') in ['unknown', 'unavailable'] %}
+              Start audio_bridge.py on dev PC — see docs/runbooks/audio-analytics-setup.md
+              {% else %}Live SPL via audio_bridge{% endif %}
+            icon: mdi:information-outline
+            icon_color: amber
+            fill_container: true
+            tap_action:
+              action: none
+          - type: history-graph
+            title: Sound Pressure Level (7 days)
+            entities:
+              - entity: sensor.front_audio_spl
+                name: Front
+              - entity: sensor.driveway_wide_audio_spl
+                name: Driveway
+              - entity: sensor.backyard_audio_spl
+                name: Backyard
+            hours_to_show: 168
