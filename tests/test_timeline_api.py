@@ -185,7 +185,7 @@ def test_build_occupancy_blocks_separate_zones_not_merged(tmp_path: Path):
     blocks = build_occupancy_blocks(all_events, hours=None)
     assert len(blocks) == 2
     zones = {b["zone"] for b in blocks}
-    assert zones == {"front", "driveway_wide"}
+    assert zones == {"front", "driveway"}
 
 
 def test_latest_occupancy_by_zone(tmp_path: Path):

@@ -6,4 +6,4 @@ views:
     cards:
       - type: iframe
         url: !secret environment_url
-        aspect_ratio: 100%
+        aspect_ratio: 50%

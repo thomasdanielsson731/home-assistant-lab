@@ -6,4 +6,4 @@ views:
     cards:
       - type: iframe
         url: !secret timeline_url
-        aspect_ratio: 100%
+        aspect_ratio: 50%

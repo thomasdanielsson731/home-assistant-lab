@@ -54,7 +54,8 @@ Check Double Take logs for detector connection errors.
 1. Open Double Take UI: `http://192.168.68.175:3000`
 2. **Train** → create person → upload 10+ photos (tydligt ansikte, inte bara silhuett på avstånd)
 3. Klicka **Train** efter uppladdning — DT skickar bilderna till CPAI (ingen manuell bounding-box)
-4. Gå förbi **`front`** eller **`driveway_id`** — endast dessa kameror är konfigurerade i DT
+4. Inkludera **varierade vinklar** i träningsbilder (profil, lätt nedåt) — CPAI hittar ofta inte ansikte om du tittar i telefon
+5. Gå förbi **`front`** eller **`driveway_id`** — titta **mot kameran**, helst nära `driveway_id`
 
 ## 5. HA entities
 
@@ -69,8 +70,18 @@ After successful match, expect MQTT entities:
 |---|---|
 | Port 32168 closed | Start CodeProject.AI service; check .NET 9 runtime |
 | Double Take "detector error" | Wrong IP in `config.yml`; firewall block LAN → :32168 |
-| No matches | Face module not running; need more training images |
+| `unexpected deepstack data` | CPAI returned `success: false` (no face in crop) — increase Frigate MQTT snapshot `height: 500` + `crop: true`; lower DT `detect.match.min_area` |
+| `faces: []` after restart | CPAI face registry is in-memory — re-train in DT UI after every CPAI service restart |
+| Training completes in &lt;2 s | CPAI unreachable — check firewall; training did not register |
+| No matches | Face module not running; re-train; walk close to `front` / `driveway_id` |
 | Works only when PC on | Expected — see ADR-003 tradeoffs |
+
+Verify registry after training:
+
+```powershell
+Invoke-RestMethod -Method Post -Uri http://localhost:32168/v1/vision/face/list
+# expect: faces: ["thomas", ...]
+```
 
 ## Related
 

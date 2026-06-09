@@ -29,8 +29,10 @@ def local_tz():
 
 TZ = local_tz()
 
-# Ignore AOA occupancy shorter than this in timeline (seconds)
-MIN_OCCUPANCY_SECONDS = 60
+# AOA occupancy → timeline (PersonOccupancy only; vehicles use Frigate lane)
+MIN_OCCUPANCY_SECONDS = 120
+OCCUPANCY_COOLDOWN_SECONDS = 90
+OCCUPANCY_SCENARIOS = frozenset({"PersonOccupancy"})
 
 # Frigate camera zone_id → logical zone (event-model.md)
 CAMERA_ZONE = {

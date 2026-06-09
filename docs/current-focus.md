@@ -10,7 +10,8 @@ Quick-start context for AI assistants. Read this + [CLAUDE.md](../CLAUDE.md) + [
 
 | UX | Role |
 |---|---|
-| **Analytics** (HA sidebar) | Primary — events, occupancy, metrics (`house-timeline` → dev PC `:8765/timeline`) |
+| **Analytics** (HA sidebar) | Primary — events, occupancy, metrics (`:8765/timeline`) |
+| **Environment** (HA sidebar) | Env + SPL charts — shared time range (`:8765/environment`) |
 | **Danielsson Home** (`home-lab`) | Secondary — ops, security, cameras, rooms |
 
 Dev PC: `DEV_PC_HOST` in `.env` (currently `192.168.68.136`). HA: `192.168.68.175`.
@@ -70,8 +71,8 @@ python scripts/verify-influxdb.py   # Influx auth + write probe
 | AOA Loitering | ✅ All 6 cameras |
 | Storage scene + door AOA zones | ✅ 2026-06-07 |
 | Occupancy debounce (60 s) | ✅ |
-| **CodeProject.AI** | Install on dev PC → enable Face module → Double Take |
-| Training photos | Thomas, Nils, Hugo, Anna via Double Take UI |
+| **Phase 4 — verify match** | Restart CPAI if needed → walk `front` → check DT Matches + `dt_thomas_*` |
+| Training photos | Thomas ✅ trained; Nils, Hugo, Anna ⬜ |
 | **InfluxDB writes** | ✅ `home_lab` DB + `influx_metrics_bridge.py` |
 | Yale Doorman | Hardware + HA lock entity |
 | Kraftringen energy | API credentials for `energy_bridge.py` |
@@ -89,6 +90,8 @@ python scripts/verify-influxdb.py   # Influx auth + write probe
 | `scripts/install-codeproject-ai.ps1` | Phase 4 CodeProject.AI installer |
 | `config/double-take/config.yml` | Double Take → CodeProject.AI URL |
 | `config/home-assistant/dashboards/house-timeline.yaml` | HA Analytics iframe |
+| `config/home-assistant/dashboards/house-graphs.yaml` | HA Environment iframe |
+| `scripts/environment_page.py` | Multi-series env charts UI |
 
 ---
 

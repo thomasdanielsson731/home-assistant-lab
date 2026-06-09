@@ -34,13 +34,13 @@ CodeProject.AI path — see [ADR-003](decisions/003-face-recognizer.md) · [runb
 
 | # | Item | Effort | Status |
 |---|---|---|---|
-| P4-1 | Install CodeProject.AI on Windows dev PC | S | ⬜ `install-codeproject-ai.ps1` |
-| P4-2 | Enable Face Recognition module, verify `:32168` | S | ⬜ |
-| P4-3 | Sync DT config + restart Double Take | S | ⬜ URL → `192.168.68.136` |
-| P4-4 | Upload training photos (Thomas, Nils, Hugo, Anna) | M | ⬜ |
-| P4-5 | Test recognition at `front` — target >85% | M | ⬜ |
-| P4-6 | Unknown person alert automation | S | ⬜ exists, `initial_state: false` |
-| P4-7 | Add face match status to Security dashboard | S | ⬜ |
+| P4-1 | Install CodeProject.AI on Windows dev PC | S | ✅ `.NET 9` + CPAI service on dev PC |
+| P4-2 | Enable Face module, firewall `:32168`, verify API | S | ✅ LAN firewall rule; restart service if module hangs |
+| P4-3 | Sync DT config + restart Double Take | S | ✅ MQTT auth, `deepstack` → CPAI, timeout 60s (`71e59cf`) |
+| P4-4 | Training photos + **Train** in DT UI | M | 🔄 Thomas 23 imgs trained; Nils, Hugo, Anna ⬜ |
+| P4-5 | Live match at `front` / `driveway_id` — target >85% | M | ⬜ no verified match yet (was CPAI timeouts) |
+| P4-6 | Unknown person alert automation | S | ⬜ `smart_notifications.yaml`, `initial_state: false` |
+| P4-7 | Face match status on Security dashboard | S | ⬜ `dt_*` entities appear after first match |
 
 ---
 
@@ -70,7 +70,7 @@ CodeProject.AI path — see [ADR-003](decisions/003-face-recognizer.md) · [runb
 | P6-2 | `/api/v1/story/today` + `/story` HTML page | S | ✅ |
 | P6-3 | `energy_bridge.py` stub (Kraftringen API) | M | ✅ stub ready — credentials pending |
 | P6-4 | Scene track behavior classification (`behavior` event type) | M | ✅ |
-| P6-5 | Dashboard Intelligence view (Timeline + Story links) | S | ✅ |
+| P6-5 | Environment sidebar + Analytics/Story links | S | ✅ `house-graphs` iframe + `/environment` charts |
 | P6-6 | Implement Kraftringen API calls in `energy_bridge.py` | M | ⬜ awaiting credentials |
 | P6-7 | Energy events in timeline + story beats | S | ⬜ depends on P6-6 |
 
@@ -127,3 +127,4 @@ CodeProject.AI path — see [ADR-003](decisions/003-face-recognizer.md) · [runb
 | Nabu Casa remote access | Evaluate after local setup stable |
 | ALPR | No current automation need |
 | HA REST sensors for D6210 | Replaced by MQTT bridge — simpler, already working |
+| Meross MS100F + MSH300 hub | Hub suspected dead; sensor needs hub — use D6210 for outdoor env |

@@ -222,6 +222,9 @@ TIMELINE_V1_HTML = """<!DOCTYPE html>
     const COLORS = {};
     ALL_LANES.forEach(l => { COLORS[l.name] = l.color; });
 
+    // Occupancy sub-rows (logical zones — matches CAMERA_ZONE in event_store.py)
+    const OCC_STACK = ['driveway', 'backyard', 'storage_ext', 'storage_int', 'front'];
+
     // ── Canvas sizing ──────────────────────────────────────────
     function calcHeight() {
       let h = PAD_TOP + TIME_H;
@@ -403,7 +406,8 @@ TIMELINE_V1_HTML = """<!DOCTYPE html>
       }
       ctx.textAlign = 'left';
 
-      // Occupancy blocks
+      // Occupancy blocks (one sub-row per logical zone)
+      const stackN = OCC_STACK.length;
       blocks.forEach(b => {
         const info = ymap['occupancy'];
         if (!info) return;
@@ -413,16 +417,18 @@ TIMELINE_V1_HTML = """<!DOCTYPE html>
         ctx.fillStyle = COLORS.occupancy + '55';
         ctx.strokeStyle = COLORS.occupancy + 'cc';
         ctx.lineWidth = 1;
-        const bh = info.h * 0.55, by = info.y - bh / 2;
+        const row = Math.max(0, OCC_STACK.indexOf(b.zone));
+        const rowH = (info.h - 2) / stackN;
+        const bh = Math.max(rowH - 2, 4);
+        const by = info.top + row * rowH + 1;
         ctx.fillRect(x1, by, x2 - x1, bh);
         ctx.strokeRect(x1, by, x2 - x1, bh);
-        // Label if wide enough
-        if (x2 - x1 > 40) {
+        if (x2 - x1 > 48) {
           ctx.fillStyle = '#0f1117';
           ctx.font = 'bold 8px system-ui';
-          ctx.fillText(b.zone, x1 + 4, by + bh - 4);
+          ctx.fillText(b.zone, x1 + 4, by + bh - 3);
         }
-        b._x1 = x1; b._x2 = x2; b._y = info.y;
+        b._x1 = x1; b._x2 = x2; b._y = by + bh / 2;
       });
 
       // Metric sparklines
@@ -503,7 +509,7 @@ TIMELINE_V1_HTML = """<!DOCTYPE html>
     function renderOccupancy() {
       const el = document.getElementById('occupancy-list');
       if (!blocks.length) { el.innerHTML = '<p class="detail-empty">No occupancy blocks in range</p>'; return; }
-      el.innerHTML = blocks.slice(0, 30).map(b => {
+      el.innerHTML = blocks.slice(0, 15).map(b => {
         const s = new Date(b.start).toLocaleTimeString('sv-SE', {hour:'2-digit', minute:'2-digit'});
         const e = new Date(b.end).toLocaleTimeString('sv-SE', {hour:'2-digit', minute:'2-digit'});
         const dur = b.duration_seconds ? `${Math.round(b.duration_seconds / 60)} min` : '';
@@ -523,14 +529,22 @@ TIMELINE_V1_HTML = """<!DOCTYPE html>
 
     async function load() {
       const q = apiQuery();
-      const [ev, occ, met] = await Promise.all([
-        fetch(`/api/v1/events?${q}`).then(r => r.json()),
-        fetch(`/api/v1/occupancy?${q}`).then(r => r.json()),
-        fetch(`/api/v1/metrics?${q}`).then(r => r.json()),
-      ]);
-      events = ev;
-      blocks = occ;
-      metrics = met;
+      try {
+        const [ev, occ, met] = await Promise.all([
+          fetch(`/api/v1/events?${q}`).then(r => { if (!r.ok) throw new Error('events'); return r.json(); }),
+          fetch(`/api/v1/occupancy?${q}`).then(r => { if (!r.ok) throw new Error('occupancy'); return r.json(); }),
+          fetch(`/api/v1/metrics?${q}`).then(r => { if (!r.ok) throw new Error('metrics'); return r.json(); }),
+        ]);
+        events = Array.isArray(ev) ? ev.filter(e => e.type !== 'occupancy') : [];
+        blocks = Array.isArray(occ) ? occ : [];
+        metrics = Array.isArray(met) ? met : [];
+      } catch (err) {
+        document.getElementById('stats').textContent =
+          'Cannot load timeline — run scripts/start-bridges.ps1 on dev PC';
+        events = []; blocks = []; metrics = [];
+        draw();
+        return;
+      }
       document.getElementById('stats').textContent =
         `${events.length} events · ${blocks.length} occupancy blocks · ${metrics.length} metric samples`;
       resetViewToData();

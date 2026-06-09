@@ -13,7 +13,7 @@ Danielsson Home Intelligence — MQTT → canonical events + metrics on the dev 
 | `axis/driveway_env/air/#` | `environment` + metrics | Every 15 min |
 | `axis/+/audio/spl` | `metrics.jsonl` | SPL every 5 min per zone |
 | `axis/+/scene/frame` | `scene` | On detection count change |
-| `axis/+/event/ObjectAnalytics/ScenarioOccupancy/#` | `occupancy` | Start/end blocks for timeline |
+| `axis/+/event/ObjectAnalytics/ScenarioOccupancy/#` | `occupancy` | PersonOccupancy start/end only (≥120 s, 90 s cooldown; VehicleOcc skipped) |
 | `homeassistant/lock/+/state` | `door` | Lock/unlock — map `YALE_LOCK_ENTITIES` in `.env` |
 
 After each raw event, `correlation_engine.py` may write enriched `arrival`, `delivery`, or `bicycle` events.

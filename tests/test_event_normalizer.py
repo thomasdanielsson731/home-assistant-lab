@@ -190,10 +190,10 @@ class TestAoaAndScene:
             normalizer.handle_aoa_occupancy(topic, json.dumps({"Data": {"active": False}}))
         assert not store.timeline_jsonl.exists()
 
-    def test_aoa_occupancy_writes_when_duration_ge_60s(self, normalizer, store):
+    def test_aoa_occupancy_writes_when_duration_ge_120s(self, normalizer, store):
         topic = "axis/front/event/ObjectAnalytics/ScenarioOccupancy/PersonOccupancy/Active"
         t0 = datetime(2026, 6, 7, 10, 0, 0, tzinfo=TZ)
-        t1 = t0 + timedelta(seconds=90)
+        t1 = t0 + timedelta(seconds=150)
         with patch("event_normalizer.datetime") as mock_dt:
             mock_dt.now.side_effect = [t0, t1]
             normalizer.handle_aoa_occupancy(topic, json.dumps({"Data": {"active": True}}))
@@ -204,15 +204,25 @@ class TestAoaAndScene:
         end = json.loads(lines[1])
         assert start["metadata"]["phase"] == "start"
         assert end["metadata"]["phase"] == "end"
-        assert end["metadata"]["duration_seconds"] == 90
+        assert end["metadata"]["duration_seconds"] == 150
+
+    def test_aoa_occupancy_skips_vehicle_scenario(self, normalizer, store):
+        topic = "axis/front/event/ObjectAnalytics/ScenarioOccupancy/VehicleOcc/Active"
+        t0 = datetime(2026, 6, 7, 10, 0, 0, tzinfo=TZ)
+        t1 = t0 + timedelta(seconds=150)
+        with patch("event_normalizer.datetime") as mock_dt:
+            mock_dt.now.side_effect = [t0, t1]
+            normalizer.handle_aoa_occupancy(topic, json.dumps({"Data": {"active": True}}))
+            normalizer.handle_aoa_occupancy(topic, json.dumps({"Data": {"active": False}}))
+        assert not store.timeline_jsonl.exists()
 
     def test_aoa_occupancy_confirms_start_while_still_active(self, normalizer, store):
         topic = "axis/storage_ext/event/ObjectAnalytics/ScenarioOccupancy/PersonOccupancy/Active"
         t0 = datetime(2026, 6, 7, 10, 0, 0, tzinfo=TZ)
-        t60 = t0 + timedelta(seconds=60)
-        t90 = t0 + timedelta(seconds=90)
+        t60 = t0 + timedelta(seconds=120)
+        t150 = t0 + timedelta(seconds=150)
         with patch("event_normalizer.datetime") as mock_dt:
-            mock_dt.now.side_effect = [t0, t60, t90]
+            mock_dt.now.side_effect = [t0, t60, t150]
             normalizer.handle_aoa_occupancy(topic, json.dumps({"Data": {"active": True}}))
             normalizer.handle_aoa_occupancy(topic, json.dumps({"Data": {"active": True}}))
             normalizer.handle_aoa_occupancy(topic, json.dumps({"Data": {"active": False}}))
@@ -221,7 +231,7 @@ class TestAoaAndScene:
         start = json.loads(lines[0])
         end = json.loads(lines[1])
         assert start["timestamp"] == t0.isoformat(timespec="seconds")
-        assert end["metadata"]["duration_seconds"] == 90
+        assert end["metadata"]["duration_seconds"] == 150
 
     def test_scene_frame_emits_on_change(self, normalizer, store):
         topic = "axis/front/scene/frame"

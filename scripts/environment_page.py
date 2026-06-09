@@ -213,8 +213,21 @@ ENVIRONMENT_HTML = """<!DOCTYPE html>
     }
 
     async function load() {
-      const res = await fetch(`/api/v1/metrics?${queryString()}`);
-      const rows = await res.json();
+      let rows = [];
+      try {
+        const res = await fetch(`/api/v1/metrics?${queryString()}`);
+        if (!res.ok) throw new Error(`API ${res.status}`);
+        rows = await res.json();
+        if (!Array.isArray(rows)) throw new Error('unexpected API response');
+      } catch (err) {
+        document.getElementById('stats').textContent =
+          `Cannot load metrics — start bridges on dev PC (start-bridges.ps1). ${err.message}`;
+        ['chart-climate', 'chart-air', 'chart-spl'].forEach(id => {
+          document.getElementById(id).parentElement.innerHTML =
+            '<p class="empty">No data — run .\\scripts\\start-bridges.ps1 on the dev PC</p>';
+        });
+        return;
+      }
       const map = groupMetrics(rows);
       const maxPts = hours >= 720 ? 500 : hours >= 168 ? 400 : 300;
       renderLive(map);

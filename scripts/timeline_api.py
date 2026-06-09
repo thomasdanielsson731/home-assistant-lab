@@ -6,7 +6,7 @@ import json
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from event_store import MIN_OCCUPANCY_SECONDS, TZ
+from event_store import MIN_OCCUPANCY_SECONDS, OCCUPANCY_SCENARIOS, TZ, CAMERA_ZONE
 
 REPO_ROOT = Path(__file__).parent.parent
 DEFAULT_TIMELINE = REPO_ROOT / "events" / "timeline.jsonl"
@@ -153,8 +153,11 @@ def build_occupancy_blocks(
         if until and ts > until:
             continue
         meta = e.get("metadata") or {}
-        zone = e.get("location", {}).get("zone", "?")
         scenario = meta.get("scenario", "PersonOccupancy")
+        if scenario not in OCCUPANCY_SCENARIOS:
+            continue
+        raw_zone = e.get("location", {}).get("zone", "?")
+        zone = CAMERA_ZONE.get(raw_zone, raw_zone)
         key = f"{zone}:{scenario}"
         phase = meta.get("phase")
 

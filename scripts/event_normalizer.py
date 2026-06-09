@@ -38,6 +38,8 @@ from event_store import (  # noqa: E402
     CAMERA_ZONE,
     FRIGATE_LABEL_TYPE,
     MIN_OCCUPANCY_SECONDS,
+    OCCUPANCY_COOLDOWN_SECONDS,
+    OCCUPANCY_SCENARIOS,
     EventStore,
     TZ,
     make_summary,
@@ -66,6 +68,7 @@ _env_cache: dict[str, float | int] = {}
 _last_env_event = 0.0
 # zone:scenario → (active, started_at, start_event_written)
 _aoa_state: dict[str, tuple[bool, datetime | None, bool]] = {}
+_aoa_cooldown: dict[str, datetime] = {}
 _scene_last: dict[str, tuple[int, int, int]] = {}
 _spl_last_written: dict[str, float] = {}
 _lock_state: dict[str, str] = {}
@@ -235,10 +238,11 @@ def handle_double_take(payload: dict) -> None:
 
 def reset_env_state() -> None:
     """Clear caches (for tests)."""
-    global _last_env_event, _env_cache, _aoa_state, _scene_last, _spl_last_written, _lock_state, _scene_tracks
+    global _last_env_event, _env_cache, _aoa_state, _aoa_cooldown, _scene_last, _spl_last_written, _lock_state, _scene_tracks
     _env_cache = {}
     _last_env_event = 0.0
     _aoa_state = {}
+    _aoa_cooldown = {}
     _scene_last = {}
     _spl_last_written = {}
     _lock_state = {}
@@ -323,6 +327,8 @@ def handle_aoa_occupancy(topic: str, payload: str) -> None:
         return
     zone = m.group("zone")
     scenario = m.group("scenario")
+    if scenario not in OCCUPANCY_SCENARIOS:
+        return
     try:
         data = json.loads(payload)
         active = bool(data.get("Data", {}).get("active"))
@@ -334,6 +340,9 @@ def handle_aoa_occupancy(topic: str, payload: str) -> None:
     now = datetime.now(TZ)
 
     if active and not was_active:
+        cooled = _aoa_cooldown.get(key)
+        if cooled and (now - cooled).total_seconds() < OCCUPANCY_COOLDOWN_SECONDS:
+            return
         _aoa_state[key] = (True, now, False)
         return
 
@@ -353,6 +362,7 @@ def handle_aoa_occupancy(topic: str, payload: str) -> None:
     if not active and was_active:
         duration = int((now - started_at).total_seconds()) if started_at else 0
         _aoa_state[key] = (False, None, False)
+        _aoa_cooldown[key] = now
         if duration < MIN_OCCUPANCY_SECONDS:
             return
         ts_end = now.isoformat(timespec="seconds")

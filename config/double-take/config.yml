@@ -8,7 +8,7 @@ mqtt:
   username: !secret mqtt_username
   password: !secret mqtt_password
   topics:
-    frigate: frigate
+    frigate: frigate/events
     matches: double_take/matches
     cameras: double_take/cameras
 
@@ -17,6 +17,13 @@ frigate:
   cameras:
     - front
     - driveway_id
+  image:
+    height: 720
+  attempts:
+    latest: 10
+    snapshot: 10
+    mqtt: true
+    delay: 0.5
 
 # CodeProject.AI — use deepstack key (jakowenko Double Take 1.13 API-compatible)
 # CPAI Face module must be Running on dev PC :32168
@@ -35,6 +42,8 @@ detect:
     base64: false
     confidence: 65
     purge: 168
+    # Frigate person crops are small at distance; default 10000 px² rejects most faces
+    min_area: 0
   unknown:
     save: true
     base64: false
