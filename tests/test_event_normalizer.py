@@ -216,6 +216,19 @@ class TestAoaAndScene:
             normalizer.handle_aoa_occupancy(topic, json.dumps({"Data": {"active": False}}))
         assert not store.timeline_jsonl.exists()
 
+    def test_aoa_occupancy_cooldown_blocks_quick_retrigger(self, normalizer, store):
+        topic = "axis/front/event/ObjectAnalytics/ScenarioOccupancy/PersonOccupancy/Active"
+        t0 = datetime(2026, 6, 7, 10, 0, 0, tzinfo=TZ)
+        t_end = t0 + timedelta(seconds=150)
+        t_retrigger = t0 + timedelta(seconds=180)  # 30s after end — within 90s cooldown
+        with patch("event_normalizer.datetime") as mock_dt:
+            mock_dt.now.side_effect = [t0, t_end, t_retrigger]
+            normalizer.handle_aoa_occupancy(topic, json.dumps({"Data": {"active": True}}))
+            normalizer.handle_aoa_occupancy(topic, json.dumps({"Data": {"active": False}}))
+            normalizer.handle_aoa_occupancy(topic, json.dumps({"Data": {"active": True}}))
+        lines = store.timeline_jsonl.read_text().strip().splitlines()
+        assert len(lines) == 2
+
     def test_aoa_occupancy_confirms_start_while_still_active(self, normalizer, store):
         topic = "axis/storage_ext/event/ObjectAnalytics/ScenarioOccupancy/PersonOccupancy/Active"
         t0 = datetime(2026, 6, 7, 10, 0, 0, tzinfo=TZ)

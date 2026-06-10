@@ -1,9 +1,29 @@
-# Environment metrics — full-screen iframe (mirrors house-timeline / Analytics)
+# Environment metrics — panel iframe on desktop; open-in-browser on mobile/tablet
 # Served from Windows dev PC: scripts/timeline_server.py :8765/environment
 views:
   - title: Environment
     panel: true
+    visibility:
+      - condition: screen
+        media_query: "(min-width: 1025px)"
     cards:
       - type: iframe
         url: !secret environment_url
         aspect_ratio: 50%
+
+  - title: Environment
+    visibility:
+      - condition: screen
+        media_query: "(max-width: 1024px)"
+    cards:
+      - type: markdown
+        content: |
+          ### Graferna i HA fungerar sällan på mobil/iPad
+          Använd **Öppna i Safari** (samma Wi‑Fi). HA via HTTPS/Nabu Casa blockerar HTTP‑iframe.
+          Kontrollera att `start-bridges.ps1` körs på dev‑PC.
+      - type: button
+        name: Öppna Environment i Safari
+        icon: mdi:chart-line
+        tap_action:
+          action: url
+          url_path: !secret environment_url

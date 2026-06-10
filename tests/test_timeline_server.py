@@ -131,6 +131,17 @@ class TestTimelineHTTP:
         assert "Environment" in body
         assert "chart-climate" in body
         assert 'data-hours="168"' in body
+        assert "/static/chart.umd.min.js" in body
+
+    def test_static_chart_js(self, server):
+        conn = HTTPConnection("127.0.0.1", server)
+        conn.request("GET", "/static/chart.umd.min.js")
+        resp = conn.getresponse()
+        body = resp.read()
+        assert resp.status == 200
+        assert resp.getheader("Content-Type", "").startswith("application/javascript")
+        assert b"Chart" in body
+        assert len(body) > 100_000
 
     def test_api_v1_occupancy(self, server):
         conn = HTTPConnection("127.0.0.1", server)
@@ -256,3 +267,142 @@ class TestTimelineHTTP:
         # float renders as "200.0h" or similar — just check "200" appears and not the 7-day label
         assert "200" in body
         assert "7 dagarna" not in body
+
+    def test_html_index_empty_period(self, tmp_path, monkeypatch):
+        empty = tmp_path / "timeline.jsonl"
+        empty.write_text("", encoding="utf-8")
+        monkeypatch.setattr("timeline_server.TIMELINE_JSONL", empty)
+        srv = HTTPServer(("127.0.0.1", 0), Handler)
+        port = srv.server_address[1]
+        thread = Thread(target=srv.serve_forever, daemon=True)
+        thread.start()
+        try:
+            conn = HTTPConnection("127.0.0.1", port)
+            conn.request("GET", "/?hours=24")
+            body = conn.getresponse().read().decode()
+            assert "Inga events i perioden" in body
+            assert "Inga events ännu" in body
+        finally:
+            srv.shutdown()
+
+    def test_html_index_renders_snapshot_thumb(self, timeline_file, monkeypatch, tmp_path):
+        snap_rel = "events/test_snap.jpg"
+        snap_path = tmp_path / snap_rel
+        snap_path.parent.mkdir(parents=True, exist_ok=True)
+        snap_path.write_bytes(b"\xff\xd8\xff fake jpeg")
+        monkeypatch.setattr("timeline_server.REPO_ROOT", tmp_path)
+        now = datetime.now(TZ).isoformat()
+        event = {
+            "timestamp": now,
+            "type": "person",
+            "location": {"zone": "front", "camera": "front"},
+            "summary": "Person with snap",
+            "event_id": "evt_snap",
+            "source": "frigate",
+            "snapshot": {"best_picture": snap_rel},
+        }
+        timeline_file.write_text(json.dumps(event) + "\n", encoding="utf-8")
+        monkeypatch.setattr("timeline_server.TIMELINE_JSONL", timeline_file)
+        srv = HTTPServer(("127.0.0.1", 0), Handler)
+        port = srv.server_address[1]
+        thread = Thread(target=srv.serve_forever, daemon=True)
+        thread.start()
+        try:
+            conn = HTTPConnection("127.0.0.1", port)
+            conn.request("GET", "/?hours=24")
+            body = conn.getresponse().read().decode()
+            assert 'src="/media/events/test_snap.jpg"' in body
+        finally:
+            srv.shutdown()
+
+    def test_media_serves_file_and_404(self, tmp_path, monkeypatch):
+        snap_rel = "events/thumb.jpg"
+        snap_path = tmp_path / snap_rel
+        snap_path.parent.mkdir(parents=True, exist_ok=True)
+        snap_path.write_bytes(b"\xff\xd8\xff jpeg")
+        monkeypatch.setattr("timeline_server.REPO_ROOT", tmp_path)
+        srv = HTTPServer(("127.0.0.1", 0), Handler)
+        port = srv.server_address[1]
+        thread = Thread(target=srv.serve_forever, daemon=True)
+        thread.start()
+        try:
+            conn = HTTPConnection("127.0.0.1", port)
+            conn.request("GET", f"/media/{snap_rel}")
+            resp = conn.getresponse()
+            assert resp.status == 200
+            assert resp.read() == b"\xff\xd8\xff jpeg"
+
+            conn = HTTPConnection("127.0.0.1", port)
+            conn.request("GET", "/media/missing.jpg")
+            resp = conn.getresponse()
+            resp.read()
+            assert resp.status == 404
+        finally:
+            srv.shutdown()
+
+    def test_story_today_returns_500_on_failure(self, server, monkeypatch):
+        import timeline_server
+
+        def boom(_date):
+            raise RuntimeError("story failed")
+
+        monkeypatch.setattr(timeline_server, "generate_story", boom)
+        conn = HTTPConnection("127.0.0.1", server)
+        conn.request("GET", "/api/v1/story/today")
+        resp = conn.getresponse()
+        assert resp.status == 500
+        data = json.loads(resp.read().decode())
+        assert "story failed" in data["error"]
+
+    def test_story_week_skips_corrupt_cache(self, server, tmp_path, monkeypatch):
+        import timeline_server
+
+        stories_dir = tmp_path / "stories"
+        stories_dir.mkdir(parents=True)
+        today = datetime.now(TZ).strftime("%Y-%m-%d")
+        (stories_dir / f"{today}.json").write_text("{not json", encoding="utf-8")
+        monkeypatch.setattr(timeline_server, "STORIES_DIR", stories_dir)
+        conn = HTTPConnection("127.0.0.1", server)
+        conn.request("GET", "/api/v1/story/week")
+        resp = conn.getresponse()
+        assert resp.status == 200
+        assert json.loads(resp.read().decode()) == []
+
+    def test_story_date_regenerates_when_cache_corrupt(self, server, tmp_path, monkeypatch):
+        import timeline_server
+
+        stories_dir = tmp_path / "stories"
+        stories_dir.mkdir(parents=True)
+        monkeypatch.setattr(timeline_server, "STORIES_DIR", stories_dir)
+        (stories_dir / "2026-06-06.json").write_text("broken", encoding="utf-8")
+        conn = HTTPConnection("127.0.0.1", server)
+        conn.request("GET", "/api/v1/story/2026-06-06")
+        resp = conn.getresponse()
+        assert resp.status == 200
+        data = json.loads(resp.read().decode())
+        assert "beats" in data
+
+    def test_timeline_has_occupancy_zone_stack(self, server):
+        conn = HTTPConnection("127.0.0.1", server)
+        conn.request("GET", "/timeline")
+        body = conn.getresponse().read().decode()
+        assert "OCC_STACK" in body
+        assert "start-bridges.ps1" in body
+
+    def test_story_date_returns_500_when_generation_fails(self, server, tmp_path, monkeypatch):
+        import timeline_server
+
+        stories_dir = tmp_path / "stories"
+        stories_dir.mkdir(parents=True)
+        monkeypatch.setattr(timeline_server, "STORIES_DIR", stories_dir)
+
+        def boom(_date):
+            raise ValueError("bad story")
+
+        monkeypatch.setattr(timeline_server, "generate_story", boom)
+        conn = HTTPConnection("127.0.0.1", server)
+        conn.request("GET", "/api/v1/story/2026-01-01")
+        resp = conn.getresponse()
+        assert resp.status == 500
+        data = json.loads(resp.read().decode())
+        assert "bad story" in data["error"]

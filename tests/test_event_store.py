@@ -45,6 +45,34 @@ class TestMakeSummary:
         }
         assert make_summary(event) == "Door unlocked by Anna"
 
+    def test_occupancy_start_and_end(self):
+        start = {
+            "type": "occupancy",
+            "location": {"zone": "driveway"},
+            "metadata": {"scenario": "PersonOccupancy", "phase": "start"},
+        }
+        end = {
+            "type": "occupancy",
+            "location": {"zone": "driveway"},
+            "metadata": {"scenario": "VehicleOcc", "phase": "end", "duration_seconds": 120},
+        }
+        assert make_summary(start) == "Person occupancy started · driveway"
+        assert make_summary(end) == "Vehicle occupancy ended · driveway (120s)"
+
+    def test_scene_and_behavior(self):
+        scene = {
+            "type": "scene",
+            "location": {"zone": "front"},
+            "metadata": {"persons": 2, "vehicles": 1},
+        }
+        behavior = {
+            "type": "behavior",
+            "location": {"zone": "backyard"},
+            "metadata": {"behavior": "loitering", "obj_type": "Human", "duration_seconds": 90},
+        }
+        assert make_summary(scene) == "Scene · 2 person(s), 1 vehicle(s) at front"
+        assert make_summary(behavior) == "Loitering · Human at backyard (90s)"
+
 
 class TestEventStoreWrite:
     def test_writes_json_and_timeline(self, store: EventStore, person_event: dict):

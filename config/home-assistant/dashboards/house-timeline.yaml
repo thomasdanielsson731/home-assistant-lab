@@ -1,9 +1,29 @@
-# House Intelligence Timeline — full-screen webpage (replaces deprecated panel_iframe)
+# House Intelligence Timeline — panel iframe on desktop; open-in-browser on mobile/tablet
 # Served from Windows dev PC: scripts/timeline_server.py :8765
 views:
   - title: Analytics
     panel: true
+    visibility:
+      - condition: screen
+        media_query: "(min-width: 1025px)"
     cards:
       - type: iframe
         url: !secret timeline_url
         aspect_ratio: 50%
+
+  - title: Analytics
+    visibility:
+      - condition: screen
+        media_query: "(max-width: 1024px)"
+    cards:
+      - type: markdown
+        content: |
+          ### Analytics i HA fungerar sällan på mobil/iPad
+          Använd **Öppna i Safari** (samma Wi‑Fi). HA via HTTPS/Nabu Casa blockerar HTTP‑iframe.
+          Kontrollera att `start-bridges.ps1` körs på dev‑PC.
+      - type: button
+        name: Öppna Analytics i Safari
+        icon: mdi:timeline-clock
+        tap_action:
+          action: url
+          url_path: !secret timeline_url

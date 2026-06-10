@@ -30,10 +30,17 @@ from environment_page import ENVIRONMENT_HTML  # noqa: E402
 from story_engine import generate_story  # noqa: E402
 
 REPO_ROOT = Path(__file__).parent.parent
+STATIC_DIR = Path(__file__).parent / "static"
 TIMELINE_JSONL = REPO_ROOT / "events" / "timeline.jsonl"
 EVENTS_ROOT = REPO_ROOT / "events"
 STORIES_DIR = REPO_ROOT / "events" / "stories"
 PORT = 8765
+
+STATIC_MIME = {
+    ".js": "application/javascript; charset=utf-8",
+    ".css": "text/css; charset=utf-8",
+    ".map": "application/json; charset=utf-8",
+}
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 log = logging.getLogger("timeline")
@@ -953,6 +960,26 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("Content-Length", str(len(page)))
             self.end_headers()
             self.wfile.write(page)
+            return
+
+        if parsed.path.startswith("/static/"):
+            rel = parsed.path[len("/static/"):]
+            if ".." in rel or rel.startswith("/"):
+                self.send_error(403)
+                return
+            path = STATIC_DIR / rel
+            if path.exists() and path.is_file():
+                data = path.read_bytes()
+                mime = STATIC_MIME.get(path.suffix.lower(), "application/octet-stream")
+                self.send_response(200)
+                self.send_header("Content-Type", mime)
+                self.send_header("Cache-Control", "public, max-age=86400")
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.send_header("Content-Length", str(len(data)))
+                self.end_headers()
+                self.wfile.write(data)
+                return
+            self.send_error(404)
             return
 
         if parsed.path.startswith("/media/"):

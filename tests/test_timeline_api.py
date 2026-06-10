@@ -106,12 +106,19 @@ def test_parse_time_range_hours_fallback():
     assert s < u
 
 
-def _occ_event(tmp_path: Path, ts_iso: str, phase: str, duration: int | None = None, zone: str = "front") -> dict:
+def _occ_event(
+    tmp_path: Path,
+    ts_iso: str,
+    phase: str,
+    duration: int | None = None,
+    zone: str = "front",
+    scenario: str = "PersonOccupancy",
+) -> dict:
     ev: dict = {
         "timestamp": ts_iso,
         "type": "occupancy",
         "location": {"zone": zone, "camera": zone},
-        "metadata": {"scenario": "PersonOccupancy", "phase": phase},
+        "metadata": {"scenario": scenario, "phase": phase},
         "event_id": f"{zone}_{phase}_{ts_iso[:16]}",
     }
     if duration is not None:
@@ -219,3 +226,45 @@ def test_latest_occupancy_by_zone(tmp_path: Path):
     assert set(latest.keys()) == {"front", "driveway_wide"}
     # front: the most recent block (30-min ago) should win
     assert latest["front"]["duration_seconds"] == 600
+
+
+def test_build_occupancy_blocks_skips_vehicle_scenario(tmp_path: Path):
+    now = datetime.now(TZ)
+    events = [
+        _occ_event(tmp_path, (now - timedelta(minutes=10)).isoformat(), "start", scenario="VehicleOcc"),
+        _occ_event(tmp_path, (now - timedelta(minutes=5)).isoformat(), "end", duration=300, scenario="VehicleOcc"),
+    ]
+    path = tmp_path / "timeline.jsonl"
+    path.write_text("\n".join(json.dumps(e) for e in events) + "\n", encoding="utf-8")
+    all_events = load_events(hours=1, timeline_path=path, newest_first=False)
+    blocks = build_occupancy_blocks(all_events, hours=None)
+    assert blocks == []
+
+
+def test_build_occupancy_blocks_merges_overlapping_driveway_cameras(tmp_path: Path):
+    now = datetime.now(TZ)
+    events = [
+        _occ_event(tmp_path, (now - timedelta(minutes=10)).isoformat(), "start", zone="driveway_wide"),
+        _occ_event(tmp_path, (now - timedelta(minutes=8)).isoformat(), "start", zone="driveway_id"),
+        _occ_event(tmp_path, (now - timedelta(minutes=5)).isoformat(), "end", duration=300, zone="driveway_wide"),
+        _occ_event(tmp_path, (now - timedelta(minutes=4)).isoformat(), "end", duration=240, zone="driveway_id"),
+    ]
+    path = tmp_path / "timeline.jsonl"
+    path.write_text("\n".join(json.dumps(e) for e in events) + "\n", encoding="utf-8")
+    all_events = load_events(hours=1, timeline_path=path, newest_first=False)
+    blocks = build_occupancy_blocks(all_events, hours=None)
+    assert len(blocks) == 1
+    assert blocks[0]["zone"] == "driveway"
+
+
+def test_load_metrics_filters_by_name_and_zone(tmp_path: Path):
+    path = tmp_path / "metrics.jsonl"
+    now = datetime.now(TZ)
+    rows = [
+        {"timestamp": now.isoformat(), "zone": "front", "values": {"spl": 55.0, "co2": 400}},
+        {"timestamp": now.isoformat(), "zone": "backyard", "values": {"spl": 30.0}},
+    ]
+    path.write_text("\n".join(json.dumps(r) for r in rows) + "\n", encoding="utf-8")
+    spl_front = load_metrics(hours=24, metrics=["spl"], zones=["front"], metrics_path=path)
+    assert len(spl_front) == 1
+    assert spl_front[0]["value"] == 55.0
