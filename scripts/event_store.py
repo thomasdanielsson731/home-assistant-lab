@@ -257,6 +257,8 @@ def make_summary(event: dict) -> str:
         person = identity.get("person", "Someone")
         action = event.get("metadata", {}).get("action", "unlocked")
         return f"Door {action} by {person}"
+    if etype == "smoke":
+        return f"Smoke alert · {zone}"
     if etype == "environment":
         meta = event.get("metadata", {})
         temp = meta.get("temperature", "?")

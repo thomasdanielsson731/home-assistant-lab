@@ -28,8 +28,32 @@ python scripts/setup_zha.py   # idempotent — exits if ZHA already configured
 Settings → Devices & Services → ZHA → **Add device** — puts the network in
 permit-join for 60 s. Pair near the coordinator first, then relocate.
 
-Planned devices: Zigbee smoke detectors → `smoke` events in the timeline
-(`event_normalizer.py` listens once entities exist).
+Or from dev PC:
+
+```powershell
+python scripts/setup_zha.py --permit   # open join for 254 s
+python scripts/setup_zha.py --list     # show network devices
+```
+
+### Live device (2026-06-10)
+
+| Item | Value |
+|---|---|
+| Model | HEIMAN HS1SA-E-PLUS (smoke + siren) |
+| IEEE | `cc:36:bb:ff:fe:d9:0b:c5` |
+| Alarm entity | `binary_sensor.heiman_hs1sa_e_plus` |
+| Battery | `sensor.heiman_hs1sa_e_plus_batteri` |
+| Timeline zone | `kitchen` (via `SMOKE_ENTITIES` in `.env`) |
+
+Failed duplicate interviews (`…0e:76`, `…0e:99`) can be removed:
+
+```powershell
+python scripts/setup_zha.py --remove-ghosts
+```
+
+Assign an **Area** in HA (e.g. Kitchen) for clearer dashboard labels.
+
+Planned: more smoke detectors → extend `SMOKE_ENTITIES=entity_suffix:zone,...`
 
 ## Troubleshooting
 

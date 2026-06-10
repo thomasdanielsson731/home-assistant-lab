@@ -280,6 +280,23 @@ class TestAoaAndScene:
         assert row["metadata"]["action"] == "unlocked"
         assert row["location"]["zone"] == "front"
 
+    def test_smoke_sensor_on_emits_event(self, normalizer, store, monkeypatch):
+        monkeypatch.setattr(normalizer, "SMOKE_ZONE_BY_ENTITY", {"heiman_hs1sa_e_plus": "kitchen"})
+        topic = "homeassistant/binary_sensor/heiman_hs1sa_e_plus/state"
+        normalizer.handle_smoke_sensor(topic, "off")
+        normalizer.handle_smoke_sensor(topic, "on")
+        normalizer.handle_smoke_sensor(topic, "on")
+        lines = store.timeline_jsonl.read_text().strip().splitlines()
+        assert len(lines) == 1
+        row = json.loads(lines[0])
+        assert row["type"] == "smoke"
+        assert row["location"]["zone"] == "kitchen"
+        assert row["metadata"]["entity_id"] == "binary_sensor.heiman_hs1sa_e_plus"
+
+    def test_smoke_sensor_ignores_unmapped_entity(self, normalizer, store):
+        normalizer.handle_smoke_sensor("homeassistant/binary_sensor/other/state", "on")
+        assert not store.timeline_jsonl.exists()
+
 
 class TestSceneTrack:
     def test_classify_behavior_passthrough_human(self, normalizer):
