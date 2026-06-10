@@ -229,13 +229,27 @@ TIMELINE_V1_HTML = """<!DOCTYPE html>
     const COLORS = {};
     ALL_LANES.forEach(l => { COLORS[l.name] = l.color; });
 
+    // Lanes hidden when the loaded period has no events of that type —
+    // core lanes (person, vehicle, occupancy, scene, metrics) always show.
+    const HIDEABLE = ['arrival', 'delivery', 'bicycle', 'door', 'behavior'];
+
+    function activeGroups() {
+      return GROUPS
+        .map(g => ({
+          label: g.label,
+          lanes: g.lanes.filter(l =>
+            !HIDEABLE.includes(l.name) || events.some(e => e.type === l.name)),
+        }))
+        .filter(g => g.lanes.length);
+    }
+
     // Occupancy sub-rows (logical zones — matches CAMERA_ZONE in event_store.py)
     const OCC_STACK = ['driveway', 'backyard', 'storage_ext', 'storage_int', 'front'];
 
     // ── Canvas sizing ──────────────────────────────────────────
     function calcHeight() {
       let h = PAD_TOP + TIME_H;
-      GROUPS.forEach(g => {
+      activeGroups().forEach(g => {
         h += GROUP_H;
         g.lanes.forEach(l => { h += l.type === 'metric' ? METRIC_H : LANE_H; });
       });
@@ -253,7 +267,7 @@ TIMELINE_V1_HTML = """<!DOCTYPE html>
     function laneYMap() {
       const map = {};
       let y = PAD_TOP + TIME_H;
-      GROUPS.forEach(g => {
+      activeGroups().forEach(g => {
         y += GROUP_H;
         g.lanes.forEach(l => {
           const h = l.type === 'metric' ? METRIC_H : LANE_H;
@@ -356,7 +370,7 @@ TIMELINE_V1_HTML = """<!DOCTYPE html>
 
       // Draw group separators and lane backgrounds
       let gy = PAD_TOP + TIME_H;
-      GROUPS.forEach(g => {
+      activeGroups().forEach(g => {
         // Group label row
         ctx.fillStyle = '#181a21';
         ctx.fillRect(0, gy, W, GROUP_H);
@@ -439,7 +453,7 @@ TIMELINE_V1_HTML = """<!DOCTYPE html>
       });
 
       // Metric sparklines
-      GROUPS.forEach(g => g.lanes.forEach(l => {
+      activeGroups().forEach(g => g.lanes.forEach(l => {
         if (l.type !== 'metric') return;
         drawMetricLine(ymap[l.name], l.metricKey, l.color);
       }));
@@ -549,14 +563,14 @@ TIMELINE_V1_HTML = """<!DOCTYPE html>
         document.getElementById('stats').textContent =
           'Cannot load timeline — run scripts/start-bridges.ps1 on dev PC';
         events = []; blocks = []; metrics = [];
-        draw();
+        resizeCanvas();
         return;
       }
       document.getElementById('stats').textContent =
         `${events.length} events · ${blocks.length} occupancy blocks · ${metrics.length} metric samples`;
       resetViewToData();
       renderOccupancy();
-      draw();
+      resizeCanvas();
     }
 
     function resetViewToData() {

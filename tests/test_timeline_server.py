@@ -168,6 +168,13 @@ class TestTimelineHTTP:
         assert "goto-now" in body       # Go to now button
         assert "zoom-reset" in body     # Reset button
         assert "from-input" in body
+
+    def test_timeline_v1_hides_empty_lanes(self, server):
+        conn = HTTPConnection("127.0.0.1", server)
+        conn.request("GET", "/timeline")
+        body = conn.getresponse().read().decode()
+        assert "HIDEABLE" in body
+        assert "activeGroups" in body
         assert "bicycle" in body
         assert "15 m" in body           # 15-minute range button
 

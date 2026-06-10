@@ -141,6 +141,31 @@ ENVIRONMENT_HTML = """<!DOCTYPE html>
       return out;
     }
 
+    // Break the line where sampling stopped (dev PC asleep, bridge down) —
+    // otherwise Chart.js draws a misleading straight line across the gap.
+    function insertGaps(points, gapMs) {
+      const out = [];
+      for (let i = 0; i < points.length; i++) {
+        if (i > 0 && points[i].x - points[i - 1].x > gapMs) {
+          out.push({ x: new Date(points[i - 1].x.getTime() + 1), y: null });
+        }
+        out.push(points[i]);
+      }
+      return out;
+    }
+
+    function rangeMs() {
+      if (customFrom && customTo) return new Date(customTo) - new Date(customFrom);
+      return hours * 3600e3;
+    }
+
+    function formatAge(ms) {
+      const min = Math.round(ms / 60e3);
+      if (min < 60) return `${min} min`;
+      if (min < 48 * 60) return `${Math.round(min / 60)} h`;
+      return `${Math.round(min / 1440)} d`;
+    }
+
     function groupMetrics(rows) {
       const map = {};
       SERIES.forEach(s => { map[s.key] = []; });
@@ -164,10 +189,18 @@ ENVIRONMENT_HTML = """<!DOCTYPE html>
 
     function renderLive(map) {
       const el = document.getElementById('live');
+      const now = Date.now();
       el.innerHTML = SERIES.map(s => {
         const val = latestValue(map, s.key);
         if (val === null) return '';
-        return `<div class="live-chip"><strong>${val}</strong><span>${s.label}</span></div>`;
+        const pts = map[s.key];
+        const age = now - pts[pts.length - 1].x.getTime();
+        const stale = age > 15 * 60e3;
+        const ageHtml = stale
+          ? `<span style="color:#f28b82"> · ${formatAge(age)} sedan</span>`
+          : '';
+        return `<div class="live-chip"${stale ? ' style="opacity:0.6"' : ''}>` +
+          `<strong>${val}</strong><span>${s.label}${ageHtml}</span></div>`;
       }).join('');
     }
 
@@ -200,14 +233,16 @@ ENVIRONMENT_HTML = """<!DOCTYPE html>
     }
 
     function buildDatasets(map, chartKey, maxPts) {
+      const gapMs = Math.max(10 * 60e3, (rangeMs() / maxPts) * 4);
       return SERIES.filter(s => s.chart === chartKey).map(s => ({
         label: s.label,
-        data: downsample(map[s.key] || [], maxPts),
+        data: insertGaps(downsample(map[s.key] || [], maxPts), gapMs),
         borderColor: s.color,
         backgroundColor: s.color + '33',
         borderWidth: 2,
         pointRadius: 0,
         tension: 0.2,
+        spanGaps: false,
         yAxisID: s.yAxis,
       }));
     }
@@ -231,8 +266,13 @@ ENVIRONMENT_HTML = """<!DOCTYPE html>
       const map = groupMetrics(rows);
       const maxPts = hours >= 720 ? 500 : hours >= 168 ? 400 : 300;
       renderLive(map);
+      let newest = 0;
+      Object.values(map).forEach(pts => {
+        if (pts.length) newest = Math.max(newest, pts[pts.length - 1].x.getTime());
+      });
+      const ageStr = newest ? ` · senaste sample ${formatAge(Date.now() - newest)} sedan` : '';
       document.getElementById('stats').textContent =
-        `${rows.length} samples · ${SERIES.filter(s => (map[s.key] || []).length).length} active series`;
+        `${rows.length} samples · ${SERIES.filter(s => (map[s.key] || []).length).length} active series${ageStr}`;
 
       makeChart('chart-climate', 'climate', buildDatasets(map, 'climate', maxPts), true);
       makeChart('chart-air', 'air', buildDatasets(map, 'air', maxPts), true);

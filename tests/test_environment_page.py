@@ -24,3 +24,8 @@ class TestEnvironmentPageHtml:
         assert "/static/chart.umd.min.js" in ENVIRONMENT_HTML
         assert "/static/chartjs-adapter-date-fns.bundle.min.js" in ENVIRONMENT_HTML
         assert "cdn.jsdelivr.net" not in ENVIRONMENT_HTML
+
+    def test_breaks_line_at_data_gaps(self):
+        assert "insertGaps" in ENVIRONMENT_HTML
+        assert "spanGaps: false" in ENVIRONMENT_HTML
+        assert "senaste sample" in ENVIRONMENT_HTML

@@ -18,9 +18,9 @@ views:
               - type: custom:mushroom-template-card
                 primary: >-
                   {% set h = now().hour %}
-                  {% if h < 12 %}Good morning
-                  {% elif h < 17 %}Good afternoon
-                  {% else %}Good evening{% endif %}, Thomas
+                  {% if h < 12 %}Good morning, Thomas
+                  {% elif h < 17 %}Good afternoon, Thomas
+                  {% else %}Good evening, Thomas{% endif %}
                 secondary: "{{ now().strftime('%A') }} · {{ now().day }} {{ now().strftime('%B') }}"
                 icon: mdi:home-variant
                 icon_color: blue
@@ -272,9 +272,8 @@ views:
     max_columns: 2
     sections:
 
-      # ── Front — primary entry view ───────────────────────────
+      # ── Front — primary entry view (left column, row 1) ──────
       - title: FRONT
-        column_span: 2
         cards:
           - type: custom:advanced-camera-card
             cameras:
@@ -295,16 +294,46 @@ views:
                      else 'amber' if is_state('binary_sensor.front_motion', 'on')
                      else 'grey' }}
 
-      # ── Backyard + Storage — side by side ────────────────────
-      - title: BACKYARD
+      # ── Driveway — wide + ID (right column, row 1) ───────────
+      - title: DRIVEWAY
         cards:
           - type: custom:advanced-camera-card
             cameras:
-              - camera_entity: camera.backyard
-                title: Backyard (Q1656)
+              - camera_entity: camera.driveway_wide
+                title: Driveway Wide (Q3558-LVE)
             dimensions:
               aspect_ratio: 16/9
+          - type: custom:advanced-camera-card
+            cameras:
+              - camera_entity: camera.driveway_id
+                title: Driveway ID (M2036)
+            dimensions:
+              aspect_ratio: 16/9
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: template
+                icon: mdi:account
+                content: >-
+                  {{ 'Person' if is_state('binary_sensor.driveway_id_aoa_person', 'on')
+                     else 'Ingen person' }}
+                icon_color: >-
+                  {{ 'red' if is_state('binary_sensor.driveway_id_aoa_person', 'on') else 'grey' }}
+              - type: template
+                icon: mdi:car
+                content: >-
+                  {{ 'Fordon' if is_state('binary_sensor.driveway_wide_aoa_vehicle', 'on')
+                     else 'Inget fordon' }}
+                icon_color: >-
+                  {{ 'amber' if is_state('binary_sensor.driveway_wide_aoa_vehicle', 'on') else 'grey' }}
+              - type: template
+                icon: mdi:motion-sensor
+                content: >-
+                  {{ 'Rörelse' if is_state('binary_sensor.driveway_wide_motion', 'on')
+                     else 'Ingen rörelse' }}
+                icon_color: >-
+                  {{ 'blue' if is_state('binary_sensor.driveway_wide_motion', 'on') else 'grey' }}
 
+      # ── Storage — ext + int (left column, row 2) ─────────────
       - title: STORAGE
         cards:
           - type: custom:advanced-camera-card
@@ -320,48 +349,15 @@ views:
             dimensions:
               aspect_ratio: 16/9
 
-      # ── Driveway — wide overview + ID cam below ──────────────
-      - title: DRIVEWAY
-        column_span: 2
+      # ── Backyard (right column, row 2) ───────────────────────
+      - title: BACKYARD
         cards:
           - type: custom:advanced-camera-card
             cameras:
-              - camera_entity: camera.driveway_wide
-                title: Driveway Wide (Q3558-LVE)
+              - camera_entity: camera.backyard
+                title: Backyard (Q1656)
             dimensions:
               aspect_ratio: 16/9
-          - type: horizontal-stack
-            cards:
-              - type: custom:advanced-camera-card
-                cameras:
-                  - camera_entity: camera.driveway_id
-                    title: Driveway ID (M2036)
-                dimensions:
-                  aspect_ratio: 16/9
-              - type: custom:mushroom-chips-card
-                alignment: center
-                chips:
-                  - type: template
-                    icon: mdi:account
-                    content: >-
-                      {{ 'Person' if is_state('binary_sensor.driveway_id_aoa_person', 'on')
-                         else 'Ingen person' }}
-                    icon_color: >-
-                      {{ 'red' if is_state('binary_sensor.driveway_id_aoa_person', 'on') else 'grey' }}
-                  - type: template
-                    icon: mdi:car
-                    content: >-
-                      {{ 'Fordon' if is_state('binary_sensor.driveway_wide_aoa_vehicle', 'on')
-                         else 'Inget fordon' }}
-                    icon_color: >-
-                      {{ 'amber' if is_state('binary_sensor.driveway_wide_aoa_vehicle', 'on') else 'grey' }}
-                  - type: template
-                    icon: mdi:motion-sensor
-                    content: >-
-                      {{ 'Rörelse' if is_state('binary_sensor.driveway_wide_motion', 'on')
-                         else 'Ingen rörelse' }}
-                    icon_color: >-
-                      {{ 'blue' if is_state('binary_sensor.driveway_wide_motion', 'on') else 'grey' }}
 
 
   # ═══════════════════════════════════════════════════════════════
@@ -468,17 +464,24 @@ views:
                 tap_action:
                   action: more-info
 
-      # ── Face Recognition ─────────────────────────────────────
+      # ── Face Recognition (Double Take + CodeProject.AI) ──────
       - title: FACE RECOGNITION
         cards:
           - type: custom:mushroom-template-card
-            primary: Not yet active
-            secondary: Double Take + CompreFace — Phase 4
+            primary: >-
+              {% if is_state('binary_sensor.dt_thomas_present', 'on') %}Thomas igenkänd
+              {% else %}Aktiv — Double Take + CodeProject.AI{% endif %}
+            secondary: >-
+              {% set c = states('sensor.dt_thomas_confidence') %}
+              {% if c not in ['unknown', 'unavailable', 'none'] %}Senaste match: Thomas · {{ c }}%
+              {% else %}Thomas tränad · Nils, Hugo, Anna återstår{% endif %}
             icon: mdi:face-recognition
-            icon_color: amber
+            icon_color: >-
+              {{ 'green' if is_state('binary_sensor.dt_thomas_present', 'on') else 'blue' }}
             fill_container: true
             tap_action:
-              action: none
+              action: url
+              url_path: http://192.168.68.175:3000
 
       # ── Yale Doorman (Sprint 1) ──────────────────────────────
       - title: ACCESS
@@ -602,13 +605,19 @@ views:
             collapsible_controls: false
             layout: horizontal
             fill_container: true
-          - type: custom:mushroom-light-card
-            entity: light.taklampa
-            name: Taklampa
-            show_brightness_control: true
-            collapsible_controls: false
-            layout: horizontal
-            fill_container: true
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: light.taklampa
+                state_not: unavailable
+            card:
+              type: custom:mushroom-light-card
+              entity: light.taklampa
+              name: Taklampa
+              show_brightness_control: true
+              collapsible_controls: false
+              layout: horizontal
+              fill_container: true
 
       # ── Fönsterlampor ────────────────────────────────────────
       - title: FÖNSTERLAMPOR
@@ -622,18 +631,30 @@ views:
             fill_container: true
           - type: horizontal-stack
             cards:
-              - type: custom:mushroom-light-card
-                entity: light.fonster_vanster
-                name: Vänster
-                show_brightness_control: true
-                collapsible_controls: true
-                fill_container: true
-              - type: custom:mushroom-light-card
-                entity: light.fonster_hoger
-                name: Höger
-                show_brightness_control: true
-                collapsible_controls: true
-                fill_container: true
+              - type: conditional
+                conditions:
+                  - condition: state
+                    entity: light.fonster_vanster
+                    state_not: unavailable
+                card:
+                  type: custom:mushroom-light-card
+                  entity: light.fonster_vanster
+                  name: Vänster
+                  show_brightness_control: true
+                  collapsible_controls: true
+                  fill_container: true
+              - type: conditional
+                conditions:
+                  - condition: state
+                    entity: light.fonster_hoger
+                    state_not: unavailable
+                card:
+                  type: custom:mushroom-light-card
+                  entity: light.fonster_hoger
+                  name: Höger
+                  show_brightness_control: true
+                  collapsible_controls: true
+                  fill_container: true
 
       # ── Sovrum ───────────────────────────────────────────────
       - title: SOVRUM
@@ -646,13 +667,19 @@ views:
             collapsible_controls: false
             layout: horizontal
             fill_container: true
-          - type: custom:mushroom-light-card
-            entity: light.sovrumstaklampa
-            name: Taklampa
-            show_brightness_control: true
-            collapsible_controls: false
-            layout: horizontal
-            fill_container: true
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: light.sovrumstaklampa
+                state_not: unavailable
+            card:
+              type: custom:mushroom-light-card
+              entity: light.sovrumstaklampa
+              name: Taklampa
+              show_brightness_control: true
+              collapsible_controls: false
+              layout: horizontal
+              fill_container: true
 
       # ── Hugos rum ────────────────────────────────────────────
       - title: HUGOS RUM
@@ -665,13 +692,19 @@ views:
             collapsible_controls: false
             layout: horizontal
             fill_container: true
-          - type: custom:mushroom-light-card
-            entity: light.hugos_taklampa
-            name: Taklampa
-            show_brightness_control: true
-            collapsible_controls: false
-            layout: horizontal
-            fill_container: true
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: light.hugos_taklampa
+                state_not: unavailable
+            card:
+              type: custom:mushroom-light-card
+              entity: light.hugos_taklampa
+              name: Taklampa
+              show_brightness_control: true
+              collapsible_controls: false
+              layout: horizontal
+              fill_container: true
 
       # ── Nils rum ─────────────────────────────────────────────
       - title: NILS RUM
