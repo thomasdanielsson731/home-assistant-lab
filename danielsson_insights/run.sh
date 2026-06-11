@@ -1,4 +1,4 @@
-#!/usr/bin/with-contenv bashio
+#!/command/with-contenv bashio
 # Danielsson Insights — timeline + normalizer + bridges on HAOS (host network).
 
 SCRIPTS_PATH="$(bashio::config 'scripts_path')"

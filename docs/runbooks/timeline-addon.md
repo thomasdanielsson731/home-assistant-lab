@@ -72,7 +72,8 @@ When the add-on is stable:
 
 | Symptom | Fix |
 |---|---|
-| Build fails: `lookup ghcr.io ... no such host` | HA host DNS cannot reach GitHub Container Registry — fix DNS in **Settings → System → Network** (e.g. 1.1.1.1 / 8.8.8.8), then retry install |
+| Build fails: `lookup ghcr.io ... no such host` | Set HA DNS: `ha dns options --servers dns://1.1.1.1 --servers dns://8.8.8.8` then retry install |
+| `s6-overlay-suexec: fatal: can only run as pid 1` | Add `init: false` to `config.yaml` (included since 0.2.1), rebuild add-on |
 | Ingress 404 | Re-run `deploy-insights-to-ha.ps1 -UseIngressSecrets` after add-on started |
 
 ---

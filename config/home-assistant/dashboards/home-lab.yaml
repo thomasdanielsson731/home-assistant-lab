@@ -466,42 +466,90 @@ views:
         cards:
           - type: horizontal-stack
             cards:
-              - type: picture-entity
+              - type: custom:mushroom-template-card
                 entity: image.front_person
-                name: Entrén · person
-                show_state: false
+                primary: Entrén · person
+                secondary: >-
+                  {% set ts = states('image.front_person') %}
+                  {% if ts not in ['unknown', 'unavailable', ''] %}
+                    {% set dt = as_local(as_datetime(ts)) %}
+                    {{ dt.strftime('%H:%M · %d %b') }} ({{ relative_time(dt) }})
+                  {% else %}Ingen detektion{% endif %}
+                icon: mdi:account
+                layout: vertical
+                fill_container: true
                 tap_action:
                   action: more-info
-              - type: picture-entity
+              - type: custom:mushroom-template-card
                 entity: image.driveway_wide_person
-                name: Uppfart · person
-                show_state: false
+                primary: Uppfart · person
+                secondary: >-
+                  {% set ts = states('image.driveway_wide_person') %}
+                  {% if ts not in ['unknown', 'unavailable', ''] %}
+                    {% set dt = as_local(as_datetime(ts)) %}
+                    {{ dt.strftime('%H:%M · %d %b') }} ({{ relative_time(dt) }})
+                  {% else %}Ingen detektion{% endif %}
+                icon: mdi:account
+                layout: vertical
+                fill_container: true
                 tap_action:
                   action: more-info
-              - type: picture-entity
+              - type: custom:mushroom-template-card
                 entity: image.driveway_id_person
-                name: Uppfart ID · person
-                show_state: false
+                primary: Uppfart ID · person
+                secondary: >-
+                  {% set ts = states('image.driveway_id_person') %}
+                  {% if ts not in ['unknown', 'unavailable', ''] %}
+                    {% set dt = as_local(as_datetime(ts)) %}
+                    {{ dt.strftime('%H:%M · %d %b') }} ({{ relative_time(dt) }})
+                  {% else %}Ingen detektion{% endif %}
+                icon: mdi:account
+                layout: vertical
+                fill_container: true
                 tap_action:
                   action: more-info
           - type: horizontal-stack
             cards:
-              - type: picture-entity
+              - type: custom:mushroom-template-card
                 entity: image.front_car
-                name: Entrén · fordon
-                show_state: false
+                primary: Entrén · fordon
+                secondary: >-
+                  {% set ts = states('image.front_car') %}
+                  {% if ts not in ['unknown', 'unavailable', ''] %}
+                    {% set dt = as_local(as_datetime(ts)) %}
+                    {{ dt.strftime('%H:%M · %d %b') }} ({{ relative_time(dt) }})
+                  {% else %}Ingen detektion{% endif %}
+                icon: mdi:car
+                layout: vertical
+                fill_container: true
                 tap_action:
                   action: more-info
-              - type: picture-entity
+              - type: custom:mushroom-template-card
                 entity: image.driveway_wide_car
-                name: Uppfart · fordon
-                show_state: false
+                primary: Uppfart · fordon
+                secondary: >-
+                  {% set ts = states('image.driveway_wide_car') %}
+                  {% if ts not in ['unknown', 'unavailable', ''] %}
+                    {% set dt = as_local(as_datetime(ts)) %}
+                    {{ dt.strftime('%H:%M · %d %b') }} ({{ relative_time(dt) }})
+                  {% else %}Ingen detektion{% endif %}
+                icon: mdi:car
+                layout: vertical
+                fill_container: true
                 tap_action:
                   action: more-info
-              - type: picture-entity
+              - type: custom:mushroom-template-card
                 entity: image.driveway_id_car
-                name: Uppfart ID · fordon
-                show_state: false
+                primary: Uppfart ID · fordon
+                secondary: >-
+                  {% set ts = states('image.driveway_id_car') %}
+                  {% if ts not in ['unknown', 'unavailable', ''] %}
+                    {% set dt = as_local(as_datetime(ts)) %}
+                    {{ dt.strftime('%H:%M · %d %b') }} ({{ relative_time(dt) }})
+                  {% else %}Ingen detektion{% endif %}
+                icon: mdi:car
+                layout: vertical
+                fill_container: true
                 tap_action:
                   action: more-info
 
