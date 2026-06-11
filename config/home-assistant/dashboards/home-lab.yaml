@@ -43,7 +43,6 @@ views:
                 primary: >-
                   {% set n = states('sensor.house_occupancy_summary') | int(0) %}
                   {% if n == 0 %}Ingen hemma
-                  {% elif n == 1 %}1 person hemma
                   {% else %}{{ n }} hemma{% endif %}
                 secondary: >-
                   {% set who = state_attr('sensor.house_occupancy_summary', 'who_home') %}
@@ -313,7 +312,9 @@ views:
     max_columns: 2
     sections:
 
-      # ── Front — primary entry view (left column, row 1) ──────
+      # One camera per section → even 2-column rows:
+      #   Front | Driveway Wide / Driveway ID | Backyard / Storage Ext | Storage Int
+
       - title: FRONT
         cards:
           - type: custom:advanced-camera-card
@@ -335,8 +336,7 @@ views:
                      else 'amber' if is_state('binary_sensor.front_motion', 'on')
                      else 'grey' }}
 
-      # ── Driveway — wide + ID (right column, row 1) ───────────
-      - title: DRIVEWAY
+      - title: DRIVEWAY — WIDE
         cards:
           - type: custom:advanced-camera-card
             cameras:
@@ -344,21 +344,8 @@ views:
                 title: Driveway Wide (Q3558-LVE)
             dimensions:
               aspect_ratio: 16/9
-          - type: custom:advanced-camera-card
-            cameras:
-              - camera_entity: camera.driveway_id
-                title: Driveway ID (M2036)
-            dimensions:
-              aspect_ratio: 16/9
           - type: custom:mushroom-chips-card
             chips:
-              - type: template
-                icon: mdi:account
-                content: >-
-                  {{ 'Person' if is_state('binary_sensor.driveway_id_aoa_person', 'on')
-                     else 'Ingen person' }}
-                icon_color: >-
-                  {{ 'red' if is_state('binary_sensor.driveway_id_aoa_person', 'on') else 'grey' }}
               - type: template
                 icon: mdi:car
                 content: >-
@@ -374,29 +361,48 @@ views:
                 icon_color: >-
                   {{ 'blue' if is_state('binary_sensor.driveway_wide_motion', 'on') else 'grey' }}
 
-      # ── Storage — ext + int (left column, row 2) ─────────────
-      - title: STORAGE
+      - title: DRIVEWAY — ID
         cards:
           - type: custom:advanced-camera-card
             cameras:
-              - camera_entity: camera.storage_ext
-                title: Storage Exterior (Q1656)
+              - camera_entity: camera.driveway_id
+                title: Driveway ID (M2036)
             dimensions:
               aspect_ratio: 16/9
-          - type: custom:advanced-camera-card
-            cameras:
-              - camera_entity: camera.storage_int
-                title: Storage Interior (M1055)
-            dimensions:
-              aspect_ratio: 16/9
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: template
+                icon: mdi:account
+                content: >-
+                  {{ 'Person' if is_state('binary_sensor.driveway_id_aoa_person', 'on')
+                     else 'Ingen person' }}
+                icon_color: >-
+                  {{ 'red' if is_state('binary_sensor.driveway_id_aoa_person', 'on') else 'grey' }}
 
-      # ── Backyard (right column, row 2) ───────────────────────
       - title: BACKYARD
         cards:
           - type: custom:advanced-camera-card
             cameras:
               - camera_entity: camera.backyard
                 title: Backyard (Q1656)
+            dimensions:
+              aspect_ratio: 16/9
+
+      - title: STORAGE — EXTERIOR
+        cards:
+          - type: custom:advanced-camera-card
+            cameras:
+              - camera_entity: camera.storage_ext
+                title: Storage Exterior (M1055-L)
+            dimensions:
+              aspect_ratio: 16/9
+
+      - title: STORAGE — INTERIOR
+        cards:
+          - type: custom:advanced-camera-card
+            cameras:
+              - camera_entity: camera.storage_int
+                title: Storage Interior (Q1656)
             dimensions:
               aspect_ratio: 16/9
 
@@ -462,96 +468,133 @@ views:
                      else 'grey' }}
 
       # ── Latest Frigate detection snapshots ───────────────────
+      # Cards without a detection are hidden (conditional on image state)
       - title: SENASTE BILDER
         cards:
           - type: horizontal-stack
             cards:
-              - type: custom:mushroom-template-card
-                entity: image.front_person
-                primary: Entrén · person
-                secondary: >-
-                  {% set ts = states('image.front_person') %}
-                  {% if ts not in ['unknown', 'unavailable', ''] %}
-                    {% set dt = as_local(as_datetime(ts)) %}
+              - type: conditional
+                conditions:
+                  - condition: state
+                    entity: image.front_person
+                    state_not: unknown
+                  - condition: state
+                    entity: image.front_person
+                    state_not: unavailable
+                card:
+                  type: custom:mushroom-template-card
+                  entity: image.front_person
+                  primary: Entrén · person
+                  secondary: >-
+                    {% set dt = as_local(as_datetime(states('image.front_person'))) %}
                     {{ dt.strftime('%H:%M · %d %b') }} ({{ relative_time(dt) }})
-                  {% else %}Ingen detektion{% endif %}
-                icon: mdi:account
-                layout: vertical
-                fill_container: true
-                tap_action:
-                  action: more-info
-              - type: custom:mushroom-template-card
-                entity: image.driveway_wide_person
-                primary: Uppfart · person
-                secondary: >-
-                  {% set ts = states('image.driveway_wide_person') %}
-                  {% if ts not in ['unknown', 'unavailable', ''] %}
-                    {% set dt = as_local(as_datetime(ts)) %}
+                  icon: mdi:account
+                  layout: vertical
+                  fill_container: true
+                  tap_action:
+                    action: more-info
+              - type: conditional
+                conditions:
+                  - condition: state
+                    entity: image.driveway_wide_person
+                    state_not: unknown
+                  - condition: state
+                    entity: image.driveway_wide_person
+                    state_not: unavailable
+                card:
+                  type: custom:mushroom-template-card
+                  entity: image.driveway_wide_person
+                  primary: Uppfart · person
+                  secondary: >-
+                    {% set dt = as_local(as_datetime(states('image.driveway_wide_person'))) %}
                     {{ dt.strftime('%H:%M · %d %b') }} ({{ relative_time(dt) }})
-                  {% else %}Ingen detektion{% endif %}
-                icon: mdi:account
-                layout: vertical
-                fill_container: true
-                tap_action:
-                  action: more-info
-              - type: custom:mushroom-template-card
-                entity: image.driveway_id_person
-                primary: Uppfart ID · person
-                secondary: >-
-                  {% set ts = states('image.driveway_id_person') %}
-                  {% if ts not in ['unknown', 'unavailable', ''] %}
-                    {% set dt = as_local(as_datetime(ts)) %}
+                  icon: mdi:account
+                  layout: vertical
+                  fill_container: true
+                  tap_action:
+                    action: more-info
+              - type: conditional
+                conditions:
+                  - condition: state
+                    entity: image.driveway_id_person
+                    state_not: unknown
+                  - condition: state
+                    entity: image.driveway_id_person
+                    state_not: unavailable
+                card:
+                  type: custom:mushroom-template-card
+                  entity: image.driveway_id_person
+                  primary: Uppfart ID · person
+                  secondary: >-
+                    {% set dt = as_local(as_datetime(states('image.driveway_id_person'))) %}
                     {{ dt.strftime('%H:%M · %d %b') }} ({{ relative_time(dt) }})
-                  {% else %}Ingen detektion{% endif %}
-                icon: mdi:account
-                layout: vertical
-                fill_container: true
-                tap_action:
-                  action: more-info
+                  icon: mdi:account
+                  layout: vertical
+                  fill_container: true
+                  tap_action:
+                    action: more-info
           - type: horizontal-stack
             cards:
-              - type: custom:mushroom-template-card
-                entity: image.front_car
-                primary: Entrén · fordon
-                secondary: >-
-                  {% set ts = states('image.front_car') %}
-                  {% if ts not in ['unknown', 'unavailable', ''] %}
-                    {% set dt = as_local(as_datetime(ts)) %}
+              - type: conditional
+                conditions:
+                  - condition: state
+                    entity: image.front_car
+                    state_not: unknown
+                  - condition: state
+                    entity: image.front_car
+                    state_not: unavailable
+                card:
+                  type: custom:mushroom-template-card
+                  entity: image.front_car
+                  primary: Entrén · fordon
+                  secondary: >-
+                    {% set dt = as_local(as_datetime(states('image.front_car'))) %}
                     {{ dt.strftime('%H:%M · %d %b') }} ({{ relative_time(dt) }})
-                  {% else %}Ingen detektion{% endif %}
-                icon: mdi:car
-                layout: vertical
-                fill_container: true
-                tap_action:
-                  action: more-info
-              - type: custom:mushroom-template-card
-                entity: image.driveway_wide_car
-                primary: Uppfart · fordon
-                secondary: >-
-                  {% set ts = states('image.driveway_wide_car') %}
-                  {% if ts not in ['unknown', 'unavailable', ''] %}
-                    {% set dt = as_local(as_datetime(ts)) %}
+                  icon: mdi:car
+                  layout: vertical
+                  fill_container: true
+                  tap_action:
+                    action: more-info
+              - type: conditional
+                conditions:
+                  - condition: state
+                    entity: image.driveway_wide_car
+                    state_not: unknown
+                  - condition: state
+                    entity: image.driveway_wide_car
+                    state_not: unavailable
+                card:
+                  type: custom:mushroom-template-card
+                  entity: image.driveway_wide_car
+                  primary: Uppfart · fordon
+                  secondary: >-
+                    {% set dt = as_local(as_datetime(states('image.driveway_wide_car'))) %}
                     {{ dt.strftime('%H:%M · %d %b') }} ({{ relative_time(dt) }})
-                  {% else %}Ingen detektion{% endif %}
-                icon: mdi:car
-                layout: vertical
-                fill_container: true
-                tap_action:
-                  action: more-info
-              - type: custom:mushroom-template-card
-                entity: image.driveway_id_car
-                primary: Uppfart ID · fordon
-                secondary: >-
-                  {% set ts = states('image.driveway_id_car') %}
-                  {% if ts not in ['unknown', 'unavailable', ''] %}
-                    {% set dt = as_local(as_datetime(ts)) %}
+                  icon: mdi:car
+                  layout: vertical
+                  fill_container: true
+                  tap_action:
+                    action: more-info
+              - type: conditional
+                conditions:
+                  - condition: state
+                    entity: image.driveway_id_car
+                    state_not: unknown
+                  - condition: state
+                    entity: image.driveway_id_car
+                    state_not: unavailable
+                card:
+                  type: custom:mushroom-template-card
+                  entity: image.driveway_id_car
+                  primary: Uppfart ID · fordon
+                  secondary: >-
+                    {% set dt = as_local(as_datetime(states('image.driveway_id_car'))) %}
                     {{ dt.strftime('%H:%M · %d %b') }} ({{ relative_time(dt) }})
-                  {% else %}Ingen detektion{% endif %}
-                icon: mdi:car
-                layout: vertical
-                fill_container: true
-                tap_action:
-                  action: more-info
+                  icon: mdi:car
+                  layout: vertical
+                  fill_container: true
+                  tap_action:
+                    action: more-info
 
       # ── Face Recognition (Double Take + CodeProject.AI) ──────
       - title: FACE RECOGNITION
@@ -572,39 +615,34 @@ views:
               action: url
               url_path: http://192.168.68.175:3000
 
-      # ── Smoke detectors (ZHA) — auto-discovers *ias_zon* entities ─
-      - type: conditional
-        conditions:
-          - condition: template
-            value_template: >-
-              {{ states.binary_sensor | selectattr('entity_id', 'search', 'ias_zon') | list | count > 0 }}
-        card:
-          type: vertical-stack
-          cards:
-            - type: markdown
-              content: "### SMOKE DETECTORS"
-            - type: custom:mushroom-template-card
-              primary: >-
-                {% set alarms = states.binary_sensor | selectattr('entity_id', 'search', 'ias_zon') | list %}
-                {% if alarms | selectattr('state', 'eq', 'on') | list | count > 0 %}RÖKALARM — {{ alarms | selectattr('state', 'eq', 'on') | list | count }} aktiv
-                {% else %}{{ alarms | count }} brandvarnare · OK{% endif %}
-              secondary: >-
-                {% for s in states.binary_sensor | selectattr('entity_id', 'search', 'ias_zon') | list %}
-                {{ state_attr(s.entity_id, 'friendly_name') | default(s.entity_id) }} · {{ 'RÖK' if s.state == 'on' else 'OK' }}
-                {% endfor %}
-                {% set temps = states.sensor | selectattr('entity_id', 'search', 'heiman') | selectattr('entity_id', 'search', 'temperatur') | list %}
-                {% if temps | count > 0 %} · {% endif %}
-                {% for t in temps %}
-                {% if t.state not in ['unknown', 'unavailable', ''] %}{{ t.state }}°C{% if not loop.last %} · {% endif %}{% endif %}
-                {% endfor %}
-              icon: mdi:smoke-detector
-              icon_color: >-
-                {{ 'red' if states.binary_sensor | selectattr('entity_id', 'search', 'ias_zon') | selectattr('state', 'eq', 'on') | list | count > 0 else 'green' }}
-              fill_container: true
-              tap_action:
-                action: more-info
-                entity: >-
-                  {{ (states.binary_sensor | selectattr('entity_id', 'search', 'ias_zon') | list | first).entity_id }}
+      # ── Smoke detectors (ZHA) — unified house alarm sensor ──────
+      - title: SMOKE DETECTORS
+        visibility:
+          - condition: state
+            entity: binary_sensor.house_smoke_alarm
+            state_not: unavailable
+        cards:
+          - type: custom:mushroom-template-card
+            primary: >-
+              {% set alarms = states.binary_sensor | selectattr('entity_id', 'search', 'ias_zon') | list %}
+              {% if alarms | selectattr('state', 'eq', 'on') | list | count > 0 %}RÖKALARM — {{ alarms | selectattr('state', 'eq', 'on') | list | count }} aktiv
+              {% else %}{{ alarms | count }} brandvarnare · OK{% endif %}
+            secondary: >-
+              {% for s in states.binary_sensor | selectattr('entity_id', 'search', 'ias_zon') | list %}
+              {{ state_attr(s.entity_id, 'friendly_name') | default(s.entity_id) }} · {{ 'RÖK' if s.state == 'on' else 'OK' }}
+              {% endfor %}
+              {% set temps = states.sensor | selectattr('entity_id', 'search', 'heiman') | selectattr('entity_id', 'search', 'temperatur') | list %}
+              {% if temps | count > 0 %} · {% endif %}
+              {% for t in temps %}
+              {% if t.state not in ['unknown', 'unavailable', ''] %}{{ t.state }}°C{% if not loop.last %} · {% endif %}{% endif %}
+              {% endfor %}
+            icon: mdi:smoke-detector
+            icon_color: >-
+              {{ 'red' if states.binary_sensor | selectattr('entity_id', 'search', 'ias_zon') | selectattr('state', 'eq', 'on') | list | count > 0 else 'green' }}
+            fill_container: true
+            tap_action:
+              action: more-info
+              entity: binary_sensor.house_smoke_alarm
 
       # ── Yale Doorman (Sprint 1) ──────────────────────────────
       - title: ACCESS

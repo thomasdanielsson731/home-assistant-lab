@@ -1,5 +1,5 @@
 name: Danielsson Insights
-version: "0.2.2"
+version: "0.2.3"
 slug: danielsson_insights
 description: Analytics platform on HAOS — timeline, normalizer, bridges
 url: https://github.com/thomasdanielsson731/home-assistant-lab
@@ -13,6 +13,7 @@ boot: auto
 init: false
 host_network: true
 webui: http://[HOST]:[PORT:8765]/timeline
+watchdog: http://[HOST]:[PORT:8765]/timeline
 ingress: true
 ingress_port: 8765
 panel_icon: mdi:timeline-clock

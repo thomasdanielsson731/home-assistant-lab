@@ -1,31 +1,33 @@
-# Analytics — dev PC iframe (desktop) or open-in-browser button (mobile/iPad)
+# Analytics — HAOS add-on iframe (desktop) or open-in-browser button (mobile/iPad)
 views:
   - title: Analytics
     panel: true
     cards:
-      - type: conditional
-        conditions:
-          - condition: screen
-            media_query: "(min-width: 1025px)"
-        card:
-          type: iframe
-          url: !secret timeline_url
-          aspect_ratio: 50%
+      - type: vertical-stack
+        cards:
+          - type: conditional
+            conditions:
+              - condition: screen
+                media_query: "(min-width: 1025px)"
+            card:
+              type: iframe
+              url: !secret timeline_url
+              aspect_ratio: 50%
 
-      - type: conditional
-        conditions:
-          - condition: screen
-            media_query: "(max-width: 1024px)"
-        card:
-          type: vertical-stack
-          cards:
-            - type: markdown
-              content: |
-                ### Analytics på mobil/iPad
-                Iframe blockeras ofta via HTTPS — öppna i Safari/Chrome.
-            - type: button
-              name: Öppna Analytics
-              icon: mdi:timeline-clock
-              tap_action:
-                action: url
-                url_path: !secret timeline_url
+          - type: conditional
+            conditions:
+              - condition: screen
+                media_query: "(max-width: 1024px)"
+            card:
+              type: vertical-stack
+              cards:
+                - type: markdown
+                  content: |
+                    ### Analytics på mobil/iPad
+                    Iframe blockeras ofta via HTTPS — öppna i Safari/Chrome.
+                - type: button
+                  name: Öppna Analytics
+                  icon: mdi:timeline-clock
+                  tap_action:
+                    action: url
+                    url_path: !secret timeline_url

@@ -194,7 +194,10 @@ ENVIRONMENT_HTML = """<!DOCTYPE html>
       rows.forEach(r => {
         const k = `${r.zone}:${r.metric}`;
         if (!map[k]) return;
-        map[k].push({ x: new Date(r.timestamp), y: Number(r.value) });
+        const v = Number(r.value);
+        // D6210 reports AQI 0 while the sensor is still calculating — skip those samples
+        if (r.metric === 'aqi' && v === 0) return;
+        map[k].push({ x: new Date(r.timestamp), y: v });
       });
       Object.values(map).forEach(arr => arr.sort((a, b) => a.x - b.x));
       return map;

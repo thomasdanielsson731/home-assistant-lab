@@ -1,6 +1,7 @@
 # deploy-insights-to-ha.ps1 — Sync scripts + events to HA share; optional Ingress secrets
 param(
     [switch]$UseIngressSecrets,
+    [switch]$UseDirectSecrets,
     [string]$AppSlug = "",
     [switch]$DryRun
 )
@@ -82,6 +83,10 @@ if ($UseIngressSecrets) {
             -TimelineUrl "${ingressBase}/timeline" `
             -EnvironmentUrl "${ingressBase}/environment"
     }
+} elseif ($UseDirectSecrets) {
+    # Direct :8765 avoids Ingress 401 in Lovelace iframe (host_network add-on).
+    Write-Host "Setting direct HA URLs: http://${HA_HOST}:8765/timeline"
+    & (Join-Path $PSScriptRoot "set-ha-timeline-secret.ps1") -UseDirectUrls
 }
 
 Write-Host "Done."

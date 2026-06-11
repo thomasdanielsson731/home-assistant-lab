@@ -1,31 +1,33 @@
-# Environment — dev PC iframe (desktop) or open-in-browser button (mobile/iPad)
+# Environment — HAOS add-on iframe (desktop) or open-in-browser button (mobile/iPad)
 views:
   - title: Environment
     panel: true
     cards:
-      - type: conditional
-        conditions:
-          - condition: screen
-            media_query: "(min-width: 1025px)"
-        card:
-          type: iframe
-          url: !secret environment_url
-          aspect_ratio: 50%
+      - type: vertical-stack
+        cards:
+          - type: conditional
+            conditions:
+              - condition: screen
+                media_query: "(min-width: 1025px)"
+            card:
+              type: iframe
+              url: !secret environment_url
+              aspect_ratio: 50%
 
-      - type: conditional
-        conditions:
-          - condition: screen
-            media_query: "(max-width: 1024px)"
-        card:
-          type: vertical-stack
-          cards:
-            - type: markdown
-              content: |
-                ### Environment på mobil/iPad
-                Iframe blockeras ofta via HTTPS — öppna i Safari/Chrome.
-            - type: button
-              name: Öppna Environment
-              icon: mdi:chart-line
-              tap_action:
-                action: url
-                url_path: !secret environment_url
+          - type: conditional
+            conditions:
+              - condition: screen
+                media_query: "(max-width: 1024px)"
+            card:
+              type: vertical-stack
+              cards:
+                - type: markdown
+                  content: |
+                    ### Environment på mobil/iPad
+                    Iframe blockeras ofta via HTTPS — öppna i Safari/Chrome.
+                - type: button
+                  name: Öppna Environment
+                  icon: mdi:chart-line
+                  tap_action:
+                    action: url
+                    url_path: !secret environment_url

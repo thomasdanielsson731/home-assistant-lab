@@ -36,22 +36,52 @@ log = logging.getLogger("bridge_watchdog")
 
 
 def is_script_running(script: str) -> bool:
-    if sys.platform != "win32":
-        return True
-    ps = (
-        f"Get-CimInstance Win32_Process | "
-        f"Where-Object {{ $_.CommandLine -like '*{script}*' }} | "
-        f"Select-Object -First 1 | ConvertTo-Json"
-    )
+    if sys.platform == "win32":
+        ps = (
+            f"Get-CimInstance Win32_Process | "
+            f"Where-Object {{ $_.CommandLine -like '*{script}*' }} | "
+            f"Select-Object -First 1 | ConvertTo-Json"
+        )
+        try:
+            out = subprocess.check_output(
+                ["powershell", "-NoProfile", "-Command", ps],
+                text=True,
+                timeout=15,
+            ).strip()
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
+            return False
+        return bool(out and out != "null")
+
+    if script == "timeline_server.py":
+        return _http_ok("http://127.0.0.1:8765/timeline") or _http_ok(
+            f"http://{_probe_host()}:8765/timeline"
+        )
+    return _pgrep(script)
+
+
+def _probe_host() -> str:
+    import os
+
+    return os.environ.get("HA_HOST") or os.environ.get("MQTT_HOST") or "127.0.0.1"
+
+
+def _http_ok(url: str, timeout: float = 5.0) -> bool:
+    import urllib.error
+    import urllib.request
+
     try:
-        out = subprocess.check_output(
-            ["powershell", "-NoProfile", "-Command", ps],
-            text=True,
-            timeout=15,
-        ).strip()
-    except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
+        with urllib.request.urlopen(url, timeout=timeout) as resp:
+            return resp.status == 200
+    except (urllib.error.URLError, TimeoutError, OSError):
         return False
-    return bool(out and out != "null")
+
+
+def _pgrep(script: str) -> bool:
+    try:
+        out = subprocess.check_output(["pgrep", "-f", script], text=True, timeout=5).strip()
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError):
+        return False
+    return bool(out)
 
 
 def tick(store: EventStore) -> int:

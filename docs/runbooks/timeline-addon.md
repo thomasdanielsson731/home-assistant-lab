@@ -42,19 +42,27 @@ Copies `scripts/` + `events/*.jsonl` to `/share/danielsson-insights/`.
 
 ---
 
-## Step 4 — Ingress URLs in secrets
+## Step 4 — Dashboard URLs in secrets
 
-After the add-on is installed:
+**Recommended (HAOS):** direct port — avoids Ingress **401** in Lovelace iframe:
+
+```powershell
+.\scripts\deploy-insights-to-ha.ps1 -UseDirectSecrets
+# or
+.\scripts\verify-insights-ha.ps1 -FixDirectUrls
+```
+
+Writes:
+
+```yaml
+timeline_url: "http://192.168.68.175:8765/timeline"
+environment_url: "http://192.168.68.175:8765/environment"
+```
+
+**Optional Ingress** (for add-on sidebar panel, not iframe):
 
 ```powershell
 .\scripts\deploy-insights-to-ha.ps1 -UseIngressSecrets
-```
-
-This detects the app slug (e.g. `8915c73b_danielsson_insights`) and writes:
-
-```yaml
-timeline_url: "/api/hassio_ingress/<slug>/timeline"
-environment_url: "/api/hassio_ingress/<slug>/environment"
 ```
 
 ---
@@ -74,7 +82,9 @@ When the add-on is stable:
 |---|---|
 | Build fails: `lookup ghcr.io ... no such host` | Set HA DNS: `ha dns options --servers dns://1.1.1.1 --servers dns://8.8.8.8` then retry install |
 | `s6-overlay-suexec: fatal: can only run as pid 1` | Add `init: false` to `config.yaml` (included since 0.2.1), rebuild add-on |
+| Analytics/Environment **401 Unauthorized** in dashboard | Ingress in iframe — run `verify-insights-ha.ps1 -FixDirectUrls` |
 | Ingress 404 | Re-run `deploy-insights-to-ha.ps1 -UseIngressSecrets` after add-on started |
+| Blank page, data missing | Hard refresh; redeploy scripts; check relative URL tests pass |
 
 ---
 
