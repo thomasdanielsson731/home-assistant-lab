@@ -27,6 +27,7 @@ from timeline_api import (  # noqa: E402
     parse_time_range,
 )
 from environment_page import ENVIRONMENT_HTML  # noqa: E402
+from insights_paths import INSIGHTS_BASE_SCRIPT  # noqa: E402
 from story_engine import generate_story  # noqa: E402
 
 REPO_ROOT = Path(__file__).parent.parent
@@ -74,9 +75,14 @@ def _range_from_qs(qs: dict) -> tuple:
     return since, until, hours
 
 
+def _insights_page(html: str) -> bytes:
+    return html.replace("__INSIGHTS_BASE__", INSIGHTS_BASE_SCRIPT).encode("utf-8")
+
+
 TIMELINE_V1_HTML = """<!DOCTYPE html>
 <html lang="sv">
 <head>
+  __INSIGHTS_BASE__
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Analytics</title>
@@ -126,7 +132,7 @@ TIMELINE_V1_HTML = """<!DOCTYPE html>
   <header>
     <h1>Analytics</h1>
     <span class="sub">What happened — not just current state</span>
-    <a href="/story" style="margin-left:auto;color:#8ab4f8;font-size:0.78rem;text-decoration:none;padding:0.3rem 0.7rem;border-radius:1rem;background:#2d2f36">📖 Story</a>
+    <a href="story" style="margin-left:auto;color:#8ab4f8;font-size:0.78rem;text-decoration:none;padding:0.3rem 0.7rem;border-radius:1rem;background:#2d2f36">📖 Story</a>
   </header>
   <div class="toolbar" id="toolbar">
     <button data-hours="0.25">15 m</button>
@@ -516,7 +522,7 @@ TIMELINE_V1_HTML = """<!DOCTYPE html>
           ${ev.metadata?.behavior ? `<b>Behavior:</b> ${ev.metadata.behavior}<br>` : ''}
           ${ev.metadata?.rule ? `<b>Rule:</b> ${ev.metadata.rule}<br>` : ''}
         </div>
-        ${snap ? `<img src="/media/${snap}" alt="" style="margin-top:0.5rem;max-width:100%;border-radius:6px">` : ''}
+        ${snap ? `<img src="media/${snap}" alt="" style="margin-top:0.5rem;max-width:100%;border-radius:6px">` : ''}
       `;
       switchPane('detail');
     }
@@ -552,9 +558,9 @@ TIMELINE_V1_HTML = """<!DOCTYPE html>
       const q = apiQuery();
       try {
         const [ev, occ, met] = await Promise.all([
-          fetch(`/api/v1/events?${q}`).then(r => { if (!r.ok) throw new Error('events'); return r.json(); }),
-          fetch(`/api/v1/occupancy?${q}`).then(r => { if (!r.ok) throw new Error('occupancy'); return r.json(); }),
-          fetch(`/api/v1/metrics?${q}`).then(r => { if (!r.ok) throw new Error('metrics'); return r.json(); }),
+          fetch(`api/v1/events?${q}`).then(r => { if (!r.ok) throw new Error('events'); return r.json(); }),
+          fetch(`api/v1/occupancy?${q}`).then(r => { if (!r.ok) throw new Error('occupancy'); return r.json(); }),
+          fetch(`api/v1/metrics?${q}`).then(r => { if (!r.ok) throw new Error('metrics'); return r.json(); }),
         ]);
         events = Array.isArray(ev) ? ev.filter(e => e.type !== 'occupancy') : [];
         blocks = Array.isArray(occ) ? occ : [];
@@ -732,7 +738,7 @@ HTML = """<!DOCTYPE html>
 <body>
   <h1>Danielsson Insights</h1>
   <p class="sub">Event list · {period_label}</p>
-  <p class="nav"><a href="/timeline">→ Analytics</a></p>
+  <p class="nav"><a href="timeline">→ Analytics</a></p>
   <div class="stats">{stats}</div>
   <div class="filters">{filters}</div>
   {entries}
@@ -754,6 +760,7 @@ ENTRY = """
 STORY_HTML = """<!DOCTYPE html>
 <html lang="sv">
 <head>
+  __INSIGHTS_BASE__
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>House Story</title>
@@ -799,7 +806,7 @@ STORY_HTML = """<!DOCTYPE html>
 
     async function loadStory(date) {
       currentDate = date;
-      const url = date === 'today' ? '/api/v1/story/today' : `/api/v1/story/${date}`;
+      const url = date === 'today' ? 'api/v1/story/today' : `api/v1/story/${date}`;
       const story = await fetch(url).then(r => r.json());
       document.getElementById('story-title').textContent = story.title || fmtDate(story.date);
       document.getElementById('story-summary').textContent = story.summary || '';
@@ -902,7 +909,7 @@ class Handler(BaseHTTPRequestHandler):
             return
 
         if parsed.path == "/timeline":
-            page = TIMELINE_V1_HTML.encode("utf-8")
+            page = _insights_page(TIMELINE_V1_HTML)
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.send_header("Content-Length", str(len(page)))
@@ -911,7 +918,7 @@ class Handler(BaseHTTPRequestHandler):
             return
 
         if parsed.path == "/environment":
-            page = ENVIRONMENT_HTML.encode("utf-8")
+            page = _insights_page(ENVIRONMENT_HTML)
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.send_header("Content-Length", str(len(page)))
@@ -968,7 +975,7 @@ class Handler(BaseHTTPRequestHandler):
             return
 
         if parsed.path in ("/story", "/story/"):
-            page = STORY_HTML.encode("utf-8")
+            page = _insights_page(STORY_HTML)
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.send_header("Content-Length", str(len(page)))
@@ -1036,7 +1043,7 @@ class Handler(BaseHTTPRequestHandler):
                 thumb_html = ""
                 snap = (e.get("snapshot") or {}).get("best_picture")
                 if snap:
-                    thumb_html = f'<img class="thumb" src="/media/{snap}" alt="">'
+                    thumb_html = f'<img class="thumb" src="media/{snap}" alt="">'
                 entries_html += ENTRY.format(
                     time=ts.strftime("%H:%M"),
                     icon=TYPE_ICON.get(e.get("type", ""), "•"),

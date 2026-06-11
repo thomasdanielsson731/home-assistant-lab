@@ -16,13 +16,13 @@ class TestEnvironmentPageHtml:
 
     def test_includes_error_handling_and_nav(self):
         assert "Cannot load metrics" in ENVIRONMENT_HTML
-        assert "start-bridges.ps1" in ENVIRONMENT_HTML
-        assert 'href="/timeline"' in ENVIRONMENT_HTML
-        assert "/api/v1/metrics" in ENVIRONMENT_HTML
+        assert "Danielsson Insights add-on" in ENVIRONMENT_HTML
+        assert 'href="timeline"' in ENVIRONMENT_HTML
+        assert "api/v1/metrics" in ENVIRONMENT_HTML
 
     def test_uses_local_chart_js_not_cdn(self):
-        assert "/static/chart.umd.min.js" in ENVIRONMENT_HTML
-        assert "/static/chartjs-adapter-date-fns.bundle.min.js" in ENVIRONMENT_HTML
+        assert "static/chart.umd.min.js" in ENVIRONMENT_HTML
+        assert "static/chartjs-adapter-date-fns.bundle.min.js" in ENVIRONMENT_HTML
         assert "cdn.jsdelivr.net" not in ENVIRONMENT_HTML
 
     def test_breaks_line_at_data_gaps(self):

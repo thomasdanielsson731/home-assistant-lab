@@ -131,7 +131,16 @@ class TestTimelineHTTP:
         assert "Environment" in body
         assert "chart-climate" in body
         assert 'data-hours="168"' in body
-        assert "/static/chart.umd.min.js" in body
+        assert "static/chart.umd.min.js" in body
+        assert "document.createElement('base')" in body
+
+    def test_timeline_v1_ingress_base(self, server):
+        conn = HTTPConnection("127.0.0.1", server)
+        conn.request("GET", "/timeline")
+        body = conn.getresponse().read().decode()
+        assert "api/v1/events" in body
+        assert "document.createElement('base')" in body
+        assert 'fetch(`/api/v1/events' not in body
 
     def test_static_chart_js(self, server):
         conn = HTTPConnection("127.0.0.1", server)
@@ -318,7 +327,7 @@ class TestTimelineHTTP:
             conn = HTTPConnection("127.0.0.1", port)
             conn.request("GET", "/?hours=24")
             body = conn.getresponse().read().decode()
-            assert 'src="/media/events/test_snap.jpg"' in body
+            assert 'src="media/events/test_snap.jpg"' in body
         finally:
             srv.shutdown()
 

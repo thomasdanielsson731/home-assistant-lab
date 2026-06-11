@@ -3,11 +3,12 @@
 ENVIRONMENT_HTML = """<!DOCTYPE html>
 <html lang="sv">
 <head>
+  __INSIGHTS_BASE__
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Environment</title>
-  <script src="/static/chart.umd.min.js"></script>
-  <script src="/static/chartjs-adapter-date-fns.bundle.min.js"></script>
+  <script src="static/chart.umd.min.js"></script>
+  <script src="static/chartjs-adapter-date-fns.bundle.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: system-ui, -apple-system, sans-serif; background: #0f1117; color: #e8eaed; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
@@ -39,7 +40,7 @@ ENVIRONMENT_HTML = """<!DOCTYPE html>
   <header>
     <h1>Environment</h1>
     <span class="sub">Ute D6210 · inne brandvarnare · SPL · delad tidsaxel</span>
-    <a href="/timeline">→ Analytics</a>
+    <a href="timeline">→ Analytics</a>
   </header>
   <div class="toolbar" id="toolbar">
     <button data-hours="6">6 h</button>
@@ -272,16 +273,16 @@ ENVIRONMENT_HTML = """<!DOCTYPE html>
     async function load() {
       let rows = [];
       try {
-        const res = await fetch(`/api/v1/metrics?${queryString()}`);
+        const res = await fetch(`api/v1/metrics?${queryString()}`);
         if (!res.ok) throw new Error(`API ${res.status}`);
         rows = await res.json();
         if (!Array.isArray(rows)) throw new Error('unexpected API response');
       } catch (err) {
         document.getElementById('stats').textContent =
-          `Cannot load metrics — start bridges on dev PC (start-bridges.ps1). ${err.message}`;
+          `Cannot load metrics — check Danielsson Insights add-on. ${err.message}`;
         ['chart-climate', 'chart-air', 'chart-spl'].forEach(id => {
           document.getElementById(id).parentElement.innerHTML =
-            '<p class="empty">No data — run .\\scripts\\start-bridges.ps1 on the dev PC</p>';
+            '<p class="empty">No data — restart Danielsson Insights add-on on HA</p>';
         });
         return;
       }
