@@ -61,3 +61,25 @@
           {% elif d > 3 %}Inne varmare än ute
           {% elif d < -3 %}Inne kallare än ute
           {% else %}Liknande inne/ute{% endif %}
+
+- binary_sensor:
+    - name: "House smoke alarm"
+      unique_id: house_smoke_alarm
+      device_class: smoke
+      icon: mdi:smoke-detector-alert
+      state: >-
+        {{ states.binary_sensor
+           | selectattr('entity_id', 'search', 'ias_zon')
+           | selectattr('state', 'eq', 'on')
+           | list | count > 0 }}
+      attributes:
+        active_sensors: >-
+          {% set ns = namespace(list=[]) %}
+          {% for s in states.binary_sensor | selectattr('entity_id', 'search', 'ias_zon') | list %}
+            {% if s.state == 'on' %}
+              {% set ns.list = ns.list + [state_attr(s.entity_id, 'friendly_name') | default(s.entity_id)] %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.list | join(', ') if ns.list else 'none' }}
+        detector_count: >-
+          {{ states.binary_sensor | selectattr('entity_id', 'search', 'ias_zon') | list | count }}

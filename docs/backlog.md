@@ -129,7 +129,7 @@ CodeProject.AI path — see [ADR-003](decisions/003-face-recognizer.md) · [runb
 | # | Item | Effort | Status |
 |---|---|---|---|
 | Z1 | Pair 3× HEIMAN smoke detectors | M | ✅ ZHA network |
-| Z2 | Areas + `SMOKE_ENTITIES` + entity names | S | 🔄 1/3 entities live |
+| Z2 | Areas + `SMOKE_ENTITIES` + entity names | S | 🔄 2/3 alarm entities live |
 | Z3 | Smoke alert automation + timeline | S | ✅ (expand entity list as #2–3 configure) |
 
 ---

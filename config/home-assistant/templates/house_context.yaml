@@ -41,3 +41,19 @@
         humidity: "{{ states('sensor.driveway_env_humidity') }}"
         co2: "{{ states('sensor.driveway_env_co2') }}"
         pm25: "{{ states('sensor.driveway_env_pm2_5') }}"
+
+    - name: "House safety summary"
+      unique_id: house_safety_summary
+      icon: mdi:shield-home
+      state: >-
+        {% if is_state('binary_sensor.house_smoke_alarm', 'on') %}alarm
+        {% elif is_state('binary_sensor.house_outdoor_presence', 'on') %}outdoor_activity
+        {% else %}normal{% endif %}
+      attributes:
+        smoke: "{{ states('binary_sensor.house_smoke_alarm') }}"
+        smoke_detail: "{{ state_attr('binary_sensor.house_smoke_alarm', 'active_sensors') }}"
+        indoor_temp: "{{ states('sensor.house_indoor_temperature') }}"
+        outdoor_temp: "{{ states('sensor.driveway_env_temperature') }}"
+        people_home: "{{ state_attr('sensor.house_people_home_count', 'who_home') }}"
+        outdoor_presence: "{{ states('binary_sensor.house_outdoor_presence') }}"
+        air_quality: "{{ states('sensor.house_air_quality_summary') }}"

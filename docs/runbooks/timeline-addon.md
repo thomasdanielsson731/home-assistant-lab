@@ -68,6 +68,15 @@ When the add-on is stable:
 
 ---
 
+## Troubleshooting
+
+| Symptom | Fix |
+|---|---|
+| Build fails: `lookup ghcr.io ... no such host` | HA host DNS cannot reach GitHub Container Registry — fix DNS in **Settings → System → Network** (e.g. 1.1.1.1 / 8.8.8.8), then retry install |
+| Ingress 404 | Re-run `deploy-insights-to-ha.ps1 -UseIngressSecrets` after add-on started |
+
+---
+
 ## Health check
 
 On HA host after cut-over:

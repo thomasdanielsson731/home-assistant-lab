@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Reload MQTT entities and HA config via REST API."""
+"""Reload HA config in smaller steps (avoids reload_all timeout)."""
 import os
 import sys
 from pathlib import Path
@@ -16,9 +16,26 @@ if not token:
 base = f"http://{host}:8123/api"
 headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
 
-for domain, service, data in (
+RELOADS = (
+    ("template", "reload", {}),
+    ("automation", "reload", {}),
     ("mqtt", "reload", {}),
-    ("homeassistant", "reload_all", {}),
-):
-    r = requests.post(f"{base}/services/{domain}/{service}", headers=headers, json=data, timeout=60)
-    print(f"{domain}.{service}: {r.status_code} {r.text[:100]}")
+)
+
+
+def call(domain: str, service: str, data: dict, timeout: int) -> None:
+    r = requests.post(
+        f"{base}/services/{domain}/{service}",
+        headers=headers,
+        json=data,
+        timeout=timeout,
+    )
+    print(f"{domain}.{service}: {r.status_code} {r.text[:120]}")
+
+
+if __name__ == "__main__":
+    full = "--all" in sys.argv
+    for domain, service, data in RELOADS:
+        call(domain, service, data, timeout=120)
+    if full:
+        call("homeassistant", "reload_all", {}, timeout=300)

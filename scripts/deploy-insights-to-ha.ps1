@@ -73,7 +73,7 @@ foreach ($name in @("timeline.jsonl", "metrics.jsonl")) {
 if ($UseIngressSecrets) {
     if (-not $AppSlug) { $AppSlug = Get-InsightsAppSlug }
     if (-not $AppSlug) {
-        Write-Warning "Danielsson Insights add-on not installed yet — install from GitHub repo first, then re-run with -UseIngressSecrets"
+        Write-Warning "Danielsson Insights add-on not installed yet - install from GitHub repo first, then re-run with -UseIngressSecrets"
         Write-Host "Repository URL (paste exactly): https://github.com/thomasdanielsson731/home-assistant-lab"
     } else {
         Write-Host "Setting Ingress URLs for app slug: $AppSlug"
@@ -84,4 +84,4 @@ if ($UseIngressSecrets) {
 }
 
 Write-Host "Done."
-Write-Host "Add-on repo: https://github.com/thomasdanielsson731/home-assistant-lab (repository.yaml + danielsson_insights/ at repo root)"
+Write-Host "Add-on repo: https://github.com/thomasdanielsson731/home-assistant-lab"

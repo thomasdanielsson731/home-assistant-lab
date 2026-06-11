@@ -6,6 +6,13 @@ from __future__ import annotations
 # Timeline / metrics zone IDs (snake_case, Swedish room names)
 SMOKE_ROOMS = ("kok", "vardagsrum", "hall")
 
+# Default placement when areas not yet assigned (sorted IEEE → zone, HA area_id)
+PLANNED_ROOM_ASSIGNMENTS: tuple[tuple[str, str], ...] = (
+    ("kok", "kok"),
+    ("vardagsrum", "living_room"),
+    ("hall", "hall_ground_floor"),
+)
+
 # HA area_id or name fragment → canonical zone
 AREA_TO_ZONE: dict[str, str] = {
     "kok": "kok",
@@ -19,6 +26,7 @@ AREA_TO_ZONE: dict[str, str] = {
     "living": "vardagsrum",
     "hall": "hall",
     "hall_ground_floor": "hall",
+    "hall_nere": "hall",
     "hall_ground": "hall",
     "entré": "hall",
     "entre": "hall",

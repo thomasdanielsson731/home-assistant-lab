@@ -41,9 +41,9 @@ python scripts/setup_zha.py --list     # show network devices
 
 | # | IEEE | Alarm entity | Notes |
 |---|---|---|---|
-| 1 | `cc:36:bb:ff:fe:d9:0e:76` | `binary_sensor.heiman_hs1sa_e_plus_ias_zon_2` | Fully configured |
-| 2 | `cc:36:bb:ff:fe:d9:0e:99` | *(pending — reconfigure in ZHA)* | In network |
-| 3 | `cc:36:bb:ff:fe:d9:0b:c5` | *(pending — reconfigure in ZHA)* | Shows as unk_manufacturer until interview completes |
+| 1 | `cc:36:bb:ff:fe:d9:0b:c5` | *(pending — reconfigure + wake button)* | Area: kök |
+| 2 | `cc:36:bb:ff:fe:d9:0e:76` | `binary_sensor.heiman_hs1sa_e_plus_ias_zon_2` | Area: vardagsrum |
+| 3 | `cc:36:bb:ff:fe:d9:0e:99` | `binary_sensor.heiman_hs1sa_e_plus_ias_zon` | Area: hall |
 
 Battery: `sensor.heiman_hs1sa_e_plus_batteri_3` · Temp: `sensor.heiman_hs1sa_e_plus_temperatur_3`
 
@@ -53,7 +53,10 @@ Battery: `sensor.heiman_hs1sa_e_plus_batteri_3` · Temp: `sensor.heiman_hs1sa_e_
 
 ```powershell
 python scripts/probe_smoke_entities.py   # suggested SMOKE_ENTITIES + device status
+python scripts/configure_smoke_detectors.py --reconfigure --wait 45 --update-env
 ```
+
+`configure_smoke_detectors.py` assigns Areas (IEEE order → kök, vardagsrum, hall), re-interviews incomplete devices, and updates `.env`.
 
 Failed duplicate interviews (`…0e:76`, `…0e:99`) can be removed:
 
