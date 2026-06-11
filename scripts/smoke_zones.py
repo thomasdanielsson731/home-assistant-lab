@@ -13,6 +13,13 @@ PLANNED_ROOM_ASSIGNMENTS: tuple[tuple[str, str], ...] = (
     ("hall", "hall_ground_floor"),
 )
 
+# Friendly names in HA device registry (logical room, not physical location)
+ZONE_DEVICE_LABELS: dict[str, str] = {
+    "kok": "Brandvarnare kök",
+    "vardagsrum": "Brandvarnare vardagsrum",
+    "hall": "Brandvarnare hall",
+}
+
 # HA area_id or name fragment → canonical zone
 AREA_TO_ZONE: dict[str, str] = {
     "kok": "kok",

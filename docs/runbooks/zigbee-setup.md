@@ -1,6 +1,6 @@
 # Zigbee (ZHA) Setup Runbook
 
-> **Status (2026-06-11):** 3× HEIMAN paired in ZHA. Assign **Areas** in HA, then run `python scripts/probe_smoke_entities.py` for `SMOKE_ENTITIES` line. If a device shows no `ias_zon` entity, open it in ZHA → **Reconfigure** (or re-pair near coordinator).
+> **Status (2026-06-11):** 3× HEIMAN — **en per rum** (kök, vardagsrum, hall) som logisk placering. Fysisk montering/swap senare: flytta enheten, ändra bara **Area** i HA, kör `configure_smoke_detectors.py --update-env`.
 
 ZHA on the HAOS host with a SONOFF ZigBee 3.0 USB Dongle Plus (CC2652P, "ZBDongle-P").
 
@@ -56,23 +56,17 @@ python scripts/probe_smoke_entities.py   # suggested SMOKE_ENTITIES + device sta
 python scripts/configure_smoke_detectors.py --reconfigure --wait 45 --update-env
 ```
 
-`configure_smoke_detectors.py` assigns Areas (IEEE order → kök, vardagsrum, hall), re-interviews incomplete devices, and updates `.env`.
+`configure_smoke_detectors.py` ensures one detector per planned Area, sets friendly names (`Brandvarnare kök` …), re-interviews incomplete devices, and updates `.env`.
 
-Failed duplicate interviews (`…0e:76`, `…0e:99`) can be removed:
+### Logical vs physical placement
 
-```powershell
-python scripts/setup_zha.py --remove-ghosts
-```
-
-Assign an **Area** in HA after mounting — canonical zones for the three detectors:
-
-| Placering | HA Area (exempel) | Zone ID i `.env` |
+| Zone | HA Area | Friendly name |
 |---|---|---|
-| Kök | Kitchen / Kök | `kok` |
-| Vardagsrum | Living room | `vardagsrum` |
-| Hall (entré) | Hall (Ground Floor) | `hall` |
+| `kok` | Kök | Brandvarnare kök |
+| `vardagsrum` | Living room | Brandvarnare vardagsrum |
+| `hall` | Hall (Ground Floor) | Brandvarnare hall |
 
-Planned: extend `SMOKE_ENTITIES=entity_suffix:zone,...` when all three alarm entities are live.
+**Montering behövs inte för att systemet ska fungera.** Enheterna kan ligga på bordet i “fel” rum tills hållare monteras — byt fysiskt när du vill, uppdatera Area i HA, kör `--update-env`.
 
 ## Troubleshooting
 

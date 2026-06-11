@@ -115,7 +115,7 @@ def main() -> int:
 
     if smoke_parts:
         print(f"Canonical zones: {', '.join(SMOKE_ROOMS)} (kök, vardagsrum, hall)")
-        print("Assign HA Areas after mounting, then re-run this script.\n")
+        print("Zones follow HA Area. Swap detectors physically anytime — just update Area.\n")
         print("Suggested SMOKE_ENTITIES:")
         print("SMOKE_ENTITIES=" + ",".join(smoke_parts))
     if temp_parts:

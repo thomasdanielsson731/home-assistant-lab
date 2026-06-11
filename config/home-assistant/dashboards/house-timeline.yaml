@@ -1,28 +1,31 @@
-# Analytics — Ingress on HAOS (desktop) or dev PC URL; Safari button on mobile
+# Analytics — dev PC iframe (desktop) or open-in-browser button (mobile/iPad)
 views:
   - title: Analytics
     panel: true
-    visibility:
-      - condition: screen
-        media_query: "(min-width: 1025px)"
     cards:
-      - type: iframe
-        url: !secret timeline_url
-        aspect_ratio: 50%
+      - type: conditional
+        conditions:
+          - condition: screen
+            media_query: "(min-width: 1025px)"
+        card:
+          type: iframe
+          url: !secret timeline_url
+          aspect_ratio: 50%
 
-  - title: Analytics
-    visibility:
-      - condition: screen
-        media_query: "(max-width: 1024px)"
-    cards:
-      - type: markdown
-        content: |
-          ### Analytics på mobil/iPad
-          **Ingress (HAOS):** fungerar i appen när add-on körs på hosten.
-          **Dev PC:** använd **Öppna i Safari** (HTTP-iframe blockeras via HTTPS/Nabu Casa).
-      - type: button
-        name: Öppna Analytics
-        icon: mdi:timeline-clock
-        tap_action:
-          action: url
-          url_path: !secret timeline_url
+      - type: conditional
+        conditions:
+          - condition: screen
+            media_query: "(max-width: 1024px)"
+        card:
+          type: vertical-stack
+          cards:
+            - type: markdown
+              content: |
+                ### Analytics på mobil/iPad
+                Iframe blockeras ofta via HTTPS — öppna i Safari/Chrome.
+            - type: button
+              name: Öppna Analytics
+              icon: mdi:timeline-clock
+              tap_action:
+                action: url
+                url_path: !secret timeline_url

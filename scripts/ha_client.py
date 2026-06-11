@@ -26,9 +26,10 @@ def require_token() -> None:
         raise SystemExit("HA_TOKEN not set in .env")
 
 
-def ws_call(msg_type: str, msg_id: int = 1, **extra: Any) -> Any:
+def ws_call(msg_type: str, msg_id: int = 1, timeout: int = 60, **extra: Any) -> Any:
     require_token()
-    ws = create_connection(WS_URI, timeout=60)
+    ws = create_connection(WS_URI, timeout=timeout)
+    ws.settimeout(timeout)
     ws.recv()
     ws.send(json.dumps({"type": "auth", "access_token": TOKEN}))
     ws.recv()
@@ -40,6 +41,18 @@ def ws_call(msg_type: str, msg_id: int = 1, **extra: Any) -> Any:
                 raise RuntimeError(data.get("error"))
             ws.close()
             return data.get("result")
+
+
+def ws_fire_and_forget(msg_type: str, msg_id: int = 1, **extra: Any) -> None:
+    """Send a WS command without waiting for long-running work (e.g. ZHA reconfigure)."""
+    require_token()
+    ws = create_connection(WS_URI, timeout=15)
+    ws.settimeout(15)
+    ws.recv()
+    ws.send(json.dumps({"type": "auth", "access_token": TOKEN}))
+    ws.recv()
+    ws.send(json.dumps({"id": msg_id, "type": msg_type, **extra}))
+    ws.close()
 
 
 def zha_entry_id() -> str | None:
