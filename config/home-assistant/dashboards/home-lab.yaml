@@ -56,6 +56,16 @@ views:
                 layout: vertical
                 fill_container: true
               - type: custom:mushroom-template-card
+                primary: "{{ states('sensor.house_indoor_temperature') }}°C"
+                secondary: >-
+                  Inne · Δ {{ states('sensor.house_indoor_outdoor_delta') }}° mot ute
+                icon: mdi:home-thermometer
+                icon_color: >-
+                  {% set inn = states('sensor.house_indoor_temperature') | float(0) %}
+                  {{ 'blue' if inn < 18 else 'green' if inn < 24 else 'orange' if inn < 26 else 'red' }}
+                layout: vertical
+                fill_container: true
+              - type: custom:mushroom-template-card
                 primary: "{{ states('sensor.driveway_env_temperature') }}°C"
                 secondary: >-
                   Ute · {{ relative_time(states.sensor.driveway_env_temperature.last_changed) }}
@@ -514,12 +524,12 @@ views:
               action: url
               url_path: http://192.168.68.175:3000
 
-      # ── Smoke detectors (ZHA) — shown when paired ──────────
+      # ── Smoke detectors (ZHA) — auto-discovers *ias_zon* entities ─
       - type: conditional
         conditions:
           - condition: template
             value_template: >-
-              {{ states('binary_sensor.heiman_hs1sa_e_plus') not in ['unknown', 'unavailable', ''] }}
+              {{ states.binary_sensor | selectattr('entity_id', 'search', 'ias_zon') | list | count > 0 }}
         card:
           type: vertical-stack
           cards:
@@ -527,18 +537,26 @@ views:
               content: "### SMOKE DETECTORS"
             - type: custom:mushroom-template-card
               primary: >-
-                {% if is_state('binary_sensor.heiman_hs1sa_e_plus', 'on') %}RÖK — HEIMAN HS1SA-E-PLUS
-                {% else %}HEIMAN HS1SA-E-PLUS{% endif %}
+                {% set alarms = states.binary_sensor | selectattr('entity_id', 'search', 'ias_zon') | list %}
+                {% if alarms | selectattr('state', 'eq', 'on') | list | count > 0 %}RÖKALARM — {{ alarms | selectattr('state', 'eq', 'on') | list | count }} aktiv
+                {% else %}{{ alarms | count }} brandvarnare · OK{% endif %}
               secondary: >-
-                {% if is_state('binary_sensor.heiman_hs1sa_e_plus', 'on') %}Smoke alert active
-                {% else %}Battery {{ states('sensor.heiman_hs1sa_e_plus_batteri') }}% · {{ states('sensor.heiman_hs1sa_e_plus_temperatur') }}°C{% endif %}
+                {% for s in states.binary_sensor | selectattr('entity_id', 'search', 'ias_zon') | list %}
+                {{ state_attr(s.entity_id, 'friendly_name') | default(s.entity_id) }} · {{ 'RÖK' if s.state == 'on' else 'OK' }}
+                {% endfor %}
+                {% set temps = states.sensor | selectattr('entity_id', 'search', 'heiman') | selectattr('entity_id', 'search', 'temperatur') | list %}
+                {% if temps | count > 0 %} · {% endif %}
+                {% for t in temps %}
+                {% if t.state not in ['unknown', 'unavailable', ''] %}{{ t.state }}°C{% if not loop.last %} · {% endif %}{% endif %}
+                {% endfor %}
               icon: mdi:smoke-detector
               icon_color: >-
-                {{ 'red' if is_state('binary_sensor.heiman_hs1sa_e_plus', 'on') else 'green' }}
+                {{ 'red' if states.binary_sensor | selectattr('entity_id', 'search', 'ias_zon') | selectattr('state', 'eq', 'on') | list | count > 0 else 'green' }}
               fill_container: true
               tap_action:
                 action: more-info
-                entity: binary_sensor.heiman_hs1sa_e_plus
+                entity: >-
+                  {{ (states.binary_sensor | selectattr('entity_id', 'search', 'ias_zon') | list | first).entity_id }}
 
       # ── Yale Doorman (Sprint 1) ──────────────────────────────
       - title: ACCESS
@@ -625,6 +643,27 @@ views:
                       - light.matplats
                       - light.spottar
                       - light.underskapsbelysning
+
+      # ── Inomhusklimat (brandvarnare) ─────────────────────────
+      - column_span: 2
+        cards:
+          - type: custom:mushroom-template-card
+            primary: "Inomhus {{ states('sensor.house_indoor_temperature') }}°C"
+            secondary: >-
+              {% set ns = namespace(parts=[]) %}
+              {% for t in states.sensor | selectattr('entity_id', 'search', 'heiman') | list %}
+                {% if 'temperatur' in t.entity_id and t.state not in ['unknown', 'unavailable', ''] %}
+                  {% set ns.parts = ns.parts + [state_attr(t.entity_id, 'friendly_name') | default('Rum') ~ ' ' ~ t.state ~ '°C'] %}
+                {% endif %}
+              {% endfor %}
+              {{ ns.parts | join(' · ') if ns.parts else 'Väntar på fler brandvarnare' }}
+              · Δ {{ states('sensor.house_indoor_outdoor_delta') }}° mot ute
+            icon: mdi:home-thermometer
+            icon_color: green
+            fill_container: true
+            tap_action:
+              action: navigate
+              navigation_path: /lovelace/house-graphs
 
       # ── Kök ──────────────────────────────────────────────────
       - title: KÖK

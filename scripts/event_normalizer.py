@@ -13,6 +13,7 @@ Sources:
   - axis/+/event/ObjectAnalytics/ScenarioOccupancy/# → occupancy start/end
   - homeassistant/lock/+/state → door lock/unlock (Yale via HA MQTT)
   - homeassistant/binary_sensor/+/state → smoke alerts (ZHA via HA MQTT)
+  - homeassistant/sensor/+/state → indoor temperature (smoke detectors via HA MQTT)
 
 Run: python scripts/event_normalizer.py
 """
@@ -56,6 +57,8 @@ HA_TOKEN = os.environ.get("HA_TOKEN", "")
 FRIGATE_URL = os.environ.get("FRIGATE_URL", f"http://{MQTT_HOST}:5000")
 
 ENV_INTERVAL = 900  # 15 minutes
+INDOOR_TEMP_INTERVAL = 900  # 15 min per room — smoke sensors update slowly
+INDOOR_TEMP_MIN_DELTA = 0.3  # °C — still write if change exceeds this
 
 logging.basicConfig(
     level=logging.INFO,
@@ -76,9 +79,11 @@ _scene_last: dict[str, tuple[int, int, int]] = {}
 _spl_last_written: dict[str, float] = {}
 _lock_state: dict[str, str] = {}
 _smoke_state: dict[str, str] = {}
+_indoor_temp_last: dict[str, tuple[float, float]] = {}
 
 HA_LOCK_TOPIC_RE = re.compile(r"homeassistant/lock/(?P<entity>[^/]+)/state")
 HA_BINARY_TOPIC_RE = re.compile(r"homeassistant/binary_sensor/(?P<entity>[^/]+)/state")
+HA_SENSOR_TOPIC_RE = re.compile(r"homeassistant/sensor/(?P<entity>[^/]+)/state")
 BIKE_TYPES = frozenset({"Bike", "bike", "Bicycle", "bicycle"})
 
 
@@ -98,7 +103,10 @@ DOOR_ZONE_BY_ENTITY = _door_zone_map()
 
 
 def _smoke_zone_map() -> dict[str, str]:
-    raw = os.environ.get("SMOKE_ENTITIES", "heiman_hs1sa_e_plus:kitchen")
+    raw = os.environ.get(
+        "SMOKE_ENTITIES",
+        "heiman_hs1sa_e_plus_ias_zon_2:kok",
+    )
     out: dict[str, str] = {}
     for part in raw.split(","):
         part = part.strip()
@@ -110,6 +118,24 @@ def _smoke_zone_map() -> dict[str, str]:
 
 
 SMOKE_ZONE_BY_ENTITY = _smoke_zone_map()
+
+
+def _indoor_temp_map() -> dict[str, str]:
+    raw = os.environ.get(
+        "INDOOR_TEMP_ENTITIES",
+        "heiman_hs1sa_e_plus_temperatur_3:kok",
+    )
+    out: dict[str, str] = {}
+    for part in raw.split(","):
+        part = part.strip()
+        if ":" not in part:
+            continue
+        entity, zone = part.split(":", 1)
+        out[entity.strip()] = zone.strip()
+    return out
+
+
+INDOOR_TEMP_BY_ENTITY = _indoor_temp_map()
 
 AOA_TOPIC_RE = re.compile(
     r"axis/(?P<zone>[^/]+)/event/ObjectAnalytics/ScenarioOccupancy/(?P<scenario>[^/]+)/Active"
@@ -260,7 +286,7 @@ def handle_double_take(payload: dict) -> None:
 
 def reset_env_state() -> None:
     """Clear caches (for tests)."""
-    global _last_env_event, _env_cache, _aoa_state, _aoa_cooldown, _scene_last, _spl_last_written, _lock_state, _smoke_state, _scene_tracks
+    global _last_env_event, _env_cache, _aoa_state, _aoa_cooldown, _scene_last, _spl_last_written, _lock_state, _smoke_state, _scene_tracks, _indoor_temp_last
     _env_cache = {}
     _last_env_event = 0.0
     _aoa_state = {}
@@ -269,6 +295,7 @@ def reset_env_state() -> None:
     _spl_last_written = {}
     _lock_state = {}
     _smoke_state = {}
+    _indoor_temp_last = {}
     _scene_tracks = {}
 
 
@@ -594,6 +621,30 @@ def handle_smoke_sensor(topic: str, payload: str) -> None:
     store.write(event)
 
 
+def handle_indoor_temp(topic: str, payload: str) -> None:
+    m = HA_SENSOR_TOPIC_RE.match(topic)
+    if not m:
+        return
+    entity = m.group("entity")
+    zone = INDOOR_TEMP_BY_ENTITY.get(entity)
+    if not zone:
+        return
+    try:
+        temp = round(float(payload.strip()), 2)
+    except ValueError:
+        return
+
+    now = time.time()
+    last_ts, last_val = _indoor_temp_last.get(zone, (0.0, temp))
+    if (
+        now - last_ts < INDOOR_TEMP_INTERVAL
+        and abs(temp - last_val) < INDOOR_TEMP_MIN_DELTA
+    ):
+        return
+    _indoor_temp_last[zone] = (now, temp)
+    store.write_metric(_ts_now(), zone, {"temperature": temp, "source": "smoke_detector"})
+
+
 def handle_audio_spl(topic: str, payload: str) -> None:
     zone = topic.split("/")[1]
     try:
@@ -634,6 +685,8 @@ def on_message(client, userdata, msg):
             handle_door_lock(msg.topic, msg.payload.decode())
         elif HA_BINARY_TOPIC_RE.match(msg.topic):
             handle_smoke_sensor(msg.topic, msg.payload.decode())
+        elif HA_SENSOR_TOPIC_RE.match(msg.topic):
+            handle_indoor_temp(msg.topic, msg.payload.decode())
     except (json.JSONDecodeError, KeyError, TypeError) as exc:
         log.warning("Bad message on %s: %s", msg.topic, exc)
 
@@ -656,6 +709,7 @@ def main() -> None:
     client.subscribe("axis/+/event/ObjectAnalytics/ScenarioOccupancy/#")
     client.subscribe("homeassistant/lock/+/state")
     client.subscribe("homeassistant/binary_sensor/+/state")
+    client.subscribe("homeassistant/sensor/+/state")
 
     fusion.start_background()
     log.info("Event normalizer started  mqtt=%s  store=%s", MQTT_HOST, store.events_root)

@@ -1,0 +1,63 @@
+# Indoor climate from ZHA smoke detectors (HEIMAN built-in temperature)
+
+- sensor:
+    - name: "House indoor temperature"
+      unique_id: house_indoor_temperature
+      icon: mdi:home-thermometer
+      unit_of_measurement: "°C"
+      device_class: temperature
+      state_class: measurement
+      state: >-
+        {% set ns = namespace(values=[]) %}
+        {% for s in states.sensor | selectattr('entity_id', 'search', 'heiman') | list %}
+          {% if 'temperatur' in s.entity_id and s.state not in ['unknown', 'unavailable', ''] %}
+            {% set ns.values = ns.values + [s.state | float(0)] %}
+          {% endif %}
+        {% endfor %}
+        {% if ns.values | count > 0 %}{{ (ns.values | sum / ns.values | count) | round(1) }}
+        {% else %}unknown{% endif %}
+      attributes:
+        rooms: >-
+          {% set ns = namespace(items=[]) %}
+          {% for s in states.sensor | selectattr('entity_id', 'search', 'heiman') | list %}
+            {% if 'temperatur' in s.entity_id and s.state not in ['unknown', 'unavailable', ''] %}
+              {% set ns.items = ns.items + [{
+                'entity': s.entity_id,
+                'name': state_attr(s.entity_id, 'friendly_name') | default(s.entity_id),
+                'c': (s.state | float(0) | round(1))
+              }] %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.items }}
+        outdoor: "{{ states('sensor.driveway_env_temperature') }}"
+        delta: >-
+          {% set out = states('sensor.driveway_env_temperature') | float(none) %}
+          {% set inn = states('sensor.house_indoor_temperature') | float(none) %}
+          {% if out is not none and inn is not none %}{{ (inn - out) | round(1) }}
+          {% else %}unknown{% endif %}
+        warmest: >-
+          {% set ns = namespace(best='', val=-999) %}
+          {% for s in states.sensor | selectattr('entity_id', 'search', 'heiman') | list %}
+            {% if 'temperatur' in s.entity_id and s.state not in ['unknown', 'unavailable', ''] %}
+              {% set v = s.state | float(0) %}
+              {% if v > ns.val %}{% set ns.val = v %}{% set ns.best = state_attr(s.entity_id, 'friendly_name') | default(s.entity_id) %}{% endif %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.best if ns.best else '—' }}
+
+    - name: "House indoor outdoor delta"
+      unique_id: house_indoor_outdoor_delta
+      icon: mdi:thermometer-lines
+      unit_of_measurement: "°C"
+      state: >-
+        {% set out = states('sensor.driveway_env_temperature') | float(none) %}
+        {% set inn = states('sensor.house_indoor_temperature') | float(none) %}
+        {% if out is not none and inn is not none %}{{ (inn - out) | round(1) }}
+        {% else %}unknown{% endif %}
+      attributes:
+        label: >-
+          {% set d = states('sensor.house_indoor_outdoor_delta') | float(none) %}
+          {% if d is none %}—
+          {% elif d > 3 %}Inne varmare än ute
+          {% elif d < -3 %}Inne kallare än ute
+          {% else %}Liknande inne/ute{% endif %}

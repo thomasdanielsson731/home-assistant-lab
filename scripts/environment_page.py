@@ -38,7 +38,7 @@ ENVIRONMENT_HTML = """<!DOCTYPE html>
 <body>
   <header>
     <h1>Environment</h1>
-    <span class="sub">Driveway D6210 · camera SPL · shared time range</span>
+    <span class="sub">Ute D6210 · inne brandvarnare · SPL · delad tidsaxel</span>
     <a href="/timeline">→ Analytics</a>
   </header>
   <div class="toolbar" id="toolbar">
@@ -59,7 +59,7 @@ ENVIRONMENT_HTML = """<!DOCTYPE html>
   <main id="charts">
     <div class="chart-card">
       <div class="chart-title">Climate</div>
-      <div class="chart-sub">Temperature (°C) and humidity (%) in the same chart</div>
+      <div class="chart-sub">Ute (D6210) + inne (brandvarnare) · °C och luftfuktighet %</div>
       <div class="chart-wrap"><canvas id="chart-climate"></canvas></div>
     </div>
     <div class="chart-card">
@@ -76,9 +76,9 @@ ENVIRONMENT_HTML = """<!DOCTYPE html>
 
   <script>
   (function() {
-    const SERIES = [
-      { key: 'driveway_env:temperature', label: 'Temperature', unit: '°C', color: '#f6aea9', chart: 'climate', yAxis: 'y' },
-      { key: 'driveway_env:humidity', label: 'Humidity', unit: '%', color: '#8ab4f8', chart: 'climate', yAxis: 'y1' },
+    const BASE_SERIES = [
+      { key: 'driveway_env:temperature', label: 'Ute temp', unit: '°C', color: '#f6aea9', chart: 'climate', yAxis: 'y' },
+      { key: 'driveway_env:humidity', label: 'Ute fukt', unit: '%', color: '#8ab4f8', chart: 'climate', yAxis: 'y1' },
       { key: 'driveway_env:co2', label: 'CO₂', unit: 'ppm', color: '#78d9ec', chart: 'air', yAxis: 'y' },
       { key: 'driveway_env:aqi', label: 'AQI', unit: '', color: '#fdd663', chart: 'air', yAxis: 'y1' },
       { key: 'driveway_env:pm2_5', label: 'PM2.5', unit: 'µg/m³', color: '#c58af9', chart: 'air', yAxis: 'y1' },
@@ -86,6 +86,9 @@ ENVIRONMENT_HTML = """<!DOCTYPE html>
       { key: 'driveway_wide:spl', label: 'Driveway SPL', unit: 'dB', color: '#81c995', chart: 'spl', yAxis: 'y' },
       { key: 'backyard:spl', label: 'Backyard SPL', unit: 'dB', color: '#e8c4a0', chart: 'spl', yAxis: 'y' },
     ];
+    const OUTDOOR_CLIMATE_ZONES = new Set(['driveway_env']);
+    const INDOOR_COLORS = ['#fdd663', '#81c995', '#c58af9', '#e8c4a0', '#aecbfa'];
+    let SERIES = [...BASE_SERIES];
 
     let hours = 24, customFrom = null, customTo = null;
     let charts = { climate: null, air: null, spl: null };
@@ -166,6 +169,24 @@ ENVIRONMENT_HTML = """<!DOCTYPE html>
       return `${Math.round(min / 1440)} d`;
     }
 
+    function discoverIndoorSeries(rows) {
+      const zones = new Set();
+      rows.forEach(r => {
+        if (r.metric === 'temperature' && !OUTDOOR_CLIMATE_ZONES.has(r.zone)) {
+          zones.add(r.zone);
+        }
+      });
+      return [...zones].sort().map((zone, i) => ({
+        key: `${zone}:temperature`,
+        label: `${zone.replace(/_/g, ' ')} (inne)`,
+        unit: '°C',
+        color: INDOOR_COLORS[i % INDOOR_COLORS.length],
+        chart: 'climate',
+        yAxis: 'y',
+        dashed: true,
+      }));
+    }
+
     function groupMetrics(rows) {
       const map = {};
       SERIES.forEach(s => { map[s.key] = []; });
@@ -240,6 +261,7 @@ ENVIRONMENT_HTML = """<!DOCTYPE html>
         borderColor: s.color,
         backgroundColor: s.color + '33',
         borderWidth: 2,
+        borderDash: s.dashed ? [6, 4] : [],
         pointRadius: 0,
         tension: 0.2,
         spanGaps: false,
@@ -263,6 +285,7 @@ ENVIRONMENT_HTML = """<!DOCTYPE html>
         });
         return;
       }
+      SERIES = BASE_SERIES.concat(discoverIndoorSeries(rows));
       const map = groupMetrics(rows);
       const maxPts = hours >= 720 ? 500 : hours >= 168 ? 400 : 300;
       renderLive(map);

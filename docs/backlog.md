@@ -122,15 +122,15 @@ CodeProject.AI path — see [ADR-003](decisions/003-face-recognizer.md) · [runb
 
 ---
 
-## On Hold — Zigbee smoke detectors
+## Zigbee smoke detectors
 
-ZHA coordinator live (Sonoff ZBDongle-P). HEIMAN HS1SA-E-PLUS pairing deferred — sleepy-device configure step not user-friendly. Timeline + dashboard wiring ready (`SMOKE_ENTITIES`, conditional Security card). Resume via [zigbee-setup.md](runbooks/zigbee-setup.md).
+3× HEIMAN paired in ZHA (2026-06-11). Timeline + Security dashboard + push alert wired. Run `probe_smoke_entities.py` after Areas assigned; reconfigure in ZHA if `ias_zon` entity missing.
 
 | # | Item | Effort | Status |
 |---|---|---|---|
-| Z1 | Pair 3× HEIMAN smoke detectors | M | ⏸ paused |
-| Z2 | Rename entities `heiman_hs1sa_e_plus_{1,2,3}` + zone map | S | ⬜ |
-| Z3 | Smoke alert automation + push | S | ⬜ |
+| Z1 | Pair 3× HEIMAN smoke detectors | M | ✅ ZHA network |
+| Z2 | Areas + `SMOKE_ENTITIES` + entity names | S | 🔄 1/3 entities live |
+| Z3 | Smoke alert automation + timeline | S | ✅ (expand entity list as #2–3 configure) |
 
 ---
 

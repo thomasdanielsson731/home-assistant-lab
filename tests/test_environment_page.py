@@ -29,3 +29,7 @@ class TestEnvironmentPageHtml:
         assert "insertGaps" in ENVIRONMENT_HTML
         assert "spanGaps: false" in ENVIRONMENT_HTML
         assert "senaste sample" in ENVIRONMENT_HTML
+
+    def test_discovers_indoor_temperature_series(self):
+        assert "discoverIndoorSeries" in ENVIRONMENT_HTML
+        assert "borderDash" in ENVIRONMENT_HTML

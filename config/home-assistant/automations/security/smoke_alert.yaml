@@ -1,0 +1,26 @@
+# Smoke detector alert — any ZHA IAS zone binary_sensor → push
+# Entity list grows as devices finish configuring; run probe_smoke_entities.py to refresh .env map.
+
+- id: "security_smoke_detected_notify"
+  alias: "Security — smoke detector alarm"
+  initial_state: true
+  description: >
+    Push when any HEIMAN IAS zone reports smoke. Timeline events come via event_normalizer (MQTT).
+  mode: parallel
+  max_exceeded: silent
+
+  trigger:
+    - platform: state
+      entity_id:
+        - binary_sensor.heiman_hs1sa_e_plus_ias_zon_2
+      to: "on"
+
+  action:
+    - service: notify.mobile_app_thomas_iphone_15
+      data:
+        title: "RÖKALARM"
+        message: >-
+          {{ trigger.to_state.attributes.friendly_name | default(trigger.entity_id) }}
+          {% set inn = states('sensor.house_indoor_temperature') %}
+          {% if inn not in ['unknown', 'unavailable', ''] %} · inne {{ inn }}°C{% endif %}
+          — kontrollera omedelbart.

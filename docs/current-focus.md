@@ -76,7 +76,7 @@ python scripts/verify-influxdb.py   # Influx auth + write probe
 | **InfluxDB writes** | ✅ `home_lab` DB + `influx_metrics_bridge.py` |
 | Yale Doorman | Hardware + HA lock entity |
 | Kraftringen energy | API credentials for `energy_bridge.py` |
-| **Zigbee smoke detectors** | ⏸ Paused — ZHA live, HEIMAN pairing deferred |
+| **Zigbee smoke detectors** | ✅ 3 paired — assign Areas, run `probe_smoke_entities.py`, reconfigure if needed |
 | **Timeline on HAOS** | `.\scripts\deploy-insights-to-ha.ps1 -UseIngressSecrets` — [timeline-addon.md](runbooks/timeline-addon.md) |
 | **Presence fusion** | ✅ `sensor.house_occupancy_summary` + `sensor.*_presence_fused` |
 

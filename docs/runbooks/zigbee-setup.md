@@ -1,6 +1,6 @@
 # Zigbee (ZHA) Setup Runbook
 
-> **Status (2026-06-10):** Coordinator configured and network reset complete. HEIMAN smoke detector pairing is **paused** — sleepy-device configure step was not user-friendly. Resume from [Pair devices](#pair-devices) when ready.
+> **Status (2026-06-11):** 3× HEIMAN paired in ZHA. Assign **Areas** in HA, then run `python scripts/probe_smoke_entities.py` for `SMOKE_ENTITIES` line. If a device shows no `ias_zon` entity, open it in ZHA → **Reconfigure** (or re-pair near coordinator).
 
 ZHA on the HAOS host with a SONOFF ZigBee 3.0 USB Dongle Plus (CC2652P, "ZBDongle-P").
 
@@ -37,15 +37,23 @@ python scripts/setup_zha.py --permit   # open join for 254 s
 python scripts/setup_zha.py --list     # show network devices
 ```
 
-### Live device (2026-06-10)
+### Live devices (2026-06-11)
 
-| Item | Value |
-|---|---|
-| Model | HEIMAN HS1SA-E-PLUS (smoke + siren) |
-| IEEE | `cc:36:bb:ff:fe:d9:0b:c5` |
-| Alarm entity | `binary_sensor.heiman_hs1sa_e_plus` |
-| Battery | `sensor.heiman_hs1sa_e_plus_batteri` |
-| Timeline zone | `kitchen` (via `SMOKE_ENTITIES` in `.env`) |
+| # | IEEE | Alarm entity | Notes |
+|---|---|---|---|
+| 1 | `cc:36:bb:ff:fe:d9:0e:76` | `binary_sensor.heiman_hs1sa_e_plus_ias_zon_2` | Fully configured |
+| 2 | `cc:36:bb:ff:fe:d9:0e:99` | *(pending — reconfigure in ZHA)* | In network |
+| 3 | `cc:36:bb:ff:fe:d9:0b:c5` | *(pending — reconfigure in ZHA)* | Shows as unk_manufacturer until interview completes |
+
+Battery: `sensor.heiman_hs1sa_e_plus_batteri_3` · Temp: `sensor.heiman_hs1sa_e_plus_temperatur_3`
+
+**Temperature:** each HEIMAN reports room temp (~0.5°C resolution). Used for:
+- HA `sensor.house_indoor_temperature` (average) + Security/Rooms dashboard
+- `metrics.jsonl` → Environment chart (inne vs ute) via `INDOOR_TEMP_ENTITIES` in `.env`
+
+```powershell
+python scripts/probe_smoke_entities.py   # suggested SMOKE_ENTITIES + device status
+```
 
 Failed duplicate interviews (`…0e:76`, `…0e:99`) can be removed:
 
@@ -53,9 +61,15 @@ Failed duplicate interviews (`…0e:76`, `…0e:99`) can be removed:
 python scripts/setup_zha.py --remove-ghosts
 ```
 
-Assign an **Area** in HA (e.g. Kitchen) for clearer dashboard labels.
+Assign an **Area** in HA after mounting — canonical zones for the three detectors:
 
-Planned: more smoke detectors → extend `SMOKE_ENTITIES=entity_suffix:zone,...`
+| Placering | HA Area (exempel) | Zone ID i `.env` |
+|---|---|---|
+| Kök | Kitchen / Kök | `kok` |
+| Vardagsrum | Living room | `vardagsrum` |
+| Hall (entré) | Hall (Ground Floor) | `hall` |
+
+Planned: extend `SMOKE_ENTITIES=entity_suffix:zone,...` when all three alarm entities are live.
 
 ## Troubleshooting
 
@@ -101,7 +115,13 @@ Repeat for #2 and #3 (permit → pair → wait → next).
 After all three are in HA, set in `.env`:
 
 ```
-SMOKE_ENTITIES=heiman_hs1sa_e_plus:kitchen,heiman_hs1sa_e_plus_2:hall,heiman_hs1sa_e_plus_3:sovrum
+SMOKE_ENTITIES=heiman_hs1sa_e_plus_ias_zon_2:kok,heiman_hs1sa_e_plus_ias_zon_3:vardagsrum,heiman_hs1sa_e_plus_ias_zon_4:hall
 ```
 
 Adjust entity suffixes and zones to match what HA created. Restart bridges: `.\scripts\start-bridges.ps1`
+
+Also set indoor temperature map (same zones):
+
+```
+INDOOR_TEMP_ENTITIES=heiman_hs1sa_e_plus_temperatur_3:kok,...
+```
