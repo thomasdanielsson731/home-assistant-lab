@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ZHA helpers — setup, list devices, permit join, remove ghost devices.
+"""ZHA helpers — setup, list devices, permit join, reset network.
 
 Sonoff ZBDongle-P (CC2652P) on the HAOS host — ZNP, 115200, no flow control.
 """
@@ -8,6 +8,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import subprocess
 import sys
 import time
 from pathlib import Path
@@ -19,6 +20,8 @@ from websocket import create_connection
 load_dotenv(Path(__file__).parent.parent / ".env")
 
 HOST = os.environ.get("HA_HOST", "192.168.68.175")
+SSH_PORT = os.environ.get("HA_SSH_PORT", "22222")
+SSH_USER = os.environ.get("HA_USER", "root")
 TOKEN = os.environ.get("HA_TOKEN")
 if not TOKEN:
     sys.exit("HA_TOKEN not set in .env")
@@ -111,6 +114,65 @@ def remove_ghosts() -> int:
     return list_devices()
 
 
+def ssh(cmd: str) -> None:
+    target = f"{SSH_USER}@{HOST}"
+    r = subprocess.run(
+        ["ssh", target, "-p", SSH_PORT, cmd],
+        capture_output=True,
+        text=True,
+        timeout=120,
+        check=False,
+    )
+    if r.returncode != 0:
+        print(r.stderr or r.stdout)
+        sys.exit(f"SSH failed ({r.returncode}): {cmd}")
+
+
+def reset_zha() -> int:
+    """Remove ZHA integration, delete zigbee.db, restart core, recreate network."""
+    entry = zha_entry()
+    if entry:
+        eid = entry["entry_id"]
+        r = requests.delete(
+            f"{BASE}/config/config_entries/entry/{eid}",
+            headers=HEADERS,
+            timeout=60,
+        )
+        if r.status_code not in (200, 204):
+            sys.exit(f"Failed to remove ZHA integration: {r.status_code} {r.text[:200]}")
+        print(f"Removed ZHA integration ({eid})")
+    else:
+        print("No ZHA integration found — will only clear zigbee.db")
+
+    ssh("rm -f /config/zigbee.db /config/zigbee.db-shm /config/zigbee.db-wal")
+    print("Deleted /config/zigbee.db*")
+    ssh("ha core restart")
+    print("HA core restarting — waiting…")
+    time.sleep(15)
+    wait_for_ha()
+    print("Recreating ZHA network…")
+    return setup_zha()
+
+
+def flow_get(flow_id: str) -> dict:
+    r = requests.get(f"{BASE}/config/config_entries/flow/{flow_id}", headers=HEADERS, timeout=30)
+    r.raise_for_status()
+    return r.json()
+
+
+def wait_for_flow(flow_id: str, timeout: int = 120) -> dict:
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        res = flow_get(flow_id)
+        if res.get("type") in ("create_entry", "abort", "form", "menu"):
+            return res
+        if res.get("type") == "progress":
+            time.sleep(3)
+            continue
+        return res
+    sys.exit("ZHA config flow timed out")
+
+
 def setup_zha() -> int:
     existing = zha_entry()
     if existing:
@@ -124,6 +186,10 @@ def setup_zha() -> int:
     res = step(fid, {"path": DONGLE_PATH})
     print("step:", res.get("step_id"), res.get("type"))
 
+    if res.get("step_id") == "choose_setup_strategy":
+        res = step(fid, {"next_step_id": "setup_strategy_advanced"})
+        print("step:", res.get("step_id"), res.get("type"))
+
     if res.get("step_id") == "manual_pick_radio_type":
         res = step(fid, {"radio_type": RADIO_TYPE})
         print("step:", res.get("step_id"), res.get("type"))
@@ -132,15 +198,19 @@ def setup_zha() -> int:
         res = step(fid, {"path": DONGLE_PATH, "baudrate": 115200, "flow_control": "none"})
         print("step:", res.get("step_id"), res.get("type"), "errors:", res.get("errors"))
 
-    if res.get("step_id") in ("choose_formation_strategy", "verify_radio"):
+    if res.get("step_id") == "choose_formation_strategy":
         res = step(fid, {"next_step_id": "form_new_network"})
         print("step:", res.get("step_id"), res.get("type"))
 
+    if res.get("type") == "progress":
+        print("progress:", res.get("progress_action"), "— waiting…")
+        res = wait_for_flow(fid)
+
     if res.get("type") == "create_entry":
-        print(f"SUCCESS — ZHA entry created: {res.get('title')}")
+        print("SUCCESS — ZHA entry created")
         return 0
 
-    print("Flow did not complete:", res.get("type"), res.get("errors"))
+    print("Flow did not complete:", res.get("type"), res.get("step_id"), res.get("errors"))
     return 1
 
 
@@ -149,9 +219,20 @@ def main() -> int:
     parser.add_argument("--list", action="store_true", help="List ZHA network devices")
     parser.add_argument("--permit", action="store_true", help="Open permit join for 254 s")
     parser.add_argument("--remove-ghosts", action="store_true", help="Remove failed interview duplicates")
+    parser.add_argument(
+        "--reset",
+        action="store_true",
+        help="Delete ZHA + zigbee.db and create a fresh network (requires --yes)",
+    )
+    parser.add_argument("--yes", action="store_true", help="Confirm destructive --reset")
     args = parser.parse_args()
 
     wait_for_ha()
+    if args.reset:
+        if not args.yes:
+            print("Add --yes to confirm: removes all Zigbee devices from HA and zigbee.db")
+            return 1
+        return reset_zha()
     if args.list:
         return list_devices()
     if args.permit:

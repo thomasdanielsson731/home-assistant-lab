@@ -60,6 +60,46 @@ Planned: more smoke detectors → extend `SMOKE_ENTITIES=entity_suffix:zone,...`
 | Symptom | Fix |
 |---|---|
 | `cannot_connect` in config flow | `ha core restart` — container lacks the hot-plugged device |
+| `NWK_NO_ROUTE` on Identify/button | Battery device asleep — wake with short button press; often no visible response on HEIMAN |
 | Dongle missing from `/dev/serial/by-id/` | Re-seat USB; check `dmesg \| grep cp210x` on host |
 | Port held by another process | `fuser /dev/ttyUSB0` — stop conflicting add-on (e.g. Z2M) |
 | Weak mesh | Add mains-powered Zigbee devices as routers; keep dongle on extension away from USB3 ports |
+| Messy pairing / ghosts / start over | Full reset below |
+
+## Full reset (clean slate)
+
+Wipes the Zigbee network and all paired devices in HA. **Physical detectors must also be factory-reset** or they will not re-join cleanly.
+
+### 1. Factory-reset each HEIMAN (all three)
+
+Hold the button **~10 seconds** until the LED pattern changes (see manual). Do all three before re-pairing.
+
+### 2. Reset ZHA on the host
+
+```powershell
+python scripts/setup_zha.py --reset --yes
+```
+
+This removes the ZHA integration, deletes `/config/zigbee.db*`, restarts HA core, and creates a new network.
+
+### 3. Pair one detector at a time
+
+Place **one** detector next to the dongle (same room as the HA PC):
+
+```powershell
+python scripts/setup_zha.py --permit
+```
+
+Hold pairing button **~5 s** on detector #1 → wait until it appears in ZHA → assign Area → mount in ceiling.
+
+Repeat for #2 and #3 (permit → pair → wait → next).
+
+### 4. Update smoke entity map
+
+After all three are in HA, set in `.env`:
+
+```
+SMOKE_ENTITIES=heiman_hs1sa_e_plus:kitchen,heiman_hs1sa_e_plus_2:hall,heiman_hs1sa_e_plus_3:sovrum
+```
+
+Adjust entity suffixes and zones to match what HA created. Restart bridges: `.\scripts\start-bridges.ps1`
