@@ -1,7 +1,7 @@
-# deploy-insights-to-ha.ps1 — Sync scripts + events to HA share and install local add-on
+# deploy-insights-to-ha.ps1 — Sync scripts + events to HA share; optional Ingress secrets
 param(
-    [switch]$SkipAddon,
     [switch]$UseIngressSecrets,
+    [string]$AppSlug = "",
     [switch]$DryRun
 )
 
@@ -27,8 +27,8 @@ $scriptsRemote = "$shareRoot/scripts"
 $eventsRemote = "$shareRoot/events"
 
 function Invoke-Remote($cmd) {
-    if ($DryRun) { Write-Host "[dry-run] ssh $cmd"; return }
-    ssh @sshOpts $target $cmd
+    if ($DryRun) { Write-Host "[dry-run] ssh $cmd"; return "" }
+    return ssh @sshOpts $target $cmd 2>$null
 }
 
 function Copy-File($local, $remote) {
@@ -36,11 +36,17 @@ function Copy-File($local, $remote) {
     scp @scpOpts $local "${target}:${remote}" | Out-Null
 }
 
+function Get-InsightsAppSlug {
+    $line = Invoke-Remote "ha apps list 2>/dev/null | grep danielsson_insights | head -1"
+    if (-not $line) { return "" }
+    if ($line -match '^\s*(\S+)\s') { return $Matches[1].Trim() }
+    return ($line -split '\s+')[0]
+}
+
 Write-Host "=== Deploy Danielsson Insights to ${target} ==="
 
 Invoke-Remote "mkdir -p $scriptsRemote/static $eventsRemote"
 
-# Scripts (runtime only)
 $scriptFiles = Get-ChildItem (Join-Path $repoRoot "scripts") -File -Filter "*.py" |
     Where-Object { $_.Name -notmatch '^test_' }
 foreach ($f in $scriptFiles) {
@@ -56,7 +62,6 @@ if (Test-Path $staticDir) {
     }
 }
 
-# Events (preserve existing on host if larger — append-only sync of jsonl tails optional)
 foreach ($name in @("timeline.jsonl", "metrics.jsonl")) {
     $local = Join-Path $repoRoot "events\$name"
     if (Test-Path $local) {
@@ -65,26 +70,18 @@ foreach ($name in @("timeline.jsonl", "metrics.jsonl")) {
     }
 }
 
-if (-not $SkipAddon) {
-    Write-Host "Deploying add-on to /addons/danielsson_insights ..."
-    Invoke-Remote "mkdir -p /addons/danielsson_insights"
-    $addonDir = Join-Path $repoRoot "addons\danielsson_insights"
-    Get-ChildItem $addonDir -File | ForEach-Object {
-        Write-Host "  -> addons/danielsson_insights/$($_.Name)"
-        Copy-File $_.FullName "/addons/danielsson_insights/$($_.Name)"
-    }
-    Copy-File (Join-Path $repoRoot "addons\repository.yaml") "/addons/repository.yaml"
-
-    Write-Host "Supervisor: reload + install local add-on ..."
-    Invoke-Remote "ha addons reload 2>/dev/null || true"
-    Invoke-Remote "ha addons install local_danielsson_insights 2>/dev/null || ha addons start local_danielsson_insights 2>/dev/null || true"
-}
-
 if ($UseIngressSecrets) {
-    Write-Host "Setting Ingress URLs in secrets.yaml ..."
-    & (Join-Path $PSScriptRoot "set-ha-timeline-secret.ps1") `
-        -TimelineUrl "/api/hassio_ingress/local_danielsson_insights/timeline" `
-        -EnvironmentUrl "/api/hassio_ingress/local_danielsson_insights/environment"
+    if (-not $AppSlug) { $AppSlug = Get-InsightsAppSlug }
+    if (-not $AppSlug) {
+        Write-Warning "Danielsson Insights add-on not installed yet — install from GitHub repo first, then re-run with -UseIngressSecrets"
+        Write-Host "Repository URL (paste exactly): https://github.com/thomasdanielsson731/home-assistant-lab"
+    } else {
+        Write-Host "Setting Ingress URLs for app slug: $AppSlug"
+        & (Join-Path $PSScriptRoot "set-ha-timeline-secret.ps1") `
+            -TimelineUrl "/api/hassio_ingress/${AppSlug}/timeline" `
+            -EnvironmentUrl "/api/hassio_ingress/${AppSlug}/environment"
+    }
 }
 
-Write-Host "Done. Start add-on in Supervisor if not auto-started."
+Write-Host "Done."
+Write-Host "Add-on repo: https://github.com/thomasdanielsson731/home-assistant-lab (repository.yaml + danielsson_insights/ at repo root)"

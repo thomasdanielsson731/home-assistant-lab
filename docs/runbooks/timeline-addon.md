@@ -2,65 +2,76 @@
 
 **Goal:** Run `timeline_server.py` on the HA host with Supervisor Ingress so Analytics works 24/7 without the Windows dev PC.
 
-**Status:** `addons/danielsson_insights/` + `scripts/deploy-insights-to-ha.ps1` — automated deploy.
+Add-on source: **`repository.yaml`** + **`danielsson_insights/`** at **repo root** (required by Supervisor).
 
 ---
 
-## Why migrate
+## Step 1 — Add repository in Supervisor
 
-| Today (dev PC) | After add-on (HAOS) |
-|---|---|
-| `:8765` only when PC is on | Always on with HA |
-| Firewall rule for LAN iframe | Ingress — same origin as HA |
-| Bridges write `events/` locally | Sync or move normalizer to HA |
+**Settings → Add-ons → Add-on store → ⋮ → Repositories**
+
+Paste **exactly** this URL (nothing else — no spaces, no error text):
+
+```
+https://github.com/thomasdanielsson731/home-assistant-lab
+```
+
+If you see `Malformed input to a URL function`, the field contains extra characters — clear it and paste again.
+
+Then **Check for updates** in the add-on store. You should see **Danielsson Home Lab Add-ons** → **Danielsson Insights**.
 
 ---
 
-## Step 1 — Deploy from dev PC
+## Step 2 — Deploy scripts to HA share
+
+From dev PC (before or after installing the add-on):
+
+```powershell
+.\scripts\deploy-insights-to-ha.ps1
+```
+
+Copies `scripts/` + `events/*.jsonl` to `/share/danielsson-insights/`.
+
+---
+
+## Step 3 — Install and configure add-on
+
+1. Install **Danielsson Insights** from the new repository.
+2. Configure: MQTT password, camera password, `axis_root_password`, `ha_token` (long-lived HA token for presence fusion).
+3. Start add-on → **Open Web UI** → `/timeline`.
+
+---
+
+## Step 4 — Ingress URLs in secrets
+
+After the add-on is installed:
 
 ```powershell
 .\scripts\deploy-insights-to-ha.ps1 -UseIngressSecrets
 ```
 
-Copies `scripts/` + `events/*.jsonl` to `/share/danielsson-insights/`, installs add-on to `/addons/danielsson_insights/`, sets Ingress URLs in `secrets.yaml`.
+This detects the app slug (e.g. `8915c73b_danielsson_insights`) and writes:
+
+```yaml
+timeline_url: "/api/hassio_ingress/<slug>/timeline"
+environment_url: "/api/hassio_ingress/<slug>/environment"
+```
 
 ---
 
-## Step 2 — Supervisor
+## Step 5 — Cut over from dev PC
 
-1. **Settings → Add-ons → Add-on store** → add repository if needed (local `/addons` after deploy).
-2. Install **Danielsson Insights** → configure MQTT + camera passwords + `ha_token` (long-lived token for presence fusion).
-3. Start add-on → **Open Web UI** → `/timeline`.
+When the add-on is stable:
 
----
-
-## Step 3 — Cut over from dev PC
-
-When HA add-on is stable:
-
-1. Stop `start-bridges.ps1` services on dev PC (keep CodeProject.AI).
-2. Ingress URLs already set by `-UseIngressSecrets`:
-   - `/api/hassio_ingress/local_danielsson_insights/timeline`
-   - `/api/hassio_ingress/local_danielsson_insights/environment`
-3. Reload HA YAML + frontend.
-
----
-
-## Event pipeline (full migration)
-
-Add-on runs on HA host with `host_network: true`:
-
-- `event_normalizer.py` — MQTT at `192.168.68.175:1883`
-- Bridges — camera LAN IPs
-- `timeline_server.py` — `:8765` + Ingress
+1. Stop `start-bridges.ps1` on dev PC (keep CodeProject.AI).
+2. Reload HA frontend.
 
 ---
 
 ## Health check
 
-After migration, `scripts/health-check.py` should report:
+On HA host after cut-over:
 
-- `timeline_server` heartbeat in `metrics.jsonl` (zone `_bridge/timeline_server`)
-- Timeline UI on `127.0.0.1:8765` on HA host (or Ingress probe)
-
-Bridge watchdog on dev PC can be stopped once all bridges run on HA.
+- Add-on state: **started**
+- Ingress opens `/timeline` and `/environment`
+- `events/metrics.jsonl` receives `_bridge/*` heartbeats from `bridge_watchdog.py`
