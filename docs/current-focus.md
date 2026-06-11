@@ -77,7 +77,7 @@ python scripts/verify-influxdb.py   # Influx auth + write probe
 | Yale Doorman | Hardware + HA lock entity |
 | Kraftringen energy | API credentials for `energy_bridge.py` |
 | **Zigbee smoke detectors** | ✅ 1/rum logiskt (kök, vardagsrum, hall) — fysisk swap: ändra Area + `--update-env` |
-| **Timeline on HAOS** | Add-on build blocked (HA DNS → ghcr.io) — dev PC bridges OK |
+| **Timeline on HAOS** | ✅ Danielsson Insights v0.2.2 — stop dev PC bridges when stable |
 | **Presence fusion** | ✅ `sensor.house_occupancy_summary` + `sensor.*_presence_fused` |
 
 ---

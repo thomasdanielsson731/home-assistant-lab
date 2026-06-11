@@ -36,11 +36,12 @@ function Copy-File($local, $remote) {
     scp @scpOpts $local "${target}:${remote}" | Out-Null
 }
 
-function Get-InsightsAppSlug {
-    $line = Invoke-Remote "ha apps list 2>/dev/null | grep danielsson_insights | head -1"
-    if (-not $line) { return "" }
-    if ($line -match '^\s*(\S+)\s') { return $Matches[1].Trim() }
-    return ($line -split '\s+')[0]
+function Get-InsightsIngressBase {
+    $line = Invoke-Remote "ha apps info 25d01a20_danielsson_insights 2>/dev/null | grep '^ingress_entry:'"
+    if ($line -match 'ingress_entry:\s*(/api/hassio_ingress/\S+)') {
+        return $Matches[1].Trim()
+    }
+    return ""
 }
 
 Write-Host "=== Deploy Danielsson Insights to ${target} ==="
@@ -71,15 +72,15 @@ foreach ($name in @("timeline.jsonl", "metrics.jsonl")) {
 }
 
 if ($UseIngressSecrets) {
-    if (-not $AppSlug) { $AppSlug = Get-InsightsAppSlug }
-    if (-not $AppSlug) {
-        Write-Warning "Danielsson Insights add-on not installed yet - install from GitHub repo first, then re-run with -UseIngressSecrets"
-        Write-Host "Repository URL (paste exactly): https://github.com/thomasdanielsson731/home-assistant-lab"
+    $ingressBase = if ($AppSlug) { "/api/hassio_ingress/$AppSlug" } else { Get-InsightsIngressBase }
+    if (-not $ingressBase) {
+        Write-Warning "Danielsson Insights add-on not running - install/start first, then re-run with -UseIngressSecrets"
+        Write-Host "Repository URL: https://github.com/thomasdanielsson731/home-assistant-lab"
     } else {
-        Write-Host "Setting Ingress URLs for app slug: $AppSlug"
+        Write-Host "Setting Ingress URLs: ${ingressBase}/timeline"
         & (Join-Path $PSScriptRoot "set-ha-timeline-secret.ps1") `
-            -TimelineUrl "/api/hassio_ingress/${AppSlug}/timeline" `
-            -EnvironmentUrl "/api/hassio_ingress/${AppSlug}/environment"
+            -TimelineUrl "${ingressBase}/timeline" `
+            -EnvironmentUrl "${ingressBase}/environment"
     }
 }
 
