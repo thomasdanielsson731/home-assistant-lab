@@ -25,7 +25,7 @@ FRIGATE_URL=http://$(bashio::config 'mqtt_host'):5000
 EOF
 chmod 600 "${ENV_FILE}"
 
-export PYTHONPATH="${SCRIPTS_PATH}:${PYTHONPATH}"
+export PYTHONPATH="${SCRIPTS_PATH}${PYTHONPATH:+:${PYTHONPATH}}"
 cd "${REPO_ROOT}" || exit 1
 
 start_bg() {
