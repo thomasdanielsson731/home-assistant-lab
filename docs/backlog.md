@@ -59,6 +59,8 @@ CodeProject.AI path — see [ADR-003](decisions/003-face-recognizer.md) · [runb
 | P7-11 | HA Timeline dashboard (`house-timeline`) | S | ✅ |
 | P7-9 | Timeline zoom + custom time range | M | ✅ |
 | P7-10 | InfluxDB metrics retention | M | ✅ `configure-influxdb-addon.sh` + `verify-influxdb.py` |
+| P7-12 | Bridge heartbeat metrics + `bridge_watchdog.py` | S | ✅ |
+| P7-13 | HAOS timeline add-on scaffold (Ingress) | M | ✅ scaffold — [timeline-addon.md](runbooks/timeline-addon.md) |
 
 ---
 
@@ -116,6 +118,18 @@ CodeProject.AI path — see [ADR-003](decisions/003-face-recognizer.md) · [runb
 | F3 | HA sensors from Axis MQTT metadata | ✅ |
 
 </details>
+
+---
+
+## On Hold — Zigbee smoke detectors
+
+ZHA coordinator live (Sonoff ZBDongle-P). HEIMAN HS1SA-E-PLUS pairing deferred — sleepy-device configure step not user-friendly. Timeline + dashboard wiring ready (`SMOKE_ENTITIES`, conditional Security card). Resume via [zigbee-setup.md](runbooks/zigbee-setup.md).
+
+| # | Item | Effort | Status |
+|---|---|---|---|
+| Z1 | Pair 3× HEIMAN smoke detectors | M | ⏸ paused |
+| Z2 | Rename entities `heiman_hs1sa_e_plus_{1,2,3}` + zone map | S | ⬜ |
+| Z3 | Smoke alert automation + push | S | ⬜ |
 
 ---
 

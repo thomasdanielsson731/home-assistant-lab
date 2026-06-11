@@ -1,5 +1,7 @@
 # Zigbee (ZHA) Setup Runbook
 
+> **Status (2026-06-10):** Coordinator configured and network reset complete. HEIMAN smoke detector pairing is **paused** — sleepy-device configure step was not user-friendly. Resume from [Pair devices](#pair-devices) when ready.
+
 ZHA on the HAOS host with a SONOFF ZigBee 3.0 USB Dongle Plus (CC2652P, "ZBDongle-P").
 
 ## Hardware

@@ -116,31 +116,31 @@ graph TD
 
 ---
 
-## Face Recognition Architecture (Planned)
+## Face Recognition Architecture (Phase 4 — in progress)
 
 ```mermaid
 sequenceDiagram
     participant Cam as Axis Camera
     participant Fri as Frigate
     participant DT as Double Take
-    participant CF as CompreFace
+    participant CPAI as CodeProject.AI
     participant HA as Home Assistant
 
     Cam->>Fri: RTSP stream
     Fri->>Fri: Detect person
     Fri->>DT: Webhook (snapshot)
-    DT->>CF: POST /api/v1/recognition/recognize
-    CF-->>DT: {subject, similarity}
+    DT->>CPAI: POST /v1/vision/face/recognize
+    CPAI-->>DT: {subject, similarity}
     DT->>HA: MQTT double_take/matches
     HA->>HA: Fire automation (known / unknown)
 ```
 
-**Recognizer:** CompreFace (self-hosted, runs on a separate container or VM)
+**Recognizer:** [CodeProject.AI](decisions/003-face-recognizer.md) on Windows dev PC (`:32168`). CompreFace in `docker/compreface/` is a documented fallback only.
 
 **Training flow:**
-1. Capture face crops from Frigate snapshots
-2. Label and upload via CompreFace API
-3. Double Take auto-retrains on next restart
+1. Upload photos in Double Take UI (`:3000`)
+2. Click **Train** — Double Take calls CodeProject.AI
+3. Matches appear as `sensor.dt_<name>_confidence` / `binary_sensor.dt_<name>_present`
 
 **HA events produced:**
 - `double_take/matches` — known person with confidence score

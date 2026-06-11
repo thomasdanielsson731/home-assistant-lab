@@ -1,0 +1,27 @@
+name: Danielsson Timeline
+version: "0.1.0"
+slug: danielsson_timeline
+description: Analytics timeline and environment UI (HAOS add-on scaffold)
+url: https://github.com/tomp7/home-assistant-lab
+arch:
+  - aarch64
+  - amd64
+  - armhf
+  - armv7
+startup: application
+boot: manual
+webui: http://[HOST]:[PORT:8765]/timeline
+ingress: true
+ingress_port: 8765
+panel_icon: mdi:timeline-clock
+panel_title: Analytics
+ports:
+  8765/tcp: null
+map:
+  - share:rw
+options:
+  events_path: /share/danielsson-insights/events
+  scripts_path: /share/danielsson-insights/scripts
+schema:
+  events_path: str
+  scripts_path: str

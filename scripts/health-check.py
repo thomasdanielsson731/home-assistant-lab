@@ -7,7 +7,11 @@ import os
 import socket
 import subprocess
 import sys
+from datetime import datetime
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent))
+from event_store import TZ  # noqa: E402
 
 import requests
 from dotenv import load_dotenv
@@ -71,7 +75,19 @@ BRIDGE_SCRIPTS = [
     "event_normalizer.py",
     "timeline_server.py",
     "influx_metrics_bridge.py",
+    "bridge_watchdog.py",
 ]
+
+BRIDGE_SERVICES = [
+    "air_quality_bridge",
+    "audio_bridge",
+    "aoa_bridge",
+    "event_normalizer",
+    "timeline_server",
+]
+
+HEARTBEAT_MAX_AGE_SECONDS = 300
+METRIC_MAX_AGE_SECONDS = 600
 
 
 def get_state(entity_id: str) -> dict | None:
@@ -161,6 +177,7 @@ def main() -> int:
     print("\nDev PC bridges:")
     if sys.platform != "win32":
         print("  SKIP  bridge process check (not Windows)")
+        running: set[str] = set()
     else:
         running = running_bridge_scripts()
         for script in BRIDGE_SCRIPTS:
@@ -170,6 +187,45 @@ def main() -> int:
             else:
                 print(f"  WARN  {name} — not running (run start-bridges.ps1)")
                 issues.append(f"bridge:{name}")
+
+    metrics_path = Path(__file__).parent.parent / "events" / "metrics.jsonl"
+    print("\nBridge heartbeats (metrics.jsonl):")
+    try:
+        sys.path.insert(0, str(Path(__file__).parent))
+        from lab_heartbeat import (  # noqa: E402
+            is_stale,
+            last_metric_ts_for_zone,
+            read_bridge_heartbeats,
+        )
+
+        heartbeats = read_bridge_heartbeats(metrics_path)
+        if not heartbeats:
+            print("  WARN  No bridge heartbeats yet — run bridge_watchdog.py")
+            issues.append("bridge_heartbeats")
+        else:
+            for service in BRIDGE_SERVICES:
+                ts = heartbeats.get(service)
+                if not ts:
+                    print(f"  WARN  {service} — no heartbeat")
+                    issues.append(f"heartbeat:{service}")
+                elif is_stale(ts, HEARTBEAT_MAX_AGE_SECONDS):
+                    age = int((datetime.now(TZ) - ts).total_seconds())
+                    print(f"  WARN  {service} — stale ({age}s ago)")
+                    issues.append(f"heartbeat:{service}")
+                else:
+                    print(f"  OK    {service} — {ts.strftime('%H:%M:%S')}")
+
+        env_ts = last_metric_ts_for_zone(metrics_path, "driveway_env")
+        if env_ts is None:
+            print("  WARN  driveway_env metrics — none yet")
+        elif is_stale(env_ts, METRIC_MAX_AGE_SECONDS):
+            age = int((datetime.now(TZ) - env_ts).total_seconds())
+            print(f"  WARN  driveway_env metrics — stale ({age}s ago)")
+            issues.append("metrics:driveway_env")
+        else:
+            print(f"  OK    driveway_env metrics — {env_ts.strftime('%H:%M:%S')}")
+    except ImportError:
+        print("  WARN  lab_heartbeat not importable")
 
     print("\nInfluxDB metrics:")
     influx_url = os.environ.get("INFLUX_URL", "").strip()

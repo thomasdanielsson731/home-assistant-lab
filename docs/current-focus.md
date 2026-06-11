@@ -44,7 +44,7 @@ Sources → event_normalizer.py → Event Store → correlation_engine.py → Ti
 
 - **Every 6 h:** `repo-maintenance.ps1` — commit + push + sync
 - **Daily 04:00:** above + HA YAML + MQTT reload
-- **At logon / Startup:** `start-bridges.ps1` (bridges + normalizer + Analytics server)
+- **At logon / Startup:** `start-bridges.ps1` (bridges + normalizer + Analytics server + `bridge_watchdog.py`)
 
 ---
 
@@ -76,6 +76,8 @@ python scripts/verify-influxdb.py   # Influx auth + write probe
 | **InfluxDB writes** | ✅ `home_lab` DB + `influx_metrics_bridge.py` |
 | Yale Doorman | Hardware + HA lock entity |
 | Kraftringen energy | API credentials for `energy_bridge.py` |
+| **Zigbee smoke detectors** | ⏸ Paused — ZHA live, HEIMAN pairing deferred |
+| **Timeline on HAOS** | Scaffold in `addons/danielsson_timeline/` — see [timeline-addon.md](runbooks/timeline-addon.md) |
 
 ---
 

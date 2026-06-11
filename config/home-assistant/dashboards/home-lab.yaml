@@ -483,23 +483,31 @@ views:
               action: url
               url_path: http://192.168.68.175:3000
 
-      # ── Smoke detectors (ZHA) ────────────────────────────────
-      - title: SMOKE DETECTORS
-        cards:
-          - type: custom:mushroom-template-card
-            primary: >-
-              {% if is_state('binary_sensor.heiman_hs1sa_e_plus', 'on') %}RÖK — HEIMAN HS1SA-E-PLUS
-              {% else %}HEIMAN HS1SA-E-PLUS{% endif %}
-            secondary: >-
-              {% if is_state('binary_sensor.heiman_hs1sa_e_plus', 'on') %}Smoke alert active
-              {% else %}Battery {{ states('sensor.heiman_hs1sa_e_plus_batteri') }}% · {{ states('sensor.heiman_hs1sa_e_plus_temperatur') }}°C{% endif %}
-            icon: mdi:smoke-detector
-            icon_color: >-
-              {{ 'red' if is_state('binary_sensor.heiman_hs1sa_e_plus', 'on') else 'green' }}
-            fill_container: true
-            tap_action:
-              action: more-info
-              entity: binary_sensor.heiman_hs1sa_e_plus
+      # ── Smoke detectors (ZHA) — shown when paired ──────────
+      - type: conditional
+        conditions:
+          - condition: template
+            value_template: >-
+              {{ states('binary_sensor.heiman_hs1sa_e_plus') not in ['unknown', 'unavailable', ''] }}
+        card:
+          type: vertical-stack
+          cards:
+            - type: markdown
+              content: "### SMOKE DETECTORS"
+            - type: custom:mushroom-template-card
+              primary: >-
+                {% if is_state('binary_sensor.heiman_hs1sa_e_plus', 'on') %}RÖK — HEIMAN HS1SA-E-PLUS
+                {% else %}HEIMAN HS1SA-E-PLUS{% endif %}
+              secondary: >-
+                {% if is_state('binary_sensor.heiman_hs1sa_e_plus', 'on') %}Smoke alert active
+                {% else %}Battery {{ states('sensor.heiman_hs1sa_e_plus_batteri') }}% · {{ states('sensor.heiman_hs1sa_e_plus_temperatur') }}°C{% endif %}
+              icon: mdi:smoke-detector
+              icon_color: >-
+                {{ 'red' if is_state('binary_sensor.heiman_hs1sa_e_plus', 'on') else 'green' }}
+              fill_container: true
+              tap_action:
+                action: more-info
+                entity: binary_sensor.heiman_hs1sa_e_plus
 
       # ── Yale Doorman (Sprint 1) ──────────────────────────────
       - title: ACCESS

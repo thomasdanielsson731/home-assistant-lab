@@ -294,7 +294,7 @@ Enriched events set `enriched=true` and `parent_event_ids` pointing to the raw e
 
 **Start all services (Windows):**
 ```powershell
-.\scripts\start-bridges.ps1
+.\scripts\start-bridges.ps1   # includes bridge_watchdog.py → _bridge/* heartbeats in metrics.jsonl
 ```
 
 ## Config Directory Layout

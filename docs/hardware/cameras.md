@@ -123,7 +123,7 @@ Six Axis cameras covering all zones of the property, plus one environmental sens
 | Mount | Aimed at gate / entry point for face and plate |
 | IP | TBD |
 
-**Purpose:** Identification-grade capture of persons and vehicles entering the driveway. Higher FPS and tighter field of view than the overview camera. Hosts the D6210 radar sensor on its I/O port.
+**Purpose:** Identification-grade capture of persons and vehicles entering the driveway. Higher FPS and tighter field of view than the overview camera. Hosts the D6210 air quality sensor on its I/O port.
 
 **Current status:** Live in Frigate + HA. AOA + scene MQTT active.
 
@@ -230,25 +230,16 @@ Six Axis cameras covering all zones of the property, plus one environmental sens
 
 | Attribute | Value |
 |---|---|
-| Model | Axis D6210 Network Radar Detector |
+| Model | Axis D6210 Air Quality Sensor |
 | Zone ID | `driveway_env` |
 | Location | Driveway — physically connected to M2036 |
-| Connection | I/O port on Axis M2036 |
-| IP | Shared with M2036 or independent (model-dependent) |
+| Connection | I/O port on Axis M2036 (VAPIX proxy at `192.168.68.204`) |
 
-**Purpose:** Radar-based motion detection with lower false-positive rate than optical detection. Provides environmental presence data that complements M2036's visual detection. Can detect objects through rain, fog, and darkness where cameras struggle.
+**Purpose:** Outdoor air quality — temperature, humidity, CO₂, VOC, NOX, PM2.5, PM10, AQI. Complements camera analytics with environmental context for Insights charts and story beats.
 
-**Current status:** Live — 8 HA sensors via `air_quality_bridge.py` → MQTT.
+**Current status:** Live — 8 HA sensors via `air_quality_bridge.py` → MQTT. See [d6210-setup.md](../runbooks/d6210-setup.md).
 
-**Planned HA role:**
-- `binary_sensor.driveway_env_motion` — radar motion trigger
-- `sensor.driveway_env_distance` — detected object distance (if available)
-- Used as a pre-trigger to wake up Frigate detection on `driveway_id`
-
-**Integration path:**
-- Option A: Axis VAPIX API → HA REST sensor polling
-- Option B: Axis MQTT (if firmware supports) → Mosquitto → HA
-- Option C: ONVIF event → HA ONVIF integration
+**HA entities:** `sensor.driveway_env_temperature`, `sensor.driveway_env_humidity`, `sensor.driveway_env_co2`, `sensor.driveway_env_voc`, `sensor.driveway_env_nox`, `sensor.driveway_env_pm2_5`, `sensor.driveway_env_pm10`, `sensor.driveway_env_aqi`
 
 ---
 
@@ -262,6 +253,6 @@ Six Axis cameras covering all zones of the property, plus one environmental sens
 | `backyard` | Q1656 | `camera.backyard` | `binary_sensor.backyard_motion` | `binary_sensor.backyard_person_occupancy` |
 | `storage_ext` | Q1656 | `camera.storage_ext` | `binary_sensor.storage_ext_motion` | `binary_sensor.storage_ext_person_occupancy` |
 | `storage_int` | M1055 | `camera.storage_int` | `binary_sensor.storage_int_motion` | `binary_sensor.storage_int_person_occupancy` |
-| `driveway_env` | D6210 | — | `binary_sensor.driveway_env_motion` | — |
+| `driveway_env` | D6210 | — | — (air quality only) | — |
 
 > **Note:** Frigate HACS integration (v0.17) names entities after the camera name directly, without a `frigate_` prefix.

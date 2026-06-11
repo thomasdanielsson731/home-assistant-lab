@@ -4,7 +4,7 @@
 
 Double Take sits between Frigate and HA. When Frigate detects a person:
 1. Frigate sends a snapshot webhook to Double Take
-2. Double Take runs the snapshot through a face recognizer (CompreFace, DeepStack, etc.)
+2. Double Take runs the snapshot through CodeProject.AI (see [ADR-003](../decisions/003-face-recognizer.md))
 3. Double Take publishes the result to MQTT
 4. HA automation fires on the `double_take/match` MQTT topic
 
@@ -42,16 +42,11 @@ cameras:
 
 Double Take auto-discovers Frigate cameras when `frigate.url` is set.
 
-## 4. Choose a Recognizer
+## 4. Recognizer (CodeProject.AI)
 
-| Recognizer | Notes |
-|---|---|
-| CompreFace | Open source, self-hosted, recommended |
-| DeepStack | Easy Docker setup, good accuracy |
-| AWS Rekognition | Cloud, paid, high accuracy |
-| CodeProject.AI | Windows-friendly, local |
+**Active choice:** CodeProject.AI on Windows dev PC — see [codeproject-ai-setup.md](codeproject-ai-setup.md).
 
-For a fully local setup, CompreFace or CodeProject.AI are best choices.
+Double Take `config.yml` points to `http://192.168.68.136:32168`. Fallback: CompreFace via `docker/compreface/` if accuracy is insufficient.
 
 ## 5. Train Known Faces
 
