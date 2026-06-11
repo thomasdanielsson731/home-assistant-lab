@@ -41,18 +41,18 @@ views:
             cards:
               - type: custom:mushroom-template-card
                 primary: >-
-                  {% set n = states('sensor.house_people_home_count') | int(0) %}
+                  {% set n = states('sensor.house_occupancy_summary') | int(0) %}
                   {% if n == 0 %}Ingen hemma
                   {% elif n == 1 %}1 person hemma
                   {% else %}{{ n }} hemma{% endif %}
                 secondary: >-
-                  {% set who = state_attr('sensor.house_people_home_count', 'who_home') %}
-                  {% if who %}{{ who }}
+                  {% set who = state_attr('sensor.house_occupancy_summary', 'who_home') %}
+                  {% if who and who != 'Nobody' %}{{ who }}
                   {% elif is_state('binary_sensor.driveway_wide_aoa_vehicle', 'on') %}Bil på uppfarten
                   {% else %}—{% endif %}
                 icon: mdi:home-account
                 icon_color: >-
-                  {{ 'green' if states('sensor.house_people_home_count') | int(0) > 0 else 'grey' }}
+                  {{ 'green' if states('sensor.house_occupancy_summary') | int(0) > 0 else 'grey' }}
                 layout: vertical
                 fill_container: true
               - type: custom:mushroom-template-card
@@ -89,7 +89,7 @@ views:
                     content: "PM2.5 {{ states('sensor.driveway_env_pm2_5') }}"
                     icon_color: grey
 
-      # ── Who's Home ───────────────────────────────────────────
+      # ── Who's Home (Companion + Double Take fusion) ────────
       - title: WHO'S HOME
         cards:
           - type: horizontal-stack
@@ -110,6 +110,37 @@ views:
                 entity: person.anna
                 layout: vertical
                 fill_container: true
+          - type: custom:mushroom-chips-card
+            alignment: center
+            chips:
+              - type: template
+                icon: mdi:account
+                content: "Thomas · {{ state_attr('sensor.thomas_presence_fused', 'label') | default('—') }}"
+                icon_color: >-
+                  {{ 'green' if is_state('sensor.thomas_presence_fused', 'home')
+                     else 'blue' if is_state('sensor.thomas_presence_fused', 'face')
+                     else 'grey' }}
+              - type: template
+                icon: mdi:account
+                content: "Nils · {{ state_attr('sensor.nils_presence_fused', 'label') | default('—') }}"
+                icon_color: >-
+                  {{ 'green' if is_state('sensor.nils_presence_fused', 'home')
+                     else 'blue' if is_state('sensor.nils_presence_fused', 'face')
+                     else 'grey' }}
+              - type: template
+                icon: mdi:account
+                content: "Hugo · {{ state_attr('sensor.hugo_presence_fused', 'label') | default('—') }}"
+                icon_color: >-
+                  {{ 'green' if is_state('sensor.hugo_presence_fused', 'home')
+                     else 'blue' if is_state('sensor.hugo_presence_fused', 'face')
+                     else 'grey' }}
+              - type: template
+                icon: mdi:account
+                content: "Anna · {{ state_attr('sensor.anna_presence_fused', 'label') | default('—') }}"
+                icon_color: >-
+                  {{ 'green' if is_state('sensor.anna_presence_fused', 'home')
+                     else 'blue' if is_state('sensor.anna_presence_fused', 'face')
+                     else 'grey' }}
 
       # ── Quick Status ─────────────────────────────────────────
       - title: QUICK STATUS

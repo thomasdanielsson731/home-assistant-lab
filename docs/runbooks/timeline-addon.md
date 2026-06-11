@@ -2,7 +2,7 @@
 
 **Goal:** Run `timeline_server.py` on the HA host with Supervisor Ingress so Analytics works 24/7 without the Windows dev PC.
 
-**Status:** scaffold in `addons/danielsson_timeline/` — manual registration required.
+**Status:** `addons/danielsson_insights/` + `scripts/deploy-insights-to-ha.ps1` — automated deploy.
 
 ---
 
@@ -16,41 +16,43 @@
 
 ---
 
-## Step 1 — Sync repo to HA share
+## Step 1 — Deploy from dev PC
 
-```bash
-# From dev PC (PowerShell) — one-time copy of scripts + empty events dir
-scp -P 22222 -r scripts root@192.168.68.175:/share/danielsson-insights/
-ssh root@192.168.68.175 -p 22222 "mkdir -p /share/danielsson-insights/events"
+```powershell
+.\scripts\deploy-insights-to-ha.ps1 -UseIngressSecrets
 ```
 
-Ongoing: extend `sync-config.ps1` or a dedicated task to rsync `events/` if normalizer stays on dev PC.
+Copies `scripts/` + `events/*.jsonl` to `/share/danielsson-insights/`, installs add-on to `/addons/danielsson_insights/`, sets Ingress URLs in `secrets.yaml`.
 
 ---
 
-## Step 2 — Register local add-on
+## Step 2 — Supervisor
 
-1. Copy `addons/danielsson_timeline/` to the HA add-ons git repo or use **Local add-ons** in Supervisor.
-2. Rebuild the add-on image from Supervisor → Add-on store → Local add-ons.
-3. Configure:
-   - `scripts_path`: `/share/danielsson-insights/scripts`
-   - `events_path`: `/share/danielsson-insights/events`
+1. **Settings → Add-ons → Add-on store** → add repository if needed (local `/addons` after deploy).
+2. Install **Danielsson Insights** → configure MQTT + camera passwords + `ha_token` (long-lived token for presence fusion).
+3. Start add-on → **Open Web UI** → `/timeline`.
 
 ---
 
-## Step 3 — Enable Ingress
+## Step 3 — Cut over from dev PC
 
-1. Start the add-on (boot: manual until verified).
-2. Open the add-on **Open Web UI** — should show `/timeline`.
-3. Update `config/home-assistant/dashboards/house-timeline.yaml` iframe URL to Ingress path (or use the built-in Ingress panel).
+When HA add-on is stable:
+
+1. Stop `start-bridges.ps1` services on dev PC (keep CodeProject.AI).
+2. Ingress URLs already set by `-UseIngressSecrets`:
+   - `/api/hassio_ingress/local_danielsson_insights/timeline`
+   - `/api/hassio_ingress/local_danielsson_insights/environment`
+3. Reload HA YAML + frontend.
 
 ---
 
-## Step 4 — Event pipeline
+## Event pipeline (full migration)
 
-**Option A (minimal):** Keep `event_normalizer.py` on dev PC; rsync `events/timeline.jsonl` + `metrics.jsonl` to HA every minute.
+Add-on runs on HA host with `host_network: true`:
 
-**Option B (full):** Run normalizer on HA (MQTT is local to Mosquitto) — retire dev PC bridges except CodeProject.AI.
+- `event_normalizer.py` — MQTT at `192.168.68.175:1883`
+- Bridges — camera LAN IPs
+- `timeline_server.py` — `:8765` + Ingress
 
 ---
 

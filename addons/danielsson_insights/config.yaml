@@ -1,0 +1,44 @@
+name: Danielsson Insights
+version: "0.2.0"
+slug: danielsson_insights
+description: Analytics platform on HAOS — timeline, normalizer, bridges
+url: https://github.com/thomasdanielsson731/home-assistant-lab
+arch:
+  - aarch64
+  - amd64
+  - armhf
+  - armv7
+startup: application
+boot: auto
+host_network: true
+webui: http://[HOST]:[PORT:8765]/timeline
+ingress: true
+ingress_port: 8765
+panel_icon: mdi:timeline-clock
+panel_title: Analytics
+ports:
+  8765/tcp: 8765
+map:
+  - share:rw
+options:
+  mqtt_host: "192.168.68.175"
+  mqtt_user: frigate
+  mqtt_password: ""
+  cam_user: homeassistant
+  cam_password: ""
+  axis_root_password: ""
+  ha_token: ""
+  events_path: /share/danielsson-insights/events
+  scripts_path: /share/danielsson-insights/scripts
+  enable_bridges: true
+schema:
+  mqtt_host: str
+  mqtt_user: str
+  mqtt_password: password
+  cam_user: str
+  cam_password: password
+  axis_root_password: password
+  ha_token: password
+  events_path: str
+  scripts_path: str
+  enable_bridges: bool

@@ -60,7 +60,8 @@ CodeProject.AI path — see [ADR-003](decisions/003-face-recognizer.md) · [runb
 | P7-9 | Timeline zoom + custom time range | M | ✅ |
 | P7-10 | InfluxDB metrics retention | M | ✅ `configure-influxdb-addon.sh` + `verify-influxdb.py` |
 | P7-12 | Bridge heartbeat metrics + `bridge_watchdog.py` | S | ✅ |
-| P7-13 | HAOS timeline add-on scaffold (Ingress) | M | ✅ scaffold — [timeline-addon.md](runbooks/timeline-addon.md) |
+| P7-13 | HAOS Insights add-on + deploy script (Ingress) | M | ✅ [timeline-addon.md](runbooks/timeline-addon.md) |
+| P7-14 | Presence fusion v1 — templates + normalizer hints | M | ✅ |
 
 ---
 

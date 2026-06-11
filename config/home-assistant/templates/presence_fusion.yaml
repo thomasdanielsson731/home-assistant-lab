@@ -1,0 +1,100 @@
+# Presence fusion — Companion + Double Take + outdoor context (Digital Twin v1)
+
+- sensor:
+    - name: "House occupancy summary"
+      unique_id: house_occupancy_summary
+      icon: mdi:home-account
+      state: >-
+        {% set members = [
+          {'name': 'Thomas', 'person': 'person.thomasx', 'dt': 'thomas'},
+          {'name': 'Nils', 'person': 'person.nils_2', 'dt': 'nils'},
+          {'name': 'Hugo', 'person': 'person.hugo', 'dt': 'hugo'},
+          {'name': 'Anna', 'person': 'person.anna', 'dt': 'anna'}
+        ] %}
+        {% set home = namespace(n=0) %}
+        {% for m in members %}
+          {% if is_state(m.person, 'home')
+             or is_state('binary_sensor.dt_' ~ m.dt ~ '_present', 'on') %}
+            {% set home.n = home.n + 1 %}
+          {% endif %}
+        {% endfor %}
+        {{ home.n }}
+      attributes:
+        who_home: >-
+          {% set members = [
+            {'name': 'Thomas', 'person': 'person.thomasx', 'dt': 'thomas'},
+            {'name': 'Nils', 'person': 'person.nils_2', 'dt': 'nils'},
+            {'name': 'Hugo', 'person': 'person.hugo', 'dt': 'hugo'},
+            {'name': 'Anna', 'person': 'person.anna', 'dt': 'anna'}
+          ] %}
+          {% set names = namespace(list=[]) %}
+          {% for m in members %}
+            {% if is_state(m.person, 'home') %}
+              {% set names.list = names.list + [m.name] %}
+            {% elif is_state('binary_sensor.dt_' ~ m.dt ~ '_present', 'on') %}
+              {% set names.list = names.list + [m.name ~ ' (camera)'] %}
+            {% endif %}
+          {% endfor %}
+          {{ names.list | join(', ') if names.list else 'Nobody' }}
+        outdoor_presence: "{{ states('sensor.house_outdoor_presence') }}"
+        fusion_version: "v1"
+
+    - name: "Thomas presence fused"
+      unique_id: thomas_presence_fused
+      icon: mdi:account
+      state: >-
+        {% if is_state('person.thomasx', 'home') %}home
+        {% elif is_state('binary_sensor.dt_thomas_present', 'on') %}face
+        {% else %}away{% endif %}
+      attributes:
+        label: >-
+          {% if is_state('person.thomasx', 'home') %}Home
+          {% elif is_state('binary_sensor.dt_thomas_present', 'on') %}
+          Seen at camera ({{ states('sensor.dt_thomas_confidence') }}%)
+          {% else %}Away{% endif %}
+        sources: >-
+          {% if is_state('person.thomasx', 'home') %}companion
+          {% elif is_state('binary_sensor.dt_thomas_present', 'on') %}double_take
+          {% else %}none{% endif %}
+
+    - name: "Nils presence fused"
+      unique_id: nils_presence_fused
+      icon: mdi:account
+      state: >-
+        {% if is_state('person.nils_2', 'home') %}home
+        {% elif is_state('binary_sensor.dt_nils_present', 'on') %}face
+        {% else %}away{% endif %}
+      attributes:
+        label: >-
+          {% if is_state('person.nils_2', 'home') %}Home
+          {% elif is_state('binary_sensor.dt_nils_present', 'on') %}
+          Seen at camera ({{ states('sensor.dt_nils_confidence') }}%)
+          {% else %}Away{% endif %}
+
+    - name: "Hugo presence fused"
+      unique_id: hugo_presence_fused
+      icon: mdi:account
+      state: >-
+        {% if is_state('person.hugo', 'home') %}home
+        {% elif is_state('binary_sensor.dt_hugo_present', 'on') %}face
+        {% else %}away{% endif %}
+      attributes:
+        label: >-
+          {% if is_state('person.hugo', 'home') %}Home
+          {% elif is_state('binary_sensor.dt_hugo_present', 'on') %}
+          Seen at camera ({{ states('sensor.dt_hugo_confidence') }}%)
+          {% else %}Away{% endif %}
+
+    - name: "Anna presence fused"
+      unique_id: anna_presence_fused
+      icon: mdi:account
+      state: >-
+        {% if is_state('person.anna', 'home') %}home
+        {% elif is_state('binary_sensor.dt_anna_present', 'on') %}face
+        {% else %}away{% endif %}
+      attributes:
+        label: >-
+          {% if is_state('person.anna', 'home') %}Home
+          {% elif is_state('binary_sensor.dt_anna_present', 'on') %}
+          Seen at camera ({{ states('sensor.dt_anna_confidence') }}%)
+          {% else %}Away{% endif %}

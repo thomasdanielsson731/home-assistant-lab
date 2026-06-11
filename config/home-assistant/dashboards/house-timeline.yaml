@@ -1,5 +1,4 @@
-# House Intelligence Timeline — panel iframe on desktop; open-in-browser on mobile/tablet
-# Served from Windows dev PC: scripts/timeline_server.py :8765
+# Analytics — Ingress on HAOS (desktop) or dev PC URL; Safari button on mobile
 views:
   - title: Analytics
     panel: true
@@ -18,11 +17,11 @@ views:
     cards:
       - type: markdown
         content: |
-          ### Analytics i HA fungerar sällan på mobil/iPad
-          Använd **Öppna i Safari** (samma Wi‑Fi). HA via HTTPS/Nabu Casa blockerar HTTP‑iframe.
-          Kontrollera att `start-bridges.ps1` körs på dev‑PC.
+          ### Analytics på mobil/iPad
+          **Ingress (HAOS):** fungerar i appen när add-on körs på hosten.
+          **Dev PC:** använd **Öppna i Safari** (HTTP-iframe blockeras via HTTPS/Nabu Casa).
       - type: button
-        name: Öppna Analytics i Safari
+        name: Öppna Analytics
         icon: mdi:timeline-clock
         tap_action:
           action: url

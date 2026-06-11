@@ -35,6 +35,7 @@ from paho.mqtt.client import CallbackAPIVersion
 # Allow import from scripts/
 sys.path.insert(0, str(Path(__file__).parent))
 from correlation_engine import CorrelationEngine  # noqa: E402
+from presence_fusion import PresenceFusionCache, enrich_person_event  # noqa: E402
 from event_store import (  # noqa: E402
     CAMERA_ZONE,
     FRIGATE_LABEL_TYPE,
@@ -65,6 +66,7 @@ log = logging.getLogger("event_normalizer")
 
 store = EventStore()
 correlator = CorrelationEngine(store)
+fusion = PresenceFusionCache()
 _env_cache: dict[str, float | int] = {}
 _last_env_event = 0.0
 # zone:scenario → (active, started_at, start_event_written)
@@ -224,6 +226,8 @@ def handle_frigate_event(payload: dict) -> None:
             "thumbnail": snapshot_rel,
         }
 
+    if fusion.enabled():
+        event = enrich_person_event(event, fusion.members())
     event["summary"] = make_summary(event)
     eid = store.write(event)
     _correlate(event, eid)
@@ -653,6 +657,7 @@ def main() -> None:
     client.subscribe("homeassistant/lock/+/state")
     client.subscribe("homeassistant/binary_sensor/+/state")
 
+    fusion.start_background()
     log.info("Event normalizer started  mqtt=%s  store=%s", MQTT_HOST, store.events_root)
     client.loop_forever()
 
