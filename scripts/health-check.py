@@ -307,15 +307,21 @@ def main() -> int:
 
             if influx_bridge.ping():
                 print(f"  OK    {influx_url} (ping)")
-                import verify_influxdb  # noqa: E402
+                # verify-influxdb.py has a hyphen — load via importlib
+                import importlib.util
 
+                spec = importlib.util.spec_from_file_location(
+                    "verify_influxdb", Path(__file__).parent / "verify-influxdb.py"
+                )
+                verify_influxdb = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(verify_influxdb)
                 if verify_influxdb.main() != 0:
                     print("  WARN  Influx auth/write — run verify-influxdb.py")
                     issues.append("influxdb_auth")
             else:
                 print(f"  WARN  {influx_url} — not reachable")
                 issues.append("influxdb")
-        except ImportError:
+        except (ImportError, FileNotFoundError):
             print("  WARN  influx_metrics_bridge not importable")
 
     print("\nTimeline UI:")
