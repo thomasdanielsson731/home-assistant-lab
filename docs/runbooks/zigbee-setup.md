@@ -37,15 +37,16 @@ python scripts/setup_zha.py --permit   # open join for 254 s
 python scripts/setup_zha.py --list     # show network devices
 ```
 
-### Live devices (2026-06-11)
+### Live devices (2026-06-12)
 
-| # | IEEE | Alarm entity | Notes |
+| # | IEEE | Entity | Notes |
 |---|---|---|---|
-| 1 | `cc:36:bb:ff:fe:d9:0b:c5` | *(pending — reconfigure + wake button)* | Area: kök |
-| 2 | `cc:36:bb:ff:fe:d9:0e:76` | `binary_sensor.heiman_hs1sa_e_plus_ias_zon_2` | Area: vardagsrum |
-| 3 | `cc:36:bb:ff:fe:d9:0e:99` | `binary_sensor.heiman_hs1sa_e_plus_ias_zon` | Area: hall |
+| 1 | `cc:36:bb:ff:fe:d9:0b:c5` | `binary_sensor.heiman_*` (kök) | Brandvarnare kök |
+| 2 | `cc:36:bb:ff:fe:d9:0e:76` | `binary_sensor.heiman_hs1sa_e_plus_ias_zon_2` | Brandvarnare vardagsrum |
+| 3 | `cc:36:bb:ff:fe:d9:0e:99` | `binary_sensor.heiman_hs1sa_e_plus_ias_zon` | Brandvarnare hall |
+| 4 | `44:e2:f8:ff:fe:0f:2a:92` | `binary_sensor.sonoff_snzb_05p` | Vattensensor diskmaskin · kök |
 
-Battery: `sensor.heiman_hs1sa_e_plus_batteri_3` · Temp: `sensor.heiman_hs1sa_e_plus_temperatur_3`
+Battery: HEIMAN `sensor.heiman_*_batteri_*` · water `sensor.sonoff_snzb_05p_batteri`
 
 **Temperature:** each HEIMAN reports room temp (~0.5°C resolution). Used for:
 - HA `sensor.house_indoor_temperature` (average) + Security/Rooms dashboard

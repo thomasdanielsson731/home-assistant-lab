@@ -644,6 +644,30 @@ views:
               action: more-info
               entity: binary_sensor.house_smoke_alarm
 
+      # ── Water leak (ZHA — dishwasher) ───────────────────────────
+      - title: WATER LEAK
+        visibility:
+          - condition: state
+            entity: binary_sensor.sonoff_snzb_05p
+            state_not: unavailable
+        cards:
+          - type: custom:mushroom-entity-card
+            entity: binary_sensor.sonoff_snzb_05p
+            name: Kök · diskmaskin
+            icon: mdi:water-alert
+            layout: horizontal
+            fill_container: true
+            primary_info: name
+            secondary_info: state
+            icon_color: >-
+              {{ 'red' if is_state('binary_sensor.sonoff_snzb_05p', 'on') else 'green' }}
+          - type: custom:mushroom-entity-card
+            entity: sensor.sonoff_snzb_05p_batteri
+            name: Batteri
+            icon: mdi:battery
+            layout: horizontal
+            fill_container: true
+
       # ── Yale Doorman (Sprint 1) ──────────────────────────────
       - title: ACCESS
         cards:
@@ -837,6 +861,14 @@ views:
               fill_container: true
               tap_action:
                 action: none
+          - type: custom:mushroom-entity-card
+            entity: binary_sensor.sonoff_snzb_05p
+            name: Vattensensor diskmaskin
+            icon: mdi:water-alert
+            layout: horizontal
+            fill_container: true
+            icon_color: >-
+              {{ 'red' if is_state('binary_sensor.sonoff_snzb_05p', 'on') else 'green' }}
 
       # ── Vardagsrum ───────────────────────────────────────────
       - title: VARDAGSRUM

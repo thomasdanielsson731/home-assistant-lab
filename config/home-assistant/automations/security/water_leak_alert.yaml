@@ -1,0 +1,22 @@
+# Water leak — SONOFF SNZB-05P under dishwasher (kitchen)
+
+- id: "security_water_leak_dishwasher_notify"
+  alias: "Security — water leak dishwasher"
+  initial_state: true
+  description: >
+    Push when kitchen dishwasher water sensor detects moisture.
+  mode: single
+
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.sonoff_snzb_05p
+      from: "off"
+      to: "on"
+
+  action:
+    - service: notify.mobile_app_thomas_iphone_15
+      data:
+        title: "VATTENLÄCKAGE — kök"
+        message: >-
+          Vattensensor diskmaskin har detekterat vatten.
+          Batteri {{ states('sensor.sonoff_snzb_05p_batteri') }}%.
