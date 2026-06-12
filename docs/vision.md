@@ -120,10 +120,10 @@ Windows PC (dev)                    Dell Latitude 3120 (prod)
 | 2 | Cameras + Frigate — 6 cameras, detection, recording | Done |
 | 3 | Dashboard — 5 views, mobile-first | Done |
 | 4 | Face recognition — who is at the door | In progress |
-| 5 | Axis analytics — AOA, scene, air quality via MQTT | In progress |
+| 5 | Axis analytics — AOA, scene, air quality via MQTT | Done |
 | 6 | AI integration — local LLM, scene understanding | Future |
 | 7 | Home Intelligence Timeline — events, correlation, HA sidebar | Done |
-| 7b | Metrics retention — InfluxDB bridge + Grafana | In progress |
+| 7b | Metrics retention — InfluxDB bridge + Grafana | Done (Grafana optional) |
 | 8 | Digital twin — unified house state + NL queries | Future |
 
 See [roadmap.md](roadmap.md) for task-level detail and [backlog.md](backlog.md) for prioritized work items.

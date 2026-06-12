@@ -6,7 +6,9 @@
 
 ## Decision
 
-The primary insights UX is **Analytics** — served by `timeline_server.py` on the dev PC (`http://192.168.68.136:8765/timeline`), embedded in HA via YAML dashboard **`house-timeline`** (replaces removed `panel_iframe`). Lovelace `home-lab` remains secondary.
+The primary insights UX is **Analytics** — served by `timeline_server.py` on **HAOS** via the Danielsson Insights add-on (`http://192.168.68.175:8765/timeline`), embedded in HA via YAML dashboard **`house-timeline`** (iframe with direct URL — not Ingress). Lovelace `home-lab` remains secondary.
+
+**Updated 2026-06-12:** Platform cut over from Windows dev PC bridges to HAOS add-on v0.2.4. Dev PC retains CodeProject.AI only.
 
 Architecture:
 
@@ -51,7 +53,7 @@ Home Assistant remains:
 | 7d | Timeline UI v1 (1h / 24h / 7d, click → snapshot) |
 | 7e | Correlation engine (`arrival`, `delivery`, `bicycle`, door boost) | ✅ |
 | 7f | HA sidebar Analytics dashboard (`house-timeline`) | ✅ |
-| 7g | InfluxDB metrics bridge (optional add-on) | ✅ bridge ready |
+| 7g | InfluxDB metrics bridge in add-on | ✅ v0.2.4 |
 
 ## References
 

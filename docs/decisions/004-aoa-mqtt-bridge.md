@@ -22,7 +22,9 @@ Investigation showed:
 
 ## Decision
 
-Run `scripts/aoa_bridge.py` on the Windows dev PC. Poll `getOccupancy` every 5 s and publish retained MQTT messages to the topics HA sensors already expect.
+Run `scripts/aoa_bridge.py` on the **Danielsson Insights add-on** (HAOS). Poll `getOccupancy` every 5 s and publish retained MQTT messages to the topics HA sensors already expect.
+
+**Legacy:** previously ran on Windows dev PC via `start-bridges.ps1`.
 
 ## Reasons
 
@@ -33,7 +35,7 @@ Run `scripts/aoa_bridge.py` on the Windows dev PC. Poll `getOccupancy` every 5 s
 
 ## Tradeoffs
 
-- Requires dev PC running (same as air quality bridge and CodeProject.AI)
+- Requires HAOS add-on running (same as air quality bridge and timeline server)
 - 5 s poll interval per camera — not event-driven
 - Loitering still requires manual camera UI setup
 

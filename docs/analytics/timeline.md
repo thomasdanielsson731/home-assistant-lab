@@ -2,7 +2,7 @@
 
 The timeline is the primary narrative view of Danielsson Insights — a chronological feed of enriched events.
 
-**Implemented (v1):** `scripts/timeline_server.py` — horizontal timeline at `/timeline` with zoom, pan, custom time range, occupancy blocks, env metric overlay. Access via HA sidebar **Analytics** (`house-timeline`) or `http://192.168.68.136:8765/timeline`. List view at `/`.
+**Implemented (v1):** `scripts/timeline_server.py` — horizontal timeline at `/timeline` with zoom, pan, custom time range, occupancy blocks, env metric overlay. Access via HA sidebar **Analytics** (`house-timeline`) or `http://192.168.68.175:8765/timeline`. List view at `/`.
 
 ---
 
@@ -96,7 +96,7 @@ Phase 6 replaces templates with LLM-generated `ai_summary`.
 | API v1 | ✅ | `/api/v1/events`, `metrics`, `occupancy` |
 | Timeline UI v1 | ✅ | Horizontal scale, zoom, pan, custom range |
 | HA access | ✅ | Sidebar dashboard `house-timeline` |
-| List view | ✅ | `http://localhost:8765/` |
+| List view | ✅ | `http://192.168.68.175:8765/` |
 | Floorplan cross-links | ⬜ | Phase 8 |
 | LLM `ai_summary` | ⬜ | Phase 6 |
 

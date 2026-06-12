@@ -16,7 +16,13 @@
 │  │  Mosquitto      │   │  Double Take Add-on         │ │
 │  │  MQTT Broker    │   │  Face Recognition Middleware │ │
 │  │  :1883          │   │  :3000                      │ │
-│  └─────────────────┘   └─────────────────────────────┘ │
+│  └────────┬────────┘   └─────────────────────────────┘ │
+│           │                                             │
+│  ┌────────▼────────────────────────────────────────┐   │
+│  │  Danielsson Insights add-on v0.2.4              │   │
+│  │  timeline :8765 · normalizer · bridges · Influx │   │
+│  │  /share/danielsson-insights/events/             │   │
+│  └─────────────────────────────────────────────────┘   │
 │                                                         │
 │  Storage: External 1 TB SSD  (Frigate recordings)       │
 └─────────────────────────────────────────────────────────┘
@@ -35,7 +41,8 @@
 │                                                  │
 │  VS Code + Cursor  ──►  config/ (this repo)      │
 │  Claude Code       ──►  AI-assisted development  │
-│  Ollama + Qwen     ──►  Local LLM experiments    │
+│  CodeProject.AI    ──►  Face recognition :32168  │
+│  Ollama + Qwen     ──►  Local LLM (planned)      │
 │                                                  │
 │  scripts/sync-config.sh ──SSH──► HAOS :22222     │
 └──────────────────────────────────────────────────┘

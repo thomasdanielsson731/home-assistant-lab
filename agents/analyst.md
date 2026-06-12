@@ -11,7 +11,7 @@ Turn raw sensor and event data into insight. Design dashboards, queries, baselin
 - Data hub: Home Assistant (`192.168.68.175:8123`)
 - Key sources: Frigate events, Axis MQTT analytics, D6210 air quality, energy meters, person presence
 - Events: `events/timeline.jsonl` (live) · Metrics: `events/metrics.jsonl` (live)
-- Storage: InfluxDB bridge ready — see [integrations/data-platform/README.md](../integrations/data-platform/README.md)
+- Storage: InfluxDB bridge live in add-on — see [integrations/data-platform/README.md](../integrations/data-platform/README.md)
 - Vision: insights over automation — [docs/vision.md](../docs/vision.md)
 
 ## Key Entities
@@ -50,5 +50,5 @@ Turn raw sensor and event data into insight. Design dashboards, queries, baselin
 ## Do Not
 
 - Recommend actions that require cloud data export
-- Assume InfluxDB is deployed — check Phase 7 status first
+- Assume InfluxDB is writing — verify with `python scripts/verify-influxdb.py` if unsure
 - Focus on lamp control — this lab is about learning from data

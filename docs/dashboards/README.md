@@ -1,15 +1,24 @@
 # Dashboards
 
-HA Lovelace dashboards are **secondary** — live ops and security. Primary insights UX is **Analytics** — YAML dashboard **`house-timeline`** in the HA sidebar (full-screen iframe → dev PC `:8765`). Direct: `http://localhost:8765/timeline`. Requires `.\scripts\open-timeline-firewall.ps1` (admin) for LAN clients. See [ADR-005](../decisions/005-home-intelligence-timeline.md).
+HA Lovelace dashboards are **secondary** — live ops and security.
 
-| Dashboard | URL key | Purpose |
+**Primary insights UX** is **Analytics** — YAML dashboard **`house-timeline`** in the HA sidebar (iframe → HAOS `:8765/timeline`). Direct: `http://192.168.68.175:8765/timeline`.
+
+See [ADR-005](../decisions/005-home-intelligence-timeline.md) · [ha-timeline-dashboard.md](../runbooks/ha-timeline-dashboard.md)
+
+## Dashboards
+
+| Dashboard | Path | Role |
 |---|---|---|
-| Danielsson Home | `home-lab` | Ops, security, cameras, rooms |
-| Analytics | `house-timeline` | Events, occupancy, metrics, zoom |
-| Environment | `house-graphs` | CO₂, AQI, SPL — shared time range, multi-series charts (`:8765/environment`) |
+| `home-lab.yaml` | `/lovelace/home-lab` | Home, Cameras, Security, Rooms, Operations |
+| `house-timeline.yaml` | `/house-timeline` | Analytics iframe |
+| `house-graphs.yaml` | `/house-graphs` | Environment iframe |
 
-| File | Notes |
-|---|---|
-| Live config | `config/home-assistant/dashboards/home-lab.yaml` |
-| Analytics iframe | `config/home-assistant/dashboards/house-timeline.yaml` |
-| Environment graphs | `config/home-assistant/dashboards/house-graphs.yaml` |
+## Secrets (host)
+
+```yaml
+timeline_url: "http://192.168.68.175:8765/timeline"
+environment_url: "http://192.168.68.175:8765/environment"
+```
+
+Set via `.\scripts\deploy-insights-to-ha.ps1 -UseDirectSecrets`

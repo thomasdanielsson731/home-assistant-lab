@@ -115,7 +115,7 @@ After all three are in HA, set in `.env`:
 SMOKE_ENTITIES=heiman_hs1sa_e_plus_ias_zon_2:kok,heiman_hs1sa_e_plus_ias_zon_3:vardagsrum,heiman_hs1sa_e_plus_ias_zon_4:hall
 ```
 
-Adjust entity suffixes and zones to match what HA created. Restart bridges: `.\scripts\start-bridges.ps1`
+Adjust entity suffixes and zones to match what HA created. After changes, restart add-on: `ha apps restart 25d01a20_danielsson_insights`
 
 Also set indoor temperature map (same zones):
 

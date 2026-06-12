@@ -1,6 +1,6 @@
 # InfluxDB Setup Runbook
 
-Phase 7-10 — long retention for continuous metrics (env, SPL).
+Phase 7b — long retention for continuous metrics (env, SPL).
 
 ## Architecture
 
@@ -9,56 +9,77 @@ event_normalizer.py → events/metrics.jsonl → influx_metrics_bridge.py → In
 HA influxdb integration (optional) → InfluxDB  ← sensor entities
 ```
 
-Event platform metrics (`co2`, `temperature`, `spl`, etc.) are written to `metrics.jsonl` today. The bridge tails that file and exports to InfluxDB when configured.
+**Production (2026-06-12):** `influx_metrics_bridge.py` runs inside the **Danielsson Insights add-on** when `influx_url` is configured. No dev PC needed.
 
-**HAOS mode (current):** the Danielsson Insights add-on (≥0.2.4) runs `influx_metrics_bridge.py` automatically when the add-on option `influx_url` is set. Configure `influx_url`, `influx_user`, `influx_password`, `influx_db` in the add-on options — no dev PC needed.
+---
 
-## Option A — InfluxDB add-on on HAOS (recommended)
+## Option A — HAOS add-on bridge (recommended)
 
-**Status:** Add-on `a0d7b954_influxdb` v5.0.2 on `http://192.168.68.175:8086` (InfluxDB 1.8.x). Verify: `python scripts/verify-influxdb.py`.
+1. **InfluxDB add-on** on HAOS: `a0d7b954_influxdb` at `http://192.168.68.175:8086` (InfluxDB 1.8.x).
+2. Verify auth + write: `python scripts/verify-influxdb.py`
+3. Set Insights add-on options (on HA host):
 
-1. From SSH on HA host (or dev PC): `bash /path/to/configure-influxdb-addon.sh` — sets **auth** + **ssl** to `false` for LAN, restarts add-on  
-   *(UI alternative: Settings → Add-ons → InfluxDB → Configuration.)*
-2. On dev PC: `.\scripts\setup-influxdb.ps1` — creates `home_lab` DB + `homelab` user, updates `.env`
-3. `.\scripts\start-bridges.ps1` — restarts `influx_metrics_bridge.py`
-4. Optional: HA integration — copy from `config/home-assistant/influxdb.yaml.example`
+   ```bash
+   sh /share/danielsson-insights/scripts/set_insights_influx_options.sh homelab <password>
+   ha apps restart 25d01a20_danielsson_insights
+   ```
 
-## Option B — Dev PC bridge only
+4. Check logs: `Wrote N metric rows to InfluxDB` (backfills from start of `metrics.jsonl`).
 
-Add to `.env` on Windows dev PC:
+Add-on options:
+
+| Option | Example |
+|---|---|
+| `influx_url` | `http://192.168.68.175:8086` |
+| `influx_user` | `homelab` |
+| `influx_password` | (from setup-influxdb.ps1) |
+| `influx_db` | `home_lab` |
+| `influx_v2` | `false` |
+
+---
+
+## Option B — Dev PC bridge (legacy)
+
+Only if not using HAOS add-on. Add to `.env`:
 
 ```env
 INFLUX_URL=http://192.168.68.175:8086
-INFLUX_TOKEN=your-write-token
-INFLUX_ORG=home
-INFLUX_BUCKET=home_lab
-INFLUX_MEASUREMENT=home_metrics
-INFLUX_V2=true
+INFLUX_USER=homelab
+INFLUX_PASSWORD=change-me
+INFLUX_DB=home_lab
+INFLUX_V2=false
 ```
 
-Restart bridges:
+Run `.\scripts\start-bridges.ps1` (legacy — platform is on HAOS).
+
+---
+
+## Initial InfluxDB setup
+
+If database/user missing:
 
 ```powershell
-.\scripts\start-bridges.ps1
+.\scripts\setup-influxdb.ps1
 ```
 
-The bridge starts with other services. Without `INFLUX_URL` it stays idle (metrics remain in `metrics.jsonl`).
+Or on HA: `bash configure-influxdb-addon.sh` — disables auth for LAN (dev/lab only).
+
+---
 
 ## Verify
 
 ```powershell
 python scripts/health-check.py
+python scripts/verify-influxdb.py
 ```
 
-Look for `InfluxDB: OK` when configured.
+Query (InfluxQL):
 
-Query in InfluxDB UI (Data Explorer):
-
-```flux
-from(bucket: "home_lab")
-  |> range(start: -1h)
-  |> filter(fn: (r) => r._measurement == "home_metrics")
+```sql
+SELECT COUNT(*) FROM home_metrics WHERE time > now() - 24h
 ```
+
+---
 
 ## Retention
 
@@ -68,18 +89,20 @@ from(bucket: "home_lab")
 | Audio SPL | `home_metrics` zone=`front` etc. | 30 days |
 | HA sensors | `state` (HA integration) | 90 days |
 
-Set bucket retention in InfluxDB add-on configuration.
+---
 
 ## Troubleshooting
 
 | Symptom | Fix |
 |---|---|
-| Bridge idle | Set `INFLUX_URL` in `.env` |
-| HTTP 401 | Check `INFLUX_TOKEN` write permission |
-| No historical data | Bridge backfills from start of `metrics.jsonl` on first successful write |
-| Duplicate points | Normal — Influx treats same timestamp+tags as overwrite |
+| Bridge idle | Set `influx_url` in add-on options |
+| HTTP 401 | Run `verify-influxdb.py`; check user/password |
+| No historical data | Bridge backfills on first successful write |
+| health-check warns "not importable" | Fixed — uses importlib for `verify-influxdb.py` |
+
+---
 
 ## Related
 
+- [timeline-addon.md](timeline-addon.md)
 - [integrations/data-platform/README.md](../../integrations/data-platform/README.md)
-- [config/home-assistant/influxdb.yaml.example](../../config/home-assistant/influxdb.yaml.example)

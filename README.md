@@ -28,9 +28,9 @@ Axis Cameras (6)  ──RTSP──►  Frigate (NVR + detection)  ──MQTT─�
                                      │
                               event_normalizer → correlation_engine
                                      │
-                              Timeline API (:8765) + HA sidebar Analytics
+                              Timeline API (HAOS :8765) + HA sidebar Analytics
                                      │
-                              InfluxDB bridge (optional — add-on pending)
+                              InfluxDB bridge (Danielsson Insights add-on → :8086)
 ```
 
 ---
@@ -56,9 +56,10 @@ Axis Cameras (6)  ──RTSP──►  Frigate (NVR + detection)  ──MQTT─�
 | Workstation | Windows PC at `192.168.68.136` |
 | Editors | VS Code + Cursor |
 | AI | Claude Code, Cursor agents (`agents/`) |
-| Local LLM | Ollama + Qwen |
-| Bridges | `start-bridges.ps1` — air quality, audio SPL, AOA, normalizer, timeline, Influx |
+| Local LLM | Ollama + Qwen (planned) |
+| Face AI | CodeProject.AI `:32168` — **only service on dev PC** |
 | Config sync | `scripts/sync-config.ps1` / `.sh` via SSH |
+| Legacy | `start-bridges.ps1` — **do not run** (platform on HAOS add-on) |
 
 ---
 
@@ -84,10 +85,10 @@ Axis Cameras (6)  ──RTSP──►  Frigate (NVR + detection)  ──MQTT─�
 | 2 — Cameras | 6 cameras in Frigate, detection, recording | **Done** |
 | 3 — Dashboard | 5 views, mobile-first | **Done** |
 | 4 — Face Recognition | Double Take + CodeProject.AI | **In progress** |
-| 5 — Axis Analytics | AOA, scene metadata, air quality | **In progress** |
+| 5 — Axis Analytics | AOA, scene metadata, air quality | **Done** |
 | 6 — AI Integration | Ollama/Qwen, scene understanding | Planned |
-| 7 — Home Intelligence Timeline | Events, correlation, Timeline UI, HA sidebar | **Done** (InfluxDB add-on optional) |
-| 7b — Metrics retention | InfluxDB bridge + Grafana | In progress |
+| 7 — Home Intelligence Timeline | Events, correlation, Timeline UI, HA sidebar | **Done** |
+| 7b — Metrics retention | InfluxDB bridge in HAOS add-on | **Done** |
 | 8 — Digital Twin | Unified house state, NL queries | Planned |
 
 Full detail: [docs/roadmap.md](docs/roadmap.md) · Work queue: [docs/backlog.md](docs/backlog.md)

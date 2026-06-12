@@ -403,7 +403,7 @@ class TestTimelineHTTP:
         conn.request("GET", "/timeline")
         body = conn.getresponse().read().decode()
         assert "OCC_STACK" in body
-        assert "start-bridges.ps1" in body
+        assert "Danielsson Insights add-on" in body
 
     def test_story_date_returns_500_when_generation_fails(self, server, tmp_path, monkeypatch):
         import timeline_server

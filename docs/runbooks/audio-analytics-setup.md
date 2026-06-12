@@ -35,13 +35,14 @@ AXIS_ROOT_USER=root
 AXIS_ROOT_PASSWORD=<camera-root-password>
 ```
 
-Start the bridge (included in `start-bridges.ps1`):
+Start the bridge (included in Danielsson Insights add-on on HAOS):
 
-```powershell
-python scripts/audio_bridge.py
-# or
-.\scripts\start-bridges.ps1
+```bash
+ha apps info 25d01a20_danielsson_insights   # state: started
+ha apps logs 25d01a20_danielsson_insights | grep audio
 ```
+
+Legacy dev PC: `.\scripts\start-bridges.ps1`
 
 The bridge uses the VAPIX WebSocket event API and publishes to:
 

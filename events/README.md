@@ -33,9 +33,9 @@ events/{type}/{yyyy}/{mm}/{dd}/{event_id}_thumb.jpg
 - Timeline log: `events/timeline.jsonl`
 - Metrics: `events/metrics.jsonl`
 - Daily counts: `events/aggregates/YYYY-MM-DD.json`
-- Viewer: `timeline_server.py` → `http://localhost:8765/timeline` or HA sidebar **Timeline**
+- Viewer: `timeline_server.py` → `http://192.168.68.175:8765/timeline` or HA sidebar **Analytics**
 - Correlation: `correlation_engine.py` → enriched `arrival`, `delivery`, `bicycle`
-- Long retention: `influx_metrics_bridge.py` (optional)
+- Long retention: `influx_metrics_bridge.py` (runs in Danielsson Insights add-on when `influx_url` set)
 
 ## Schema
 

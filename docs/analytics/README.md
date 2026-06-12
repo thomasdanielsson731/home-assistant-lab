@@ -27,7 +27,7 @@ Sources → Events → Storage → Aggregates → Views (Timeline / Floorplan / 
 | HA → Event normalizer | ✅ v0 | `scripts/event_normalizer.py` — Frigate, DT, D6210 |
 | Timeline UI | ✅ v1 | `:8765/timeline` + HA sidebar `house-timeline` |
 | Correlation engine | ✅ | `arrival`, `delivery`, `bicycle`, door boost |
-| InfluxDB bridge | ✅ ready | `influx_metrics_bridge.py` |
+| InfluxDB bridge | ✅ live | `influx_metrics_bridge.py` in add-on (v0.2.4+) |
 | Floorplan UI | ⬜ | Design complete, not built |
 | Daily aggregates | ✅ v0 | `events/aggregates/` updated on each event |
 | AI enrichment | ⬜ | Phase 6 |

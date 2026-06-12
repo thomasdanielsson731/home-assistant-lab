@@ -567,7 +567,7 @@ TIMELINE_V1_HTML = """<!DOCTYPE html>
         metrics = Array.isArray(met) ? met : [];
       } catch (err) {
         document.getElementById('stats').textContent =
-          'Cannot load timeline — run scripts/start-bridges.ps1 on dev PC';
+          'Cannot load timeline — check Danielsson Insights add-on on HA';
         events = []; blocks = []; metrics = [];
         resizeCanvas();
         return;

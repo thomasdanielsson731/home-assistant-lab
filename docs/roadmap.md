@@ -61,9 +61,9 @@ Vision: [vision.md](vision.md) · Scope: [scope.md](scope.md) · Work queue: [ba
 |---|---|
 | Double Take 1.13.1 installed and configured | ✅ |
 | Frigate → Double Take webhook | ✅ |
-| CodeProject.AI installed on dev PC | ⬜ in progress — `install-codeproject-ai.ps1` |
-| Face module enabled in CodeProject.AI | ⬜ |
-| Training images for Thomas, Nils, Hugo, Anna | ⬜ |
+| CodeProject.AI installed on dev PC | ✅ |
+| Face module enabled in CodeProject.AI | ✅ |
+| Training images for Thomas, Nils, Hugo, Anna | 🔄 Thomas ✅; others ⬜ |
 | Recognition at `front` (>85% confidence) | ⬜ |
 | Unknown person alert automation | ⬜ |
 | Known person context in Security dashboard | ⬜ |
@@ -143,23 +143,24 @@ Vision: [vision.md](vision.md) · Scope: [scope.md](scope.md) · Work queue: [ba
 | Timeline zoom + custom time range | ✅ |
 | Door events (HA MQTT) + Yale-ready | ✅ |
 | HA sidebar Timeline dashboard (`house-timeline`) | ✅ |
-| InfluxDB bridge (`influx_metrics_bridge.py`) | ✅ ready — add-on + `INFLUX_URL` |
-| InfluxDB add-on deployed on HAOS | ⬜ |
+| InfluxDB bridge (`influx_metrics_bridge.py`) | ✅ in HAOS add-on v0.2.4 |
+| InfluxDB add-on deployed on HAOS | ✅ `home_lab` DB, auth working |
 | Grafana / 7-day trend dashboards | ⬜ |
 
 **Done when:** Timeline shows detections, occupancy blocks, and env metrics for 24 h without opening HA.
 
 ---
 
-## Phase 7b — Data Platform (metrics retention) `[In Progress]`
+## Phase 7b — Data Platform (metrics retention) `[Done — Grafana optional]`
 
 **Goal:** Long-term metrics storage and baselines.
 
 | Task | Status |
 |---|---|
 | `influx_metrics_bridge.py` (metrics.jsonl → InfluxDB) | ✅ |
-| InfluxDB add-on deployed on HAOS | ⬜ |
-| HA sensor → InfluxDB integration | ⬜ |
+| InfluxDB add-on deployed on HAOS | ✅ |
+| Bridge runs in Danielsson Insights add-on | ✅ v0.2.4 (`influx_url` option) |
+| HA sensor → InfluxDB integration | ⬜ optional |
 | Event rate baselines per zone/time-of-day | ⬜ |
 
 **Design:** [integrations/data-platform/README.md](../integrations/data-platform/README.md)

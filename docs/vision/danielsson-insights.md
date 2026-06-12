@@ -8,7 +8,7 @@ Collect → Enrich → Analyze → Visualize → Understand
 
 **Focus:** event collection, correlation, timeline API, Analytics UI, metrics layer, AI insights.
 
-**Primary UX:** Analytics — HA sidebar **Analytics** (`house-timeline`) or `http://192.168.68.136:8765/timeline` on dev PC.
+**Primary UX:** Analytics — HA sidebar **Analytics** (`house-timeline`) or `http://192.168.68.175:8765/timeline` on HAOS.
 
 **Not:** lamp automation (HomeKit handles that). The goal is understanding what happens around the house.
 

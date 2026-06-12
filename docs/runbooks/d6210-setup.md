@@ -32,7 +32,7 @@ Config: `config/home-assistant/mqtt_sensors/air_quality.yaml`
 D6210 ──(I/O)── M2036 VAPIX proxy ──REST── air_quality_bridge.py ──MQTT── Mosquitto ── HA
 ```
 
-The bridge runs on the **Windows dev PC** (not HAOS) because HAOS has no persistent process manager for custom scripts. Schedule via Windows Task Scheduler for 24/7 operation.
+The bridge runs inside the **Danielsson Insights add-on** on HAOS (24/7). Legacy: could run on dev PC via `start-bridges.ps1` — not used in production.
 
 **Why not HA REST sensors?** The D6210 API requires POST with dynamic ISO8601 timestamps. A Python bridge is simpler and already working.
 

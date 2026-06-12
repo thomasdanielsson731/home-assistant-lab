@@ -10,11 +10,11 @@ Quick-start context for AI assistants. Read this + [CLAUDE.md](../CLAUDE.md) + [
 
 | UX | Role |
 |---|---|
-| **Analytics** (HA sidebar) | Primary — events, occupancy, metrics (`:8765/timeline`) |
-| **Environment** (HA sidebar) | Env + SPL charts — shared time range (`:8765/environment`) |
+| **Analytics** (HA sidebar) | Primary — events, occupancy, metrics (`http://192.168.68.175:8765/timeline`) |
+| **Environment** (HA sidebar) | Env + SPL charts (`http://192.168.68.175:8765/environment`) |
 | **Danielsson Home** (`home-lab`) | Secondary — ops, security, cameras, rooms |
 
-Dev PC: `DEV_PC_HOST` in `.env` (currently `192.168.68.136`). HA: `192.168.68.175`.
+**HA:** `192.168.68.175` · **Dev PC:** `192.168.68.136` (CodeProject.AI only)
 
 See [ADR-005](decisions/005-home-intelligence-timeline.md) · [event-model.md](analytics/event-model.md)
 
@@ -26,39 +26,59 @@ See [ADR-005](decisions/005-home-intelligence-timeline.md) · [event-model.md](a
 |---|---|---|
 | **4** | Face recognition — CodeProject.AI + Double Take | **In progress** |
 | **5** | Axis analytics — MQTT to HA + events | Done |
+| **6** | Energy bridge + narratives | Partial (Kraftringen pending) |
 | **7** | Analytics platform — API + UI + correlation | Done |
+| **7b** | InfluxDB long retention | Done (bridge in add-on) |
 
-Phases 1–3 done. Phase 6 (energy/AI narratives) and 8 (digital twin) follow.
+Phases 1–3 done. Phase 8 (digital twin) follows.
 
 ---
 
-## Architecture
+## Architecture (production)
 
 ```
-Sources → event_normalizer.py → Event Store → correlation_engine.py → Timeline API → /timeline
+MQTT sources → Danielsson Insights add-on on HAOS
+  event_normalizer → events/timeline.jsonl + metrics.jsonl
+  correlation_engine (enriched events)
+  influx_metrics_bridge → InfluxDB :8086
+  timeline_server :8765 → /timeline, /environment, /story
+
+Double Take (HA) → CodeProject.AI on dev PC :32168
 ```
+
+Event files on HA: `/share/danielsson-insights/events/`
 
 ---
 
 ## Automated Maintenance
 
-- **Every 6 h:** `repo-maintenance.ps1` — commit + push + sync
-- **Daily 04:00:** above + HA YAML + MQTT reload
-- **At logon / Startup:** `start-bridges.ps1` (bridges + normalizer + Analytics server + `bridge_watchdog.py`)
+- **Every 6 h:** `repo-maintenance.ps1` — commit + push + sync HA config
+- **Daily 04:00:** above + HA YAML reload
+- **HAOS add-on:** Danielsson Insights v0.2.4 — auto-start, Supervisor watchdog on `/timeline`
+- **Dev PC:** keep CodeProject.AI running; do **not** run `start-bridges.ps1` (legacy)
 
 ---
 
 ## Immediate Commands
 
 ```powershell
-.\scripts\start-bridges.ps1
-python scripts/health-check.py
-python scripts/verify-influxdb.py   # Influx auth + write probe
-.\scripts\install-codeproject-ai.ps1  # Phase 4 — first-time setup
+python scripts/health-check.py          # probes HA :8765 + entities + Influx
+python scripts/verify-influxdb.py       # Influx auth + write probe
+.\scripts\verify-insights-ha.ps1        # add-on smoke test
+.\scripts\deploy-insights-to-ha.ps1     # sync scripts to /share
+.\scripts\deploy-insights-to-ha.ps1 -UseDirectSecrets   # fix dashboard URLs
+.\scripts\stop-bridges.ps1              # ensure dev PC bridges are off
 ```
 
-- Analytics UI: HA sidebar **Analytics** or `http://localhost:8765/timeline`
-- Event list: `http://localhost:8765/`
+On HA (SSH):
+
+```bash
+ha apps info 25d01a20_danielsson_insights
+ha apps logs 25d01a20_danielsson_insights
+```
+
+- Analytics: HA sidebar **Analytics** or `http://192.168.68.175:8765/timeline`
+- Environment: HA sidebar **Environment** or `http://192.168.68.175:8765/environment`
 - API: `/api/v1/events`, `/api/v1/metrics`, `/api/v1/occupancy`
 
 ---
@@ -67,18 +87,12 @@ python scripts/verify-influxdb.py   # Influx auth + write probe
 
 | Item | Action |
 |---|---|
-| AOA PersonOccupancy | ✅ All 6 cameras |
-| AOA Loitering | ✅ All 6 cameras |
-| Storage scene + door AOA zones | ✅ 2026-06-07 |
-| Occupancy debounce (60 s) | ✅ |
-| **Phase 4 — verify match** | Restart CPAI if needed → walk `front` → check DT Matches + `dt_thomas_*` |
+| **Phase 4 — verify match** | Walk `front` → check DT Matches + `dt_thomas_*` |
 | Training photos | Thomas ✅ trained; Nils, Hugo, Anna ⬜ |
-| **InfluxDB writes** | ✅ `home_lab` DB + `influx_metrics_bridge.py` |
+| **Kök smoke detector** | Pairing button → `configure_smoke_detectors.py --reconfigure` |
 | Yale Doorman | Hardware + HA lock entity |
 | Kraftringen energy | API credentials for `energy_bridge.py` |
-| **Zigbee smoke detectors** | ✅ 1/rum logiskt (kök, vardagsrum, hall) — fysisk swap: ändra Area + `--update-env` |
-| **Timeline on HAOS** | ✅ Danielsson Insights v0.2.2 — stop dev PC bridges when stable |
-| **Presence fusion** | ✅ `sensor.house_occupancy_summary` + `sensor.*_presence_fused` |
+| Companion apps | Nils/Hugo/Anna phones → fix "Unknown" presence |
 
 ---
 
@@ -86,15 +100,14 @@ python scripts/verify-influxdb.py   # Influx auth + write probe
 
 | File | Purpose |
 |---|---|
-| `scripts/event_normalizer.py` | MQTT → canonical events + metrics |
+| `danielsson_insights/` | HAOS add-on (v0.2.4) — runs all bridges + timeline |
+| `scripts/deploy-insights-to-ha.ps1` | Sync scripts/events to `/share/danielsson-insights/` |
+| `scripts/verify-insights-ha.ps1` | Smoke test add-on + secrets |
 | `scripts/timeline_server.py` | Analytics UI + REST API |
-| `scripts/configure_cameras.py` | MQTT + AOA + scene publishers |
 | `scripts/influx_metrics_bridge.py` | metrics.jsonl → InfluxDB |
 | `scripts/install-codeproject-ai.ps1` | Phase 4 CodeProject.AI installer |
-| `config/double-take/config.yml` | Double Take → CodeProject.AI URL |
 | `config/home-assistant/dashboards/house-timeline.yaml` | HA Analytics iframe |
-| `config/home-assistant/dashboards/house-graphs.yaml` | HA Environment iframe |
-| `scripts/environment_page.py` | Multi-series env charts UI |
+| `config/home-assistant/secrets.yaml` (host) | `timeline_url` / `environment_url` → direct `:8765` |
 
 ---
 
@@ -104,6 +117,7 @@ python scripts/verify-influxdb.py   # Influx auth + write probe
 |---|---|
 | [backlog.md](backlog.md) | Work queue |
 | [roadmap.md](roadmap.md) | Phase tasks |
+| [runbooks/timeline-addon.md](runbooks/timeline-addon.md) | HAOS add-on ops |
 | [runbooks/codeproject-ai-setup.md](runbooks/codeproject-ai-setup.md) | Phase 4 face recognition |
-| [runbooks/influxdb-setup.md](runbooks/influxdb-setup.md) | InfluxDB auth + bridge |
-| [decisions/003-face-recognizer.md](decisions/003-face-recognizer.md) | Why CodeProject.AI |
+| [runbooks/influxdb-setup.md](runbooks/influxdb-setup.md) | InfluxDB + add-on bridge |
+| [decisions/005-home-intelligence-timeline.md](decisions/005-home-intelligence-timeline.md) | Why API-first timeline |

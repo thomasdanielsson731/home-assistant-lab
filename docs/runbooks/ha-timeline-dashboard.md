@@ -1,77 +1,68 @@
-# HA Analytics Dashboard Runbook
+# HA Analytics / Environment Dashboard
 
-Embed Analytics (timeline UI) in Home Assistant sidebar.
+How the HA sidebar **Analytics** and **Environment** views embed the timeline server.
 
-## Background
-
-`panel_iframe` was **removed** from Home Assistant (2024.4+). Replacement: YAML Lovelace dashboard with full-screen iframe card.
-
-## Config (in repo)
+## Files
 
 | File | Purpose |
 |---|---|
-| `config/home-assistant/dashboards/house-timeline.yaml` | Panel view + iframe → dev PC |
-| `config/home-assistant/configuration.yaml` | Registers `house-timeline` dashboard |
-| `/config/secrets.yaml` (host) | `timeline_url` — legacy; dashboard uses hardcoded LAN URL |
+| `config/home-assistant/dashboards/house-timeline.yaml` | Panel view + iframe → `:8765/timeline` |
+| `config/home-assistant/dashboards/house-graphs.yaml` | Panel view + iframe → `:8765/environment` |
+| `/config/secrets.yaml` (host) | `timeline_url`, `environment_url` |
+
+## Recommended URLs (production)
+
+Use **direct HA host URLs** — Ingress in Lovelace iframe often returns **401 Unauthorized**:
+
+```yaml
+timeline_url: "http://192.168.68.175:8765/timeline"
+environment_url: "http://192.168.68.175:8765/environment"
+```
+
+Set via:
+
+```powershell
+.\scripts\deploy-insights-to-ha.ps1 -UseDirectSecrets
+# or
+.\scripts\verify-insights-ha.ps1 -FixDirectUrls
+```
 
 ## Prerequisites
 
-1. Dev PC bridges running: `.\scripts\start-bridges.ps1`
-2. Timeline URL matches dev PC LAN IP (not always `.118`):
-
-```powershell
-.\scripts\update-timeline-url.ps1   # auto-detect IP → HA secrets.yaml
-```
-3. Windows firewall (once, as Administrator):
-
-```powershell
-.\scripts\open-timeline-firewall.ps1
-```
-
-## Deploy
-
-```powershell
-.\scripts\sync-config.ps1
-ssh root@192.168.68.175 -p 22222 "ha core restart"
-python scripts/configure_ha_sidebar.py
-```
+1. **Danielsson Insights add-on** state = `started` (v0.2.4+)
+2. Supervisor **watchdog** enabled (`watchdog: true`)
+3. Scripts deployed: `.\scripts\deploy-insights-to-ha.ps1`
 
 ## Verify
 
-- HA sidebar shows **Analytics** next to **Danielsson Home**
-- Click Analytics → full-screen timeline UI loads
-- If blank: test URL in browser on the same device; check firewall on dev PC
+```powershell
+.\scripts\verify-insights-ha.ps1
+python scripts/health-check.py
+```
 
-## Mobile and iPad
+Direct in browser:
 
-Embedded iframes to `http://192.168.68.x:8765` often **fail on phone and iPad** even when desktop works.
-
-| Cause | What to do |
-|---|---|
-| **Mixed content** | HA Companion or Nabu Casa uses **HTTPS**; browsers block HTTP iframes. On LAN, open HA as `http://192.168.68.175:8123` (not HTTPS). |
-| **Iframe limits** | Safari on iOS/iPadOS is stricter than desktop. Use the dashboard **Öppna i Safari** button (shown on screens ≤1024px) or open the URL directly. |
-| **CDN / offline** | Environment charts load Chart.js from the dev PC (`/static/…`), not jsdelivr — no internet required on the client. |
-| **Dev PC asleep** | Run `.\scripts\start-bridges.ps1` or ensure the `HomeLab-Bridges` scheduled task runs at logon. |
-
-Direct URLs (replace IP if `update-timeline-url.ps1` changed it):
-
-- Analytics: `http://192.168.68.136:8765/timeline`
-- Environment: `http://192.168.68.136:8765/environment`
-
-After changing dashboard YAML, sync config and reload Lovelace (or restart HA core).
+- Analytics: `http://192.168.68.175:8765/timeline`
+- Environment: `http://192.168.68.175:8765/environment`
 
 ## Troubleshooting
 
 | Symptom | Fix |
 |---|---|
-| No Timeline in sidebar | Re-run `configure_ha_sidebar.py`; check `house-timeline` in `configuration.yaml` |
-| Blank iframe | Run `open-timeline-firewall.ps1`; confirm `timeline_server.py` running |
-| Works on PC, not iPad | Use Safari button on dashboard or open `:8765` URL directly; avoid HTTPS HA |
-| Charts empty, text OK | Restart bridges; check `/api/v1/metrics` in browser |
-| Timeline hangs | Restart bridges — server uses `ThreadingHTTPServer` |
-| `panel_iframe` error in logs | Remove any `panel_iframe:` block from `configuration.yaml` |
+| **401 Unauthorized** in iframe | Use direct `:8765` URLs, not Ingress — `-UseDirectSecrets` |
+| Blank iframe | Hard refresh (Ctrl+F5); check add-on logs |
+| Panel warning "more than one card" | Fixed — single `vertical-stack` wrapper in YAML |
+| Charts empty | Check add-on bridges; `ha apps logs 25d01a20_danielsson_insights` |
+| Mobile/iPad | Button card opens URL in Safari/Chrome (iframe blocked on some HTTPS setups) |
+
+## Layout
+
+Both dashboards use a single `vertical-stack` with conditional cards:
+
+- Desktop (≥1025px): full iframe
+- Mobile (≤1024px): markdown + "Öppna …" button
 
 ## Related
 
+- [timeline-addon.md](timeline-addon.md) — add-on install and ops
 - [ADR-005](../decisions/005-home-intelligence-timeline.md)
-- [dashboards/README.md](../dashboards/README.md)

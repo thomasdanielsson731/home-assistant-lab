@@ -37,9 +37,9 @@ Run once to register:
 |---|---|---|
 | `HomeLab-Maintenance` | Every 6 hours | Commit + push + sync |
 | `HomeLab-MaintenanceDaily` | Daily 04:00 | Commit + push + sync + HA reload |
-| `HomeLab-Bridges` | At logon | `start-bridges.ps1` — air quality, audio SPL, AOA, normalizer, timeline |
+| `HomeLab-Bridges` | At logon | **Legacy** — `start-bridges.ps1` (platform now on HAOS add-on) |
 
-Also creates a **Startup folder shortcut** (`HomeLab-Bridges.lnk`) as backup. Re-run `install-scheduled-tasks.ps1` to refresh.
+Remove `HomeLab-Bridges` from Startup if the Danielsson Insights add-on is stable. Re-run `install-scheduled-tasks.ps1` only if you need to refresh maintenance tasks.
 
 Verify:
 

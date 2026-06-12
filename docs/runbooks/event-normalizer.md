@@ -1,6 +1,8 @@
 # Event Normalizer Runbook
 
-Danielsson Home Intelligence — MQTT → canonical events + metrics on the dev PC.
+Danielsson Home Intelligence — MQTT → canonical events + metrics.
+
+**Production:** runs inside the **Danielsson Insights add-on** on HAOS. Event files: `/share/danielsson-insights/events/`.
 
 ## What It Does
 
@@ -28,7 +30,7 @@ events/
 └── {type}/YYYY/MM/DD/{event_id}.json
 ```
 
-Timeline UI: HA sidebar **Analytics** or `http://192.168.68.136:8765/timeline` · API: `/api/v1/*`
+Timeline UI: HA sidebar **Analytics** or `http://192.168.68.175:8765/timeline` · API: `/api/v1/*`
 
 Event JSON and media are gitignored.
 
@@ -42,24 +44,19 @@ pip install requests paho-mqtt python-dotenv
 
 ## Run
 
+**Production (HAOS add-on):** automatic when Danielsson Insights is started.
+
+**Dev / debug only:**
+
 ```powershell
-# Manual
 python scripts/event_normalizer.py
-
-# With other bridges
-.\scripts\start-bridges.ps1
-
-# Scheduled (on logon)
-.\scripts\install-scheduled-tasks.ps1
 ```
 
-## Timeline UI
+Deploy script changes:
 
 ```powershell
-.\scripts\start-bridges.ps1
-# HA: sidebar → Timeline
-# Or direct: http://localhost:8765/timeline
-# LAN clients: .\scripts\open-timeline-firewall.ps1 (run as Administrator once)
+.\scripts\deploy-insights-to-ha.ps1
+ha apps restart 25d01a20_danielsson_insights   # on HA via SSH
 ```
 
 ## Verify
@@ -77,7 +74,7 @@ Environment events appear within 15 min of air quality bridge running.
 | No Frigate events | Confirm Frigate is detecting (`http://192.168.68.175:5000`) |
 | No snapshots | Set `HA_TOKEN` in `.env`; verify `/api/frigate/notifications/{id}/snapshot.jpg` |
 | Duplicate events | Dedup window is 30 s per camera+type; adjust in `EventStore` |
-| No environment events | Ensure `air_quality_bridge.py` is running and publishing |
+| No environment events | Ensure add-on is started; check `air_quality_bridge` in add-on logs |
 
 ## Tests
 
@@ -88,9 +85,8 @@ python -m pytest
 
 38 tests cover event store, normalizer handlers, and timeline server. CI enforces ≥85% coverage on the three scripts.
 
-## Next Steps (Phase 7)
+## Next Steps
 
-- InfluxDB time-series for metrics
-- AOA/scene → person events (lower latency than Frigate)
-- Delivery detection from scene dwell automations
+- Grafana dashboards for InfluxDB metrics
+- Event rate baselines (zone × hour)
 - Nightly aggregate job + AI summaries

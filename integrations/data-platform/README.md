@@ -89,13 +89,22 @@ Implementation options:
 - Python script on dev PC querying InfluxDB (flexible)
 - LLM agent generating weekly summary (Phase 8)
 
+## Status (2026-06-12)
+
+| Item | Status |
+|---|---|
+| InfluxDB add-on on HAOS | ✅ `http://192.168.68.175:8086`, DB `home_lab` |
+| `influx_metrics_bridge.py` | ✅ runs in Danielsson Insights add-on when `influx_url` set |
+| HA `influxdb:` integration | ⬜ optional — selective sensor export |
+| Grafana / trend dashboards | ⬜ optional |
+
 ## Next Steps
 
-1. Install InfluxDB add-on on HAOS
-2. Set `INFLUX_URL`, `INFLUX_TOKEN` in dev PC `.env` — `influx_metrics_bridge.py` tails `metrics.jsonl`
+1. ~~Install InfluxDB add-on on HAOS~~ ✅
+2. ~~Configure add-on `influx_url`~~ ✅ — `set_insights_influx_options.sh`
 3. Add `influxdb:` block to `configuration.yaml` with selective entity filter (HA sensors)
-4. Verify data flowing: InfluxDB UI → query `home_metrics` measurement
-5. Add `mini-graph-card` trends to Operations dashboard
+4. Verify data: `python scripts/verify-influxdb.py` · query `home_metrics`
+5. Add `mini-graph-card` trends to Operations dashboard (or Grafana)
 6. After 2 weeks: compute first baseline
 
 See [docs/runbooks/influxdb-setup.md](../../docs/runbooks/influxdb-setup.md).
