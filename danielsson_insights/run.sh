@@ -22,6 +22,11 @@ CAM_PASS=$(bashio::config 'cam_password')
 AXIS_ROOT_PASSWORD=$(bashio::config 'axis_root_password')
 HA_TOKEN=$(bashio::config 'ha_token')
 FRIGATE_URL=http://$(bashio::config 'mqtt_host'):5000
+INFLUX_URL=$(bashio::config 'influx_url')
+INFLUX_USER=$(bashio::config 'influx_user')
+INFLUX_PASSWORD=$(bashio::config 'influx_password')
+INFLUX_DB=$(bashio::config 'influx_db')
+INFLUX_V2=$(bashio::config 'influx_v2')
 EOF
 chmod 600 "${ENV_FILE}"
 
@@ -41,6 +46,9 @@ if bashio::config 'enable_bridges'; then
   start_bg "air_quality_bridge" "air_quality_bridge.py"
   start_bg "audio_bridge" "audio_bridge.py"
   start_bg "aoa_bridge" "aoa_bridge.py"
+  if bashio::config.has_value 'influx_url'; then
+    start_bg "influx_metrics_bridge" "influx_metrics_bridge.py"
+  fi
 fi
 
 bashio::log.info "Starting timeline_server on :8765"

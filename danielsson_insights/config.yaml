@@ -1,5 +1,5 @@
 name: Danielsson Insights
-version: "0.2.3"
+version: "0.2.4"
 slug: danielsson_insights
 description: Analytics platform on HAOS — timeline, normalizer, bridges
 url: https://github.com/thomasdanielsson731/home-assistant-lab
@@ -33,6 +33,11 @@ options:
   events_path: /share/danielsson-insights/events
   scripts_path: /share/danielsson-insights/scripts
   enable_bridges: true
+  influx_url: ""
+  influx_user: ""
+  influx_password: ""
+  influx_db: home_lab
+  influx_v2: false
 schema:
   mqtt_host: str
   mqtt_user: str
@@ -44,3 +49,8 @@ schema:
   events_path: str
   scripts_path: str
   enable_bridges: bool
+  influx_url: str
+  influx_user: str
+  influx_password: password
+  influx_db: str
+  influx_v2: bool

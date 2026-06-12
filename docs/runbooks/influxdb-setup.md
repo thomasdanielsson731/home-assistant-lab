@@ -11,6 +11,8 @@ HA influxdb integration (optional) → InfluxDB  ← sensor entities
 
 Event platform metrics (`co2`, `temperature`, `spl`, etc.) are written to `metrics.jsonl` today. The bridge tails that file and exports to InfluxDB when configured.
 
+**HAOS mode (current):** the Danielsson Insights add-on (≥0.2.4) runs `influx_metrics_bridge.py` automatically when the add-on option `influx_url` is set. Configure `influx_url`, `influx_user`, `influx_password`, `influx_db` in the add-on options — no dev PC needed.
+
 ## Option A — InfluxDB add-on on HAOS (recommended)
 
 **Status:** Add-on `a0d7b954_influxdb` v5.0.2 on `http://192.168.68.175:8086` (InfluxDB 1.8.x). Verify: `python scripts/verify-influxdb.py`.
