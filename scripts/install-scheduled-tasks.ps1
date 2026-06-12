@@ -10,7 +10,6 @@ $repoRoot = Split-Path $PSScriptRoot -Parent
 
 $maintCmd  = "powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$repoRoot\scripts\repo-maintenance.ps1`""
 $dailyCmd  = "powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$repoRoot\scripts\repo-maintenance.ps1`" -Reload"
-$bridgesCmd = "powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$repoRoot\scripts\start-bridges.ps1`""
 
 Write-Host "Registering Home Lab scheduled tasks ..."
 Write-Host "  Repo: $repoRoot"
@@ -42,29 +41,15 @@ if ($LASTEXITCODE -eq 0) { Write-Host "  Registered: HomeLab-Maintenance (every 
 schtasks /create /tn "HomeLab-MaintenanceDaily" /tr $dailyCmd /sc daily /st 04:00 /f
 if ($LASTEXITCODE -eq 0) { Write-Host "  Registered: HomeLab-MaintenanceDaily (04:00)" }
 
-# All MQTT bridges + event platform at logon (may need admin — Startup shortcut is fallback)
-$prev = $ErrorActionPreference
-$ErrorActionPreference = "SilentlyContinue"
-schtasks /create /tn "HomeLab-Bridges" /tr $bridgesCmd /sc onlogon /f 2>&1 | Out-Null
-$ErrorActionPreference = $prev
-if ($LASTEXITCODE -eq 0) {
-    Write-Host "  Registered: HomeLab-Bridges (on logon)"
-} else {
-    Write-Host "  SKIP  HomeLab-Bridges (access denied) — using Startup shortcut"
+# Legacy HomeLab-Bridges (start-bridges.ps1) — retired 2026-06-12; platform runs on HAOS add-on.
+Remove-OldTask "HomeLab-Bridges"
+$startup = [Environment]::GetFolderPath("Startup")
+$legacyShortcut = Join-Path $startup "HomeLab-Bridges.lnk"
+if (Test-Path $legacyShortcut) {
+    Remove-Item -Force $legacyShortcut
+    Write-Host "  Removed legacy startup shortcut: HomeLab-Bridges.lnk"
 }
 
-# Startup folder shortcut (backup if schtasks onlogon is delayed)
-$startup = [Environment]::GetFolderPath("Startup")
-$shortcutPath = Join-Path $startup "HomeLab-Bridges.lnk"
-$WshShell = New-Object -ComObject WScript.Shell
-$shortcut = $WshShell.CreateShortcut($shortcutPath)
-$shortcut.TargetPath = "powershell.exe"
-$shortcut.Arguments = "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$repoRoot\scripts\start-bridges.ps1`""
-$shortcut.WorkingDirectory = $repoRoot
-$shortcut.Description = "Danielsson Insights MQTT bridges"
-$shortcut.Save()
-Write-Host "  Startup shortcut: $shortcutPath"
-
 Write-Host ""
-Write-Host "Verify: schtasks /query /tn HomeLab-Bridges"
+Write-Host "Verify: schtasks /query /tn HomeLab-Maintenance"
 Write-Host "Logs:   $repoRoot\logs\maintenance.log"

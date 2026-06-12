@@ -104,5 +104,6 @@ SELECT COUNT(*) FROM home_metrics WHERE time > now() - 24h
 
 ## Related
 
+- [grafana-setup.md](grafana-setup.md)
 - [timeline-addon.md](timeline-addon.md)
 - [integrations/data-platform/README.md](../../integrations/data-platform/README.md)

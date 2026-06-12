@@ -37,9 +37,9 @@ Run once to register:
 |---|---|---|
 | `HomeLab-Maintenance` | Every 6 hours | Commit + push + sync |
 | `HomeLab-MaintenanceDaily` | Daily 04:00 | Commit + push + sync + HA reload |
-| `HomeLab-Bridges` | At logon | **Legacy** — `start-bridges.ps1` (platform now on HAOS add-on) |
+| `HomeLab-Bridges` | — | **Removed 2026-06-12** — use `remove-bridges-startup.ps1` if shortcut returns |
 
-Remove `HomeLab-Bridges` from Startup if the Danielsson Insights add-on is stable. Re-run `install-scheduled-tasks.ps1` only if you need to refresh maintenance tasks.
+Remove legacy bridge autostart: `.\scripts\remove-bridges-startup.ps1`. Re-run `install-scheduled-tasks.ps1` only if you need to refresh maintenance tasks.
 
 Verify:
 

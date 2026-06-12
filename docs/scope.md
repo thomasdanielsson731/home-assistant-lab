@@ -48,7 +48,7 @@ Explicit boundaries for the Home Assistant Lab / Data Insights Lab. When in doub
 - Event store (`events/timeline.jsonl`, `metrics.jsonl`) — **live**
 - Correlation engine (`arrival`, `delivery`, `bicycle`) — **live**
 - InfluxDB metrics retention — **live** in Danielsson Insights add-on v0.2.4+
-- Grafana / baselines — optional next
+- Grafana / baselines — **7-day dashboard live** (HA sidebar → Grafana)
 - Digital twin state model — Phase 8
 
 ### Development Tooling

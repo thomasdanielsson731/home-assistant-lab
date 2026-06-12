@@ -13,7 +13,7 @@ Time-series storage for trend analysis. Answer "what's normal?" and "what change
 - [x] Bridge runs in Danielsson Insights add-on v0.2.4+ (`influx_url` option)
 - [ ] HA → InfluxDB integration with selective entity filter (optional)
 - [ ] 30+ days of energy + environment + detection metrics stored (accumulating)
-- [ ] At least one dashboard showing 7-day trends (Grafana or HA cards)
+- [x] At least one dashboard showing 7-day trends (Grafana `homelab-metrics-7d`)
 - [ ] Event rate baseline computed for one zone
 
 ## Tasks
@@ -25,7 +25,7 @@ Time-series storage for trend analysis. Answer "what's normal?" and "what change
 | 3 | Add `influxdb:` block to `configuration.yaml` (HA sensors) | ⬜ optional |
 | 4 | Filter: energy, driveway_env, detection entities | ⬜ |
 | 5 | Verify data in InfluxDB UI | ✅ bridge writing |
-| 6 | Add mini-graph-card trends to Operations view | ⬜ |
+| 6 | Add mini-graph-card trends to Operations view | ⬜ optional — Grafana dashboard live |
 | 7 | After 2 weeks: compute hourly detection baseline | ⬜ |
 
 ## Key Files

@@ -1,0 +1,15 @@
+# Copied to /share/grafana/provisioning/datasources/influx.yaml by setup_grafana.sh
+# (password injected from .env — do not commit the live file)
+apiVersion: 1
+datasources:
+  - name: Home Lab InfluxDB
+    uid: homelab-influx
+    type: influxdb
+    access: proxy
+    url: http://a0d7b954-influxdb:8086
+    database: home_lab
+    user: homelab
+    jsonData:
+      httpMode: GET
+    secureJsonData:
+      password: change-me

@@ -92,7 +92,7 @@ CodeProject.AI path — see [ADR-003](decisions/003-face-recognizer.md) · [runb
 | L5 | Vision model on Frigate snapshots | L | L1, Phase 2 |
 | L6 | Scene description automation | M | L5 |
 | L7 | Event rate baselines (zone × hour × object) | L | L3 |
-| L8 | Grafana dashboard or HA history trends | M | L3 |
+| L8 | Grafana dashboard or HA history trends | M | ✅ `home-metrics-7d` via `deploy-grafana.ps1` |
 | L9 | Custom ACAP model on lab footage | XL | P5-8, Axis dev access |
 
 ---

@@ -96,7 +96,7 @@ Implementation options:
 | InfluxDB add-on on HAOS | ✅ `http://192.168.68.175:8086`, DB `home_lab` |
 | `influx_metrics_bridge.py` | ✅ runs in Danielsson Insights add-on when `influx_url` set |
 | HA `influxdb:` integration | ⬜ optional — selective sensor export |
-| Grafana / trend dashboards | ⬜ optional |
+| Grafana / trend dashboards | ✅ `deploy-grafana.ps1` → Home Lab — 7 Day Trends |
 
 ## Next Steps
 

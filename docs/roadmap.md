@@ -145,7 +145,7 @@ Vision: [vision.md](vision.md) · Scope: [scope.md](scope.md) · Work queue: [ba
 | HA sidebar Timeline dashboard (`house-timeline`) | ✅ |
 | InfluxDB bridge (`influx_metrics_bridge.py`) | ✅ in HAOS add-on v0.2.4 |
 | InfluxDB add-on deployed on HAOS | ✅ `home_lab` DB, auth working |
-| Grafana / 7-day trend dashboards | ⬜ |
+| Grafana / 7-day trend dashboards | ✅ |
 
 **Done when:** Timeline shows detections, occupancy blocks, and env metrics for 24 h without opening HA.
 
