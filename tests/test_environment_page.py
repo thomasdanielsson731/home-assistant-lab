@@ -33,3 +33,11 @@ class TestEnvironmentPageHtml:
     def test_discovers_indoor_temperature_series(self):
         assert "discoverIndoorSeries" in ENVIRONMENT_HTML
         assert "borderDash" in ENVIRONMENT_HTML
+
+    def test_chart_wraps_survive_empty_state_for_toolbar_reload(self):
+        """Toolbar range buttons call load() again — wrap ids must stay in DOM."""
+        assert 'id="wrap-climate"' in ENVIRONMENT_HTML
+        assert 'id="wrap-air"' in ENVIRONMENT_HTML
+        assert 'id="wrap-spl"' in ENVIRONMENT_HTML
+        assert "CHART_SLOTS" in ENVIRONMENT_HTML
+        assert "showChartEmpty" in ENVIRONMENT_HTML

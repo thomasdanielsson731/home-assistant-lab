@@ -61,17 +61,17 @@ ENVIRONMENT_HTML = """<!DOCTYPE html>
     <div class="chart-card">
       <div class="chart-title">Climate</div>
       <div class="chart-sub">Ute (D6210) + inne (brandvarnare) · °C och luftfuktighet %. Avbrott i linjen = sampling paus (natt/bridge nere) — inte plötslig temperaturändring.</div>
-      <div class="chart-wrap"><canvas id="chart-climate"></canvas></div>
+      <div class="chart-wrap" id="wrap-climate"><canvas id="chart-climate"></canvas></div>
     </div>
     <div class="chart-card">
       <div class="chart-title">Air quality</div>
       <div class="chart-sub">CO₂, AQI and PM2.5 — click legend to hide series</div>
-      <div class="chart-wrap"><canvas id="chart-air"></canvas></div>
+      <div class="chart-wrap" id="wrap-air"><canvas id="chart-air"></canvas></div>
     </div>
     <div class="chart-card">
       <div class="chart-title">Sound pressure level</div>
       <div class="chart-sub">Front · driveway · backyard (dB)</div>
-      <div class="chart-wrap"><canvas id="chart-spl"></canvas></div>
+      <div class="chart-wrap" id="wrap-spl"><canvas id="chart-spl"></canvas></div>
     </div>
   </main>
 
@@ -94,6 +94,11 @@ ENVIRONMENT_HTML = """<!DOCTYPE html>
 
     let hours = 24, customFrom = null, customTo = null;
     let charts = { climate: null, air: null, spl: null };
+    const CHART_SLOTS = {
+      climate: { wrap: 'wrap-climate', canvas: 'chart-climate' },
+      air: { wrap: 'wrap-air', canvas: 'chart-air' },
+      spl: { wrap: 'wrap-spl', canvas: 'chart-spl' },
+    };
 
     const chartDefaults = {
       responsive: true,
@@ -230,23 +235,28 @@ ENVIRONMENT_HTML = """<!DOCTYPE html>
       }).join('');
     }
 
-    function ensureCanvas(id) {
-      const wrap = document.getElementById(id).parentElement;
+    function ensureCanvas(wrapId, canvasId) {
+      const wrap = document.getElementById(wrapId);
       if (!wrap.querySelector('canvas')) {
-        wrap.innerHTML = `<canvas id="${id}"></canvas>`;
+        wrap.innerHTML = `<canvas id="${canvasId}"></canvas>`;
       }
     }
 
-    function makeChart(id, chartKey, datasets, dualAxis) {
+    function showChartEmpty(wrapId, message) {
+      document.getElementById(wrapId).innerHTML = `<p class="empty">${message}</p>`;
+    }
+
+    function makeChart(chartKey, datasets, dualAxis) {
+      const { wrap, canvas: canvasId } = CHART_SLOTS[chartKey];
       if (charts[chartKey]) {
         charts[chartKey].destroy();
         charts[chartKey] = null;
       }
-      ensureCanvas(id);
-      const canvas = document.getElementById(id);
+      ensureCanvas(wrap, canvasId);
+      const canvas = document.getElementById(canvasId);
       const hasData = datasets.some(d => d.data.length);
       if (!hasData) {
-        canvas.parentElement.innerHTML = '<p class="empty">Ingen data i intervallet — kontrollera Danielsson Insights add-on</p>';
+        showChartEmpty(wrap, 'Ingen data i intervallet — kontrollera Danielsson Insights add-on');
         return;
       }
       const scales = { ...chartDefaults.scales };
@@ -284,9 +294,8 @@ ENVIRONMENT_HTML = """<!DOCTYPE html>
       } catch (err) {
         document.getElementById('stats').textContent =
           `Cannot load metrics — check Danielsson Insights add-on. ${err.message}`;
-        ['chart-climate', 'chart-air', 'chart-spl'].forEach(id => {
-          document.getElementById(id).parentElement.innerHTML =
-            '<p class="empty">No data — restart Danielsson Insights add-on on HA</p>';
+        Object.values(CHART_SLOTS).forEach(({ wrap }) => {
+          showChartEmpty(wrap, 'No data — restart Danielsson Insights add-on on HA');
         });
         return;
       }
@@ -302,9 +311,9 @@ ENVIRONMENT_HTML = """<!DOCTYPE html>
       document.getElementById('stats').textContent =
         `${rows.length} samples · ${SERIES.filter(s => (map[s.key] || []).length).length} active series${ageStr}`;
 
-      makeChart('chart-climate', 'climate', buildDatasets(map, 'climate', maxPts), true);
-      makeChart('chart-air', 'air', buildDatasets(map, 'air', maxPts), true);
-      makeChart('chart-spl', 'spl', buildDatasets(map, 'spl', maxPts), false);
+      makeChart('climate', buildDatasets(map, 'climate', maxPts), true);
+      makeChart('air', buildDatasets(map, 'air', maxPts), true);
+      makeChart('spl', buildDatasets(map, 'spl', maxPts), false);
     }
 
     document.querySelectorAll('#toolbar button[data-hours]').forEach(btn => {

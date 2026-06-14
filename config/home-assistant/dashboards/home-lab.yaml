@@ -1398,6 +1398,105 @@ views:
                   - entity: sensor.house_indoor_temperature
                     name: Snitt
 
+      - title: UTE LUFT (7 DAGAR)
+        cards:
+          - type: markdown
+            content: >-
+              D6210 uppfart — recorder 90 dagar. Tom graf = bridge/add-on nere eller ingen historik än.
+          - type: history-graph
+            title: Temperatur
+            hours_to_show: 168
+            entities:
+              - entity: sensor.driveway_env_temperature
+          - type: history-graph
+            title: Luftfuktighet
+            hours_to_show: 168
+            entities:
+              - entity: sensor.driveway_env_humidity
+          - type: history-graph
+            title: CO₂
+            hours_to_show: 168
+            entities:
+              - entity: sensor.driveway_env_co2
+          - type: history-graph
+            title: AQI
+            hours_to_show: 168
+            entities:
+              - entity: sensor.driveway_env_aqi
+          - type: history-graph
+            title: PM2.5
+            hours_to_show: 168
+            entities:
+              - entity: sensor.driveway_env_pm2_5
+
+      - title: UTE LUFT (90 DAGAR)
+        cards:
+          - type: markdown
+            content: Dagliga medel — kräver ~24 h data innan statistics fylls i.
+          - type: statistics-graph
+            chart_type: line
+            title: Temperatur
+            entities:
+              - sensor.driveway_env_temperature
+            stat_types:
+              - mean
+            days_to_show: 90
+            period: day
+            hide_legend: true
+          - type: statistics-graph
+            chart_type: line
+            title: Luftfuktighet
+            entities:
+              - sensor.driveway_env_humidity
+            stat_types:
+              - mean
+            days_to_show: 90
+            period: day
+            hide_legend: true
+          - type: statistics-graph
+            chart_type: line
+            title: CO₂
+            entities:
+              - sensor.driveway_env_co2
+            stat_types:
+              - mean
+            days_to_show: 90
+            period: day
+            hide_legend: true
+          - type: statistics-graph
+            chart_type: line
+            title: AQI
+            entities:
+              - sensor.driveway_env_aqi
+            stat_types:
+              - mean
+            days_to_show: 90
+            period: day
+            hide_legend: true
+          - type: statistics-graph
+            chart_type: line
+            title: PM2.5
+            entities:
+              - sensor.driveway_env_pm2_5
+            stat_types:
+              - mean
+            days_to_show: 90
+            period: day
+            hide_legend: true
+
+      - title: LJUD (7 DAGAR)
+        cards:
+          - type: history-graph
+            title: SPL (dB)
+            hours_to_show: 168
+            entities:
+              - entity: sensor.front_audio_spl
+                name: Front
+              - entity: sensor.driveway_wide_audio_spl
+                name: Uppfart
+              - entity: sensor.backyard_audio_spl
+                name: Bakgård
+
 
   # ═══════════════════════════════════════════════════════════════
   # VIEW 6 — DRIFT (Thomas — admin)
@@ -1537,8 +1636,8 @@ views:
             icon_color: blue
             fill_container: true
             tap_action:
-              action: url
-              url_path: /house-timeline
+              action: navigate
+              navigation_path: /house-timeline
 
       # ── System ───────────────────────────────────────────────
       - title: SYSTEM
