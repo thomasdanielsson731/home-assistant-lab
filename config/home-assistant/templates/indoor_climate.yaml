@@ -68,18 +68,25 @@
       device_class: smoke
       icon: mdi:smoke-detector-alert
       state: >-
-        {{ states.binary_sensor
-           | selectattr('entity_id', 'search', 'ias_zon')
-           | selectattr('state', 'eq', 'on')
-           | list | count > 0 }}
+        {{ states('binary_sensor.heiman_hs1sa_e_plus_ias_zon') == 'on'
+           or states('binary_sensor.heiman_hs1sa_e_plus_ias_zon_2') == 'on'
+           or states('binary_sensor.heiman_hs1sa_e_plus') == 'on' }}
       attributes:
         active_sensors: >-
           {% set ns = namespace(list=[]) %}
-          {% for s in states.binary_sensor | selectattr('entity_id', 'search', 'ias_zon') | list %}
-            {% if s.state == 'on' %}
-              {% set ns.list = ns.list + [state_attr(s.entity_id, 'friendly_name') | default(s.entity_id)] %}
-            {% endif %}
-          {% endfor %}
+          {% if states('binary_sensor.heiman_hs1sa_e_plus_ias_zon') == 'on' %}
+            {% set ns.list = ns.list + [state_attr('binary_sensor.heiman_hs1sa_e_plus_ias_zon', 'friendly_name')] %}
+          {% endif %}
+          {% if states('binary_sensor.heiman_hs1sa_e_plus_ias_zon_2') == 'on' %}
+            {% set ns.list = ns.list + [state_attr('binary_sensor.heiman_hs1sa_e_plus_ias_zon_2', 'friendly_name')] %}
+          {% endif %}
+          {% if states('binary_sensor.heiman_hs1sa_e_plus') == 'on' %}
+            {% set ns.list = ns.list + [state_attr('binary_sensor.heiman_hs1sa_e_plus', 'friendly_name')] %}
+          {% endif %}
           {{ ns.list | join(', ') if ns.list else 'none' }}
         detector_count: >-
-          {{ states.binary_sensor | selectattr('entity_id', 'search', 'ias_zon') | list | count }}
+          {{ [
+            states('binary_sensor.heiman_hs1sa_e_plus_ias_zon'),
+            states('binary_sensor.heiman_hs1sa_e_plus_ias_zon_2'),
+            states('binary_sensor.heiman_hs1sa_e_plus')
+          ] | reject('in', ['unknown', 'unavailable']) | list | count }}

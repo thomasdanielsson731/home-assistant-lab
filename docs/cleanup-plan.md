@@ -1,5 +1,7 @@
 # Home Assistant Cleanup Plan
 
+> **Archived (2026-06-14):** Pre-Frigate checklist from early lab setup. Phases 1–3 and most Phase 5 items are complete. Use [backlog.md](backlog.md) for current work. Kept for historical reference only.
+
 Step-by-step checklist for bringing an existing HA installation to a clean, consistent baseline before adding Frigate, face recognition, or AI features.
 
 Work through sections in order. Complete each section fully before moving to the next.

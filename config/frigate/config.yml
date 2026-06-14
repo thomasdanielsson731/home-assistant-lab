@@ -9,9 +9,9 @@ mqtt:
   port: 1883
 
 detectors:
-  default:
-    type: cpu
-    num_threads: 2
+  ov:
+    type: openvino
+    device: CPU
 
 ffmpeg:
   global_args: -hide_banner -loglevel warning -threads 1

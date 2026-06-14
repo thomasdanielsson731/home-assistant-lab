@@ -34,6 +34,19 @@ Navigate to Frigate UI at `http://<ha-ip>:5000`. Confirm:
 - Bounding boxes appear on detected objects
 - MQTT events arriving (check MQTT Explorer or HA Developer Tools → Events)
 
+### Detector (OpenVINO)
+
+Repo config uses OpenVINO on CPU (amd64 HAOS):
+
+```yaml
+detectors:
+  ov:
+    type: openvino
+    device: CPU
+```
+
+Faster than plain CPU on x86. If the add-on fails to start, revert to `type: cpu` and check Frigate logs. Coral USB or GPU paths are optional future upgrades.
+
 ## 6. Add Frigate Integration to HA
 
 **Settings → Devices & Services → Add Integration → Frigate**

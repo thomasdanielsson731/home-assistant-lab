@@ -49,6 +49,7 @@ if bashio::config 'enable_bridges'; then
   if bashio::config.has_value 'influx_url'; then
     start_bg "influx_metrics_bridge" "influx_metrics_bridge.py"
   fi
+  start_bg "baseline_engine" "baseline_engine.py --loop"
 fi
 
 bashio::log.info "Starting timeline_server on :8765"

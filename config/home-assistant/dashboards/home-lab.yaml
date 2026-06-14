@@ -601,15 +601,25 @@ views:
         cards:
           - type: custom:mushroom-template-card
             primary: >-
-              {% if is_state('binary_sensor.dt_thomas_present', 'on') %}Thomas igenkänd
+              {% set ns = namespace(names=[]) %}
+              {% if is_state('binary_sensor.dt_thomas_present', 'on') %}{% set ns.names = ns.names + ['Thomas'] %}{% endif %}
+              {% if is_state('binary_sensor.dt_nils_present', 'on') %}{% set ns.names = ns.names + ['Nils'] %}{% endif %}
+              {% if is_state('binary_sensor.dt_hugo_present', 'on') %}{% set ns.names = ns.names + ['Hugo'] %}{% endif %}
+              {% if is_state('binary_sensor.dt_anna_present', 'on') %}{% set ns.names = ns.names + ['Anna'] %}{% endif %}
+              {% if ns.names | count > 0 %}{{ ns.names | join(', ') }} igenkänd
               {% else %}Aktiv — Double Take + CodeProject.AI{% endif %}
             secondary: >-
+              {% set trained = ['Thomas'] %}
+              {% set pending = ['Nils', 'Hugo', 'Anna'] %}
+              Tränade: {{ trained | join(', ') }} · Kvar: {{ pending | join(', ') }}
               {% set c = states('sensor.dt_thomas_confidence') %}
-              {% if c not in ['unknown', 'unavailable', 'none'] %}Senaste match: Thomas · {{ c }}%
-              {% else %}Thomas tränad · Nils, Hugo, Anna återstår{% endif %}
+              {% if c not in ['unknown', 'unavailable', 'none'] %} · Senaste: Thomas {{ c }}%{% endif %}
             icon: mdi:face-recognition
             icon_color: >-
-              {{ 'green' if is_state('binary_sensor.dt_thomas_present', 'on') else 'blue' }}
+              {% if is_state('binary_sensor.dt_thomas_present', 'on')
+                 or is_state('binary_sensor.dt_nils_present', 'on')
+                 or is_state('binary_sensor.dt_hugo_present', 'on')
+                 or is_state('binary_sensor.dt_anna_present', 'on') %}green{% else %}blue{% endif %}
             fill_container: true
             tap_action:
               action: url
@@ -624,12 +634,19 @@ views:
         cards:
           - type: custom:mushroom-template-card
             primary: >-
-              {% set alarms = states.binary_sensor | selectattr('entity_id', 'search', 'ias_zon') | list %}
-              {% if alarms | selectattr('state', 'eq', 'on') | list | count > 0 %}RÖKALARM — {{ alarms | selectattr('state', 'eq', 'on') | list | count }} aktiv
-              {% else %}{{ alarms | count }} brandvarnare · OK{% endif %}
+              {% set ns = namespace(alarms=[]) %}
+              {% for s in states.binary_sensor | selectattr('entity_id', 'search', 'heiman') | list %}
+                {% if 'ias_zon' in s.entity_id or s.entity_id == 'binary_sensor.heiman_hs1sa_e_plus' %}
+                  {% set ns.alarms = ns.alarms + [s] %}
+                {% endif %}
+              {% endfor %}
+              {% if ns.alarms | selectattr('state', 'eq', 'on') | list | count > 0 %}RÖKALARM — {{ ns.alarms | selectattr('state', 'eq', 'on') | list | count }} aktiv
+              {% else %}{{ ns.alarms | count }} brandvarnare · OK{% endif %}
             secondary: >-
-              {% for s in states.binary_sensor | selectattr('entity_id', 'search', 'ias_zon') | list %}
+              {% for s in states.binary_sensor | selectattr('entity_id', 'search', 'heiman') | list %}
+              {% if 'ias_zon' in s.entity_id or s.entity_id == 'binary_sensor.heiman_hs1sa_e_plus' %}
               {{ state_attr(s.entity_id, 'friendly_name') | default(s.entity_id) }} · {{ 'RÖK' if s.state == 'on' else 'OK' }}
+              {% endif %}
               {% endfor %}
               {% set temps = states.sensor | selectattr('entity_id', 'search', 'heiman') | selectattr('entity_id', 'search', 'temperatur') | list %}
               {% if temps | count > 0 %} · {% endif %}
@@ -638,7 +655,13 @@ views:
               {% endfor %}
             icon: mdi:smoke-detector
             icon_color: >-
-              {{ 'red' if states.binary_sensor | selectattr('entity_id', 'search', 'ias_zon') | selectattr('state', 'eq', 'on') | list | count > 0 else 'green' }}
+              {% set ns = namespace(alarm=false) %}
+              {% for s in states.binary_sensor | selectattr('entity_id', 'search', 'heiman') | list %}
+                {% if ('ias_zon' in s.entity_id or s.entity_id == 'binary_sensor.heiman_hs1sa_e_plus') and s.state == 'on' %}
+                  {% set ns.alarm = true %}
+                {% endif %}
+              {% endfor %}
+              {{ 'red' if ns.alarm else 'green' }}
             fill_container: true
             tap_action:
               action: more-info
@@ -774,6 +797,26 @@ views:
             tap_action:
               action: navigate
               navigation_path: /lovelace/house-graphs
+          - type: horizontal-stack
+            cards:
+              - type: history-graph
+                title: Ute — temperatur (7 dagar)
+                hours_to_show: 168
+                entities:
+                  - entity: sensor.driveway_env_temperature
+                    name: Ute
+              - type: history-graph
+                title: Inne — temperatur (7 dagar)
+                hours_to_show: 168
+                entities:
+                  - entity: sensor.heiman_hs1sa_e_plus_temperatur
+                    name: Kök
+                  - entity: sensor.heiman_hs1sa_e_plus_temperatur_2
+                    name: Hall
+                  - entity: sensor.heiman_hs1sa_e_plus_temperatur_3
+                    name: Vardagsrum
+                  - entity: sensor.house_indoor_temperature
+                    name: Snitt
 
       # ── Kök ──────────────────────────────────────────────────
       # Lamporna sitter bakom väggströmbrytare — "unavailable" betyder
@@ -894,6 +937,20 @@ views:
               collapsible_controls: false
               layout: horizontal
               fill_container: true
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: light.taklampa
+                state: unavailable
+            card:
+              type: custom:mushroom-template-card
+              primary: Taklampa
+              secondary: Av · väggströmbrytare
+              icon: mdi:lightbulb-off-outline
+              icon_color: disabled
+              fill_container: true
+              tap_action:
+                action: none
 
       # ── Fönsterlampor ────────────────────────────────────────
       - title: FÖNSTERLAMPOR
@@ -956,6 +1013,20 @@ views:
               collapsible_controls: false
               layout: horizontal
               fill_container: true
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: light.sovrumstaklampa
+                state: unavailable
+            card:
+              type: custom:mushroom-template-card
+              primary: Taklampa
+              secondary: Av · väggströmbrytare
+              icon: mdi:lightbulb-off-outline
+              icon_color: disabled
+              fill_container: true
+              tap_action:
+                action: none
 
       # ── Hugos rum ────────────────────────────────────────────
       - title: HUGOS RUM
@@ -981,6 +1052,20 @@ views:
               collapsible_controls: false
               layout: horizontal
               fill_container: true
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: light.hugos_taklampa
+                state: unavailable
+            card:
+              type: custom:mushroom-template-card
+              primary: Taklampa
+              secondary: Av · väggströmbrytare
+              icon: mdi:lightbulb-off-outline
+              icon_color: disabled
+              fill_container: true
+              tap_action:
+                action: none
 
       # ── Nils rum ─────────────────────────────────────────────
       - title: NILS RUM

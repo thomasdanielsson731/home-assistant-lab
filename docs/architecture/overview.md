@@ -61,7 +61,7 @@ graph LR
         Q1656B["Q1656\nbackyard"]
         Q1656S["Q1656\nstorage_ext"]
         M1055["M1055\nstorage_int"]
-        D6210["D6210 (radar)\ndriveway_env"] -->|"I/O port"| M2036
+        D6210["D6210 air quality\ndriveway_env"] -->|"VAPIX proxy"| M2036
     end
 
     subgraph HAOS["Home Assistant OS"]

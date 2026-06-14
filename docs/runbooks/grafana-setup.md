@@ -11,7 +11,7 @@ Grafana add-on (a0d7b954_grafana) → reads /share/grafana/provisioning/
 
 Dashboard: **Home Lab — 7 Day Trends** (`uid: homelab-metrics-7d`)
 
-Panels: outdoor temp/humidity/CO₂/AQI/PM, SPL (front, driveway_wide, backyard).
+Panels: outdoor + indoor temperature (brandvarnare per rum), humidity/CO₂/AQI/PM, SPL (front, driveway_wide, backyard).
 
 ---
 

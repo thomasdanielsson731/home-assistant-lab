@@ -9,8 +9,8 @@ Verified on:
 | Zone | Camera | IP | SoundPressureLevel |
 |---|---|---|---|
 | `front` | P3288-LVE | 192.168.68.200 | ✅ enabled |
-| `driveway_wide` | Q3558-LVE | 192.168.68.201 | ✅ enabled |
-| `backyard` | Q1656-LE | 192.168.68.203 | ✅ enabled |
+| `driveway_wide` | Q3558-LVE | 192.168.68.203 | ✅ enabled |
+| `backyard` | Q1656-LE | 192.168.68.202 | ✅ enabled |
 
 Check from dev PC:
 

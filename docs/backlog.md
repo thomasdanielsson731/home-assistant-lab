@@ -78,6 +78,8 @@ CodeProject.AI path — see [ADR-003](decisions/003-face-recognizer.md) · [runb
 | P6-3 | `energy_bridge.py` stub (Kraftringen API) | M | ✅ stub ready — credentials pending |
 | P6-4 | Scene track behavior classification (`behavior` event type) | M | ✅ |
 | P6-5 | Environment sidebar + Analytics/Story links | S | ✅ `house-graphs` iframe + `/environment` charts |
+| P6-8 | Ollama `ai_summary` in story_engine (optional) | S | ✅ `OLLAMA_URL` |
+| P6-9 | Baseline + anomaly engine | M | ✅ `baseline_engine.py` |
 | P6-6 | Implement Kraftringen API calls in `energy_bridge.py` | M | ⬜ awaiting credentials |
 | P6-7 | Energy events in timeline + story beats | S | ⬜ depends on P6-6 |
 
@@ -91,7 +93,7 @@ CodeProject.AI path — see [ADR-003](decisions/003-face-recognizer.md) · [runb
 | L4 | HA Assist → Ollama REST integration | M | L1 |
 | L5 | Vision model on Frigate snapshots | L | L1, Phase 2 |
 | L6 | Scene description automation | M | L5 |
-| L7 | Event rate baselines (zone × hour × object) | L | L3 |
+| L7 | Event rate baselines (zone × hour × object) | L | ✅ `baseline_engine.py` |
 | L8 | Grafana dashboard or HA history trends | M | ✅ `home-metrics-7d` via `deploy-grafana.ps1` |
 | L9 | Custom ACAP model on lab footage | XL | P5-8, Axis dev access |
 
@@ -133,10 +135,10 @@ CodeProject.AI path — see [ADR-003](decisions/003-face-recognizer.md) · [runb
 | # | Item | Effort | Status |
 |---|---|---|---|
 | Z1 | Pair 3× HEIMAN smoke detectors | M | ✅ ZHA network |
-| Z2 | Areas + `SMOKE_ENTITIES` + entity names | S | 🔄 2/3 alarm entities live (kök `ias_zon` missing) |
+| Z2 | Areas + `SMOKE_ENTITIES` + entity names | S | ✅ 3/3 live |
 | Z3 | Smoke alert automation + timeline | S | ✅ |
 
-**Next:** Hold pairing button on kök detector ~5 s → `python scripts/configure_smoke_detectors.py --reconfigure`
+**Next:** Water sensor (SNZB-05P) — re-pair if `unavailable`; see [zigbee-setup.md](runbooks/zigbee-setup.md)
 
 ---
 

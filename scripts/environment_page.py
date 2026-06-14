@@ -88,6 +88,7 @@ ENVIRONMENT_HTML = """<!DOCTYPE html>
       { key: 'backyard:spl', label: 'Backyard SPL', unit: 'dB', color: '#e8c4a0', chart: 'spl', yAxis: 'y' },
     ];
     const OUTDOOR_CLIMATE_ZONES = new Set(['driveway_env']);
+    const INDOOR_ZONE_LABELS = { kok: 'Kök', hall: 'Hall', vardagsrum: 'Vardagsrum' };
     const INDOOR_COLORS = ['#fdd663', '#81c995', '#c58af9', '#e8c4a0', '#aecbfa'];
     let SERIES = [...BASE_SERIES];
 
@@ -179,7 +180,7 @@ ENVIRONMENT_HTML = """<!DOCTYPE html>
       });
       return [...zones].sort().map((zone, i) => ({
         key: `${zone}:temperature`,
-        label: `${zone.replace(/_/g, ' ')} (inne)`,
+        label: `${INDOOR_ZONE_LABELS[zone] || zone.replace(/_/g, ' ')} (inne)`,
         unit: '°C',
         color: INDOOR_COLORS[i % INDOOR_COLORS.length],
         chart: 'climate',

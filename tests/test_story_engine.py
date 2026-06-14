@@ -426,3 +426,27 @@ class TestGenerateStory:
         story = generate_story("2026-06-06")
         assert "person detection" in story["summary"]
         assert "vehicle detection" in story["summary"]
+
+    def test_ollama_skipped_without_url(self, stories_dir, timeline_with_events, monkeypatch):
+        import story_engine
+
+        monkeypatch.delenv("OLLAMA_URL", raising=False)
+        story = generate_story("2026-06-06")
+        assert "ai_summary" not in story
+
+    def test_ollama_adds_summary_when_configured(
+        self, stories_dir, timeline_with_events, monkeypatch,
+    ):
+        import story_engine
+
+        class FakeResp:
+            def raise_for_status(self):
+                return None
+
+            def json(self):
+                return {"response": "En lugn dag hemma."}
+
+        monkeypatch.setenv("OLLAMA_URL", "http://localhost:11434")
+        monkeypatch.setattr(story_engine.requests, "post", lambda *a, **k: FakeResp())
+        story = generate_story("2026-06-06")
+        assert story.get("ai_summary") == "En lugn dag hemma."

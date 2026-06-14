@@ -14,6 +14,8 @@ from smoke_zones import (  # noqa: E402
     PLANNED_ROOM_ASSIGNMENTS,
     SMOKE_ROOMS,
     ZONE_DEVICE_LABELS,
+    find_smoke_alarm_entity,
+    is_heiman_smoke_device,
     zone_for_area,
 )
 
@@ -77,7 +79,11 @@ def _device_ieee(device_id: str, entities: list[dict]) -> str | None:
 def label_devices(dry_run: bool) -> None:
     devices = zha_end_devices()
     print("\nDevice labels:")
+    entities = ws_call("config/entity_registry/list")
     for dev in devices:
+        dev_entities = [e for e in entities if e.get("device_id") == dev["id"]]
+        if not is_heiman_smoke_device(dev_entities):
+            continue
         zone = zone_for_area(dev.get("area_id"))
         if zone not in ZONE_DEVICE_LABELS:
             continue
@@ -114,16 +120,22 @@ def build_env_lines() -> tuple[str, str]:
     smoke_parts: list[str] = []
     temp_parts: list[str] = []
 
-    for ent in sorted(entities, key=lambda e: e["entity_id"]):
-        dev = devices.get(ent.get("device_id"))
-        if not dev:
+    seen_smoke: set[str] = set()
+    for dev in devices.values():
+        dev_entities = [e for e in entities if e.get("device_id") == dev["id"]]
+        if not is_heiman_smoke_device(dev_entities):
             continue
         zone = zone_for_area(dev.get("area_id"), device_name=dev.get("name_by_user") or dev.get("name"))
-        eid = ent["entity_id"]
-        if eid.startswith("binary_sensor.") and "ias" in eid:
-            smoke_parts.append(f"{eid.replace('binary_sensor.', '')}:{zone}")
-        if eid.startswith("sensor.") and "temperatur" in eid and "heiman" in eid:
-            temp_parts.append(f"{eid.replace('sensor.', '')}:{zone}")
+        alarm = find_smoke_alarm_entity(dev_entities)
+        if alarm and dev["id"] not in seen_smoke:
+            seen_smoke.add(dev["id"])
+            smoke_parts.append(f"{alarm['entity_id'].replace('binary_sensor.', '')}:{zone}")
+        temp = next(
+            (e for e in dev_entities if e["entity_id"].startswith("sensor.") and "temperatur" in e["entity_id"]),
+            None,
+        )
+        if temp:
+            temp_parts.append(f"{temp['entity_id'].replace('sensor.', '')}:{zone}")
 
     return ",".join(smoke_parts), ",".join(temp_parts)
 

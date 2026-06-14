@@ -13,7 +13,12 @@ from dotenv import load_dotenv
 from websocket import create_connection
 
 sys.path.insert(0, str(Path(__file__).parent))
-from smoke_zones import SMOKE_ROOMS, zone_for_area  # noqa: E402
+from smoke_zones import (  # noqa: E402
+    SMOKE_ROOMS,
+    find_smoke_alarm_entity,
+    is_heiman_smoke_device,
+    zone_for_area,
+)
 
 load_dotenv(Path(__file__).parent.parent / ".env")
 
@@ -66,10 +71,11 @@ def main() -> int:
         print(f"Device: {name}  area={area}  id={dev_id[:8]}…")
 
         dev_entities = [e for e in entities if e.get("device_id") == dev_id]
-        alarm = next(
-            (e for e in dev_entities if e["entity_id"].startswith("binary_sensor.") and "ias" in e["entity_id"]),
-            None,
-        )
+        if not is_heiman_smoke_device(dev_entities):
+            print("  (not a smoke detector — skipped)")
+            print()
+            continue
+        alarm = find_smoke_alarm_entity(dev_entities)
         battery = next(
             (e for e in dev_entities if e["entity_id"].startswith("sensor.") and "batteri" in e["entity_id"]),
             None,
@@ -97,10 +103,9 @@ def main() -> int:
     temp_parts: list[str] = []
     for dev in zha_devices:
         dev_entities = [e for e in entities if e.get("device_id") == dev["id"]]
-        alarm = next(
-            (e for e in dev_entities if e["entity_id"].startswith("binary_sensor.") and "ias" in e["entity_id"]),
-            None,
-        )
+        if not is_heiman_smoke_device(dev_entities):
+            continue
+        alarm = find_smoke_alarm_entity(dev_entities)
         temp = next(
             (e for e in dev_entities if e["entity_id"].startswith("sensor.") and "temperatur" in e["entity_id"]),
             None,

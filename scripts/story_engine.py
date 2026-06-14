@@ -16,9 +16,15 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import sys
 from datetime import datetime, timedelta
 from pathlib import Path
+
+import requests
+from dotenv import load_dotenv
+
+load_dotenv(Path(__file__).parent.parent / ".env")
 
 sys.path.insert(0, str(Path(__file__).parent))
 from event_store import TZ  # noqa: E402
@@ -215,6 +221,37 @@ def _group_events_into_windows(events: list[dict]) -> list[list[dict]]:
 _SKIP_TYPES = frozenset({"scene", "occupancy"})
 
 
+def maybe_enrich_with_ollama(story: dict) -> dict:
+    """Optional local LLM narrative when OLLAMA_URL is set."""
+    base = os.environ.get("OLLAMA_URL", "").rstrip("/")
+    if not base:
+        return story
+
+    model = os.environ.get("OLLAMA_MODEL", "qwen2.5")
+    beat_lines = "\n".join(f"- {b['time']}: {b['text']}" for b in story.get("beats", [])[:20])
+    prompt = (
+        "Skriv en kort dagssammanfattning (2–4 meningar, svenska, familjevänlig ton) "
+        "för ett smart hem baserat på fakta nedan. Hitta inte på händelser.\n\n"
+        f"Datum: {story.get('date')}\n"
+        f"Statistik: {json.dumps(story.get('stats', {}), ensure_ascii=False)}\n"
+        f"Händelser:\n{beat_lines or '- Inga noterbara händelser.'}"
+    )
+    try:
+        r = requests.post(
+            f"{base}/api/generate",
+            json={"model": model, "prompt": prompt, "stream": False},
+            timeout=60,
+        )
+        r.raise_for_status()
+        text = (r.json().get("response") or "").strip()
+        if text:
+            story["ai_summary"] = text
+            log.info("Ollama ai_summary generated (%d chars)", len(text))
+    except requests.RequestException as err:
+        log.warning("Ollama unavailable: %s", err)
+    return story
+
+
 def generate_story(date_str: str) -> dict:
     """Generate a StoryDocument for the given date (YYYY-MM-DD)."""
     STORIES_DIR.mkdir(parents=True, exist_ok=True)
@@ -286,6 +323,7 @@ def generate_story(date_str: str) -> dict:
         "beats": beats,
         "stats": type_counts,
     }
+    story = maybe_enrich_with_ollama(story)
 
     out_path = STORIES_DIR / f"{date_str}.json"
     out_path.write_text(json.dumps(story, indent=2, ensure_ascii=False), encoding="utf-8")

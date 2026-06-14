@@ -67,7 +67,7 @@ All six feeds in a scannable grid. Tap to expand.
 │  │  Q3558-LVE             │    │
 │  └────────────────────────┘    │
 │  ┌──────────────┐ ┌──────────┐ │
-│  │[driveway_id] │ │[driveway]│ │  ← M2036 + D6210 radar status chip
+│  │[driveway_id] │ │[driveway]│ │  ← M2036 + D6210 air quality chip
 │  │ M2036        │ │ env ●    │ │
 │  └──────────────┘ └──────────┘ │
 ├─────────────────────────────────┤
@@ -93,7 +93,7 @@ All six feeds in a scannable grid. Tap to expand.
 - Driveway at the top — highest security relevance
 - Each Frigate card shows: live feed, last event chip, motion badge
 - Tap any card → full-screen with event history timeline
-- D6210 radar shown as a status chip (not a camera), colored by motion state
+- D6210 air quality shown as status chips (CO₂, AQI, temp) — not a camera feed
 
 ---
 
@@ -194,7 +194,7 @@ All security-relevant information in one view. Events, alerts, arm/disarm.
 **Design notes:**
 - Arm/disarm at the top — primary action on this view
 - Detection chips update in real-time; tap to see camera feed
-- Face recognition panel hidden/collapsed until CompreFace is live
+- Face recognition panel uses Double Take + CodeProject.AI (`dt_*` entities)
 - Event log is the most valuable persistent element — keep it prominent
 
 ---
