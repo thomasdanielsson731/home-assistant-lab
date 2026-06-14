@@ -68,6 +68,7 @@ class TestIngressSafeTemplates:
             ("environment", ENVIRONMENT_HTML, ("api/v1/metrics",)),
             ("story", STORY_HTML, ("api/v1/story/today",)),
         ],
+        ids=["timeline", "environment", "story"],
     )
     def test_templates_avoid_absolute_client_paths(self, name, html, api_endpoints):
         assert_ingress_safe_html(html, served=False)
@@ -80,6 +81,7 @@ class TestIngressSafeTemplates:
             ("environment", ENVIRONMENT_HTML),
             ("story", STORY_HTML),
         ],
+        ids=["timeline", "environment", "story"],
     )
     def test_templates_use_relative_static_and_nav(self, name, html):
         if name == "environment":
