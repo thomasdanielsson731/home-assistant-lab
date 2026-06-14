@@ -221,6 +221,7 @@ TIMELINE_V1_HTML = """<!DOCTYPE html>
         { name: 'behavior', type: 'event', color: '#f9ab00', shape: 'diamond' },
       ]},
       { label: 'ENVIRONMENT', lanes: [
+        { name: 'environment', type: 'event', color: '#78d9ec', shape: 'triangle' },
         { name: 'scene',      type: 'event',  color: '#c58af9', shape: 'circle' },
         { name: 'co2',        type: 'metric', color: '#78d9ec', metricKey: 'co2' },
         { name: 'temperature',type: 'metric', color: '#f6aea9', metricKey: 'temperature' },
@@ -237,7 +238,8 @@ TIMELINE_V1_HTML = """<!DOCTYPE html>
 
     // Lanes hidden when the loaded period has no events of that type —
     // core lanes (person, vehicle, occupancy, scene, metrics) always show.
-    const HIDEABLE = ['arrival', 'delivery', 'bicycle', 'door', 'behavior'];
+    const HIDEABLE = ['arrival', 'delivery', 'bicycle', 'door', 'behavior', 'environment'];
+    const ANOMALY_COLOR = '#f9ab00';
 
     function activeGroups() {
       return GROUPS
@@ -473,9 +475,14 @@ TIMELINE_V1_HTML = """<!DOCTYPE html>
         const x = xFor(ev.timestamp);
         if (x < LABEL_W - 6 || x > W - PAD_RIGHT + 6) return;
         const isHovered = hoveredEvent === ev;
-        const r = isHovered ? 7 : 5;
-        if (isHovered) { ctx.shadowColor = lane.color; ctx.shadowBlur = 8; }
-        drawShape(lane.shape, x, info.y, lane.color, r);
+        const isAnomaly = !!(ev.metadata && ev.metadata.anomaly);
+        const color = isAnomaly ? ANOMALY_COLOR : lane.color;
+        const r = isHovered ? 7 : (isAnomaly ? 6 : 5);
+        if (isHovered || isAnomaly) {
+          ctx.shadowColor = color;
+          ctx.shadowBlur = isHovered ? 8 : 5;
+        }
+        drawShape(lane.shape, x, info.y, color, r);
         ctx.shadowBlur = 0;
         ev._x = x; ev._y = info.y;
       });
@@ -511,12 +518,15 @@ TIMELINE_V1_HTML = """<!DOCTYPE html>
         <div style="margin-bottom:0.4rem">
           <span class="detail-badge" style="background:${typeColor}22;color:${typeColor}">${ev.type}</span>
           ${ev.enriched ? '<span class="detail-badge" style="background:#c58af922;color:#c58af9">enriched</span>' : ''}
+          ${ev.metadata?.anomaly ? '<span class="detail-badge" style="background:#f9ab0022;color:#f9ab00">anomali</span>' : ''}
         </div>
         <div class="detail-meta">
           <b>Time:</b> ${timeStr}<br>
           <b>Zone:</b> ${zone}<br>
           <b>Source:</b> ${ev.source || '?'}<br>
           ${identity ? `<b>Identity:</b> ${identity} ${conf ? '(' + conf + ')' : ''}<br>` : ''}
+          ${ev.metadata?.metric ? `<b>Metric:</b> ${ev.metadata.metric} = ${ev.metadata.value}<br>` : ''}
+          ${ev.metadata?.baseline_mean != null ? `<b>Baseline:</b> ${ev.metadata.baseline_mean}±${ev.metadata.baseline_std}<br>` : ''}
           ${ev.metadata?.duration ? `<b>Duration:</b> ${Math.round(ev.metadata.duration)}s<br>` : ''}
           ${ev.metadata?.scenario ? `<b>Scenario:</b> ${ev.metadata.scenario}<br>` : ''}
           ${ev.metadata?.behavior ? `<b>Behavior:</b> ${ev.metadata.behavior}<br>` : ''}
@@ -620,8 +630,9 @@ TIMELINE_V1_HTML = """<!DOCTYPE html>
         let label = '';
         if (hit.summary) label = hit.summary;
         else if (hit.zone) label = `${hit.zone} ${hit.scenario || ''}`;
+        const anomalyTag = hit.metadata?.anomaly ? ' <span style="color:#f9ab00">⚠ anomali</span>' : '';
         const ts = new Date(hit.timestamp || hit.start).toLocaleTimeString('sv-SE', {hour:'2-digit', minute:'2-digit'});
-        tooltip.innerHTML = `<strong>${ts}</strong> ${label}`;
+        tooltip.innerHTML = `<strong>${ts}</strong> ${label}${anomalyTag}`;
         tooltip.style.display = 'block';
         tooltip.style.left = (ev.clientX + 12) + 'px';
         tooltip.style.top = (ev.clientY - 8) + 'px';
@@ -725,6 +736,8 @@ HTML = """<!DOCTYPE html>
     .filters a {{ padding: 0.35rem 0.75rem; border-radius: 1rem; background: #2d2f36; color: #bdc1c6; text-decoration: none; font-size: 0.8rem; }}
     .filters a.active {{ background: #8ab4f8; color: #0f1117; }}
     .entry {{ display: flex; gap: 0.75rem; padding: 0.75rem 0; border-bottom: 1px solid #2d2f36; align-items: flex-start; }}
+    .entry-anomaly {{ background: #f9ab000f; border-left: 3px solid #f9ab00; padding-left: calc(0.75rem - 3px); }}
+    .entry-anomaly .summary {{ color: #fdd663; }}
     .time {{ color: #9aa0a6; font-size: 0.8rem; min-width: 3.5rem; padding-top: 0.1rem; }}
     .icon {{ font-size: 1.25rem; }}
     .body {{ flex: 1; }}
@@ -746,12 +759,12 @@ HTML = """<!DOCTYPE html>
 </html>"""
 
 ENTRY = """
-<div class="entry">
+<div class="entry{entry_class}">
   <div class="time">{time}</div>
   <div class="icon">{icon}</div>
   <div class="body">
     <div class="summary">{summary}</div>
-    <div class="meta">{zone} · {etype} · {source}</div>
+    <div class="meta">{zone} · {etype} · {source}{anomaly_tag}</div>
   </div>
   {thumb_html}
 </div>"""
@@ -1044,6 +1057,7 @@ class Handler(BaseHTTPRequestHandler):
                 snap = (e.get("snapshot") or {}).get("best_picture")
                 if snap:
                     thumb_html = f'<img class="thumb" src="media/{snap}" alt="">'
+                is_anomaly = bool((e.get("metadata") or {}).get("anomaly"))
                 entries_html += ENTRY.format(
                     time=ts.strftime("%H:%M"),
                     icon=TYPE_ICON.get(e.get("type", ""), "•"),
@@ -1051,6 +1065,8 @@ class Handler(BaseHTTPRequestHandler):
                     zone=e.get("location", {}).get("zone", "?"),
                     etype=e.get("type", "?"),
                     source=e.get("source", "?"),
+                    entry_class=" entry-anomaly" if is_anomaly else "",
+                    anomaly_tag=" · ⚠ anomali" if is_anomaly else "",
                     thumb_html=thumb_html,
                 )
 

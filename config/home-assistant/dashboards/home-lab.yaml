@@ -18,9 +18,9 @@ views:
               - type: custom:mushroom-template-card
                 primary: >-
                   {% set h = now().hour %}
-                  {% if h < 12 %}Good morning, Thomas
-                  {% elif h < 17 %}Good afternoon, Thomas
-                  {% else %}Good evening, Thomas{% endif %}
+                  {% if h < 12 %}God morgon, Thomas
+                  {% elif h < 17 %}God eftermiddag, Thomas
+                  {% else %}God kväll, Thomas{% endif %}
                 secondary: "{{ now().strftime('%A') }} · {{ now().day }} {{ now().strftime('%B') }}"
                 icon: mdi:home-variant
                 icon_color: blue
@@ -29,7 +29,7 @@ views:
                   action: none
               - type: custom:mushroom-template-card
                 primary: "{{ states('weather.forecast_hem') | replace('_', ' ') | title }}"
-                secondary: Weather
+                secondary: Väder
                 icon: mdi:weather-partly-cloudy
                 icon_color: blue
                 layout: vertical
@@ -98,8 +98,61 @@ views:
                     content: "PM2.5 {{ states('sensor.driveway_env_pm2_5') }}"
                     icon_color: grey
 
-      # ── Who's Home (Companion + Double Take fusion) ────────
-      - title: WHO'S HOME
+      # ── Allt OK? — rök, vatten, sammanfattning ───────────────
+      - cards:
+          - type: custom:mushroom-template-card
+            primary: "{{ state_attr('sensor.house_home_status', 'label') | default('Allt OK') }}"
+            secondary: >-
+              Brandvarnare {{ state_attr('binary_sensor.house_smoke_alarm', 'detector_count') | default('?') }}/3
+              · Vatten {{ state_attr('sensor.house_safety_summary', 'water_label') | default('—') }}
+            icon: >-
+              {% if is_state('sensor.house_home_status', 'alarm') %}mdi:shield-alert
+              {% elif is_state('sensor.house_home_status', 'warning') %}mdi:shield-alert-outline
+              {% else %}mdi:shield-check{% endif %}
+            icon_color: >-
+              {% if is_state('sensor.house_home_status', 'alarm') %}red
+              {% elif is_state('sensor.house_home_status', 'warning') %}amber
+              {% else %}green{% endif %}
+            fill_container: true
+            tap_action:
+              action: navigate
+              navigation_path: /lovelace/home-lab/security
+          - type: custom:mushroom-chips-card
+            alignment: center
+            chips:
+              - type: template
+                icon: mdi:smoke-detector
+                content: >-
+                  {% if is_state('binary_sensor.house_smoke_alarm', 'on') %}Rök
+                  {% else %}Rök OK{% endif %}
+                icon_color: >-
+                  {{ 'red' if is_state('binary_sensor.house_smoke_alarm', 'on') else 'green' }}
+                tap_action:
+                  action: navigate
+                  navigation_path: /lovelace/home-lab/security
+              - type: template
+                icon: mdi:water-alert
+                content: >-
+                  {% if is_state('binary_sensor.sonoff_snzb_05p', 'on') %}VATTEN
+                  {% elif is_state('binary_sensor.sonoff_snzb_05p', 'unavailable') %}Vatten offline
+                  {% else %}Vatten OK{% endif %}
+                icon_color: >-
+                  {% if is_state('binary_sensor.sonoff_snzb_05p', 'on') %}red
+                  {% elif is_state('binary_sensor.sonoff_snzb_05p', 'unavailable') %}amber
+                  {% else %}green{% endif %}
+                tap_action:
+                  action: navigate
+                  navigation_path: /lovelace/home-lab/security
+              - type: template
+                icon: mdi:chart-timeline-variant
+                content: Historik
+                icon_color: blue
+                tap_action:
+                  action: navigate
+                  navigation_path: /house-timeline
+
+      # ── Who's Home (Companion + presence fusion) ────────
+      - title: VEM ÄR HEMMA
         cards:
           - type: horizontal-stack
             cards:
@@ -151,8 +204,13 @@ views:
                      else 'blue' if is_state('sensor.anna_presence_fused', 'face')
                      else 'grey' }}
 
+          - type: markdown
+            content: >-
+              **Companion-app** behövs på telefonen för att sluta visa *Unknown*.
+              Se runbook `companion-app-setup.md` i repot.
+
       # ── Quick Status ─────────────────────────────────────────
-      - title: QUICK STATUS
+      - title: SNABB STATUS
         cards:
           - type: custom:mushroom-chips-card
             chips:
@@ -193,7 +251,7 @@ views:
                   {{ 'red' if is_state('sensor.house_outdoor_presence', 'on') else 'grey' }}
 
       # ── Lights On Now — only lights that are actually on ────
-      - title: LIGHTS ON NOW
+      - title: LAMPOR TÄNDA
         cards:
           - type: custom:mushroom-template-card
             primary: >-
@@ -201,15 +259,15 @@ views:
                 | selectattr('state', 'eq', 'on')
                 | rejectattr('entity_id', 'search', 'ir_light|whitelight')
                 | list %}
-              {% if on | count == 0 %}All lights off
-              {% elif on | count == 1 %}1 light on
-              {% else %}{{ on | count }} lights on{% endif %}
+              {% if on | count == 0 %}Alla lampor släckta
+              {% elif on | count == 1 %}1 lampa tänd
+              {% else %}{{ on | count }} lampor tända{% endif %}
             secondary: >-
               {% set on = states.light
                 | selectattr('state', 'eq', 'on')
                 | rejectattr('entity_id', 'search', 'ir_light|whitelight')
                 | map(attribute='name') | list %}
-              {{ on | join(' · ') if on | count > 0 else 'Tap a light in Rooms to control' }}
+              {{ on | join(' · ') if on | count > 0 else 'Gå till Rum för att styra' }}
             icon: mdi:lightbulb-group
             icon_color: >-
               {% set on = states.light
@@ -315,12 +373,12 @@ views:
       # One camera per section → even 2-column rows:
       #   Front | Driveway Wide / Driveway ID | Backyard / Storage Ext | Storage Int
 
-      - title: FRONT
+      - title: ENTRÉ
         cards:
           - type: custom:advanced-camera-card
             cameras:
               - camera_entity: camera.front
-                title: Front (P3288)
+                title: Entré (P3288)
             dimensions:
               aspect_ratio: 16/9
           - type: custom:mushroom-chips-card
@@ -336,12 +394,12 @@ views:
                      else 'amber' if is_state('binary_sensor.front_motion', 'on')
                      else 'grey' }}
 
-      - title: DRIVEWAY — WIDE
+      - title: UPPFART — BRETT
         cards:
           - type: custom:advanced-camera-card
             cameras:
               - camera_entity: camera.driveway_wide
-                title: Driveway Wide (Q3558-LVE)
+                title: Uppfart bred (Q3558)
             dimensions:
               aspect_ratio: 16/9
           - type: custom:mushroom-chips-card
@@ -361,12 +419,12 @@ views:
                 icon_color: >-
                   {{ 'blue' if is_state('binary_sensor.driveway_wide_motion', 'on') else 'grey' }}
 
-      - title: DRIVEWAY — ID
+      - title: UPPFART — ID
         cards:
           - type: custom:advanced-camera-card
             cameras:
               - camera_entity: camera.driveway_id
-                title: Driveway ID (M2036)
+                title: Uppfart ID (M2036)
             dimensions:
               aspect_ratio: 16/9
           - type: custom:mushroom-chips-card
@@ -379,30 +437,30 @@ views:
                 icon_color: >-
                   {{ 'red' if is_state('binary_sensor.driveway_id_aoa_person', 'on') else 'grey' }}
 
-      - title: BACKYARD
+      - title: BAKGÅRD
         cards:
           - type: custom:advanced-camera-card
             cameras:
               - camera_entity: camera.backyard
-                title: Backyard (Q1656)
+                title: Bakgård (Q1656)
             dimensions:
               aspect_ratio: 16/9
 
-      - title: STORAGE — EXTERIOR
+      - title: FÖRRÅD — UTE
         cards:
           - type: custom:advanced-camera-card
             cameras:
               - camera_entity: camera.storage_ext
-                title: Storage Exterior (M1055-L)
+                title: Förråd utvändigt (M1055)
             dimensions:
               aspect_ratio: 16/9
 
-      - title: STORAGE — INTERIOR
+      - title: FÖRRÅD — INNE
         cards:
           - type: custom:advanced-camera-card
             cameras:
               - camera_entity: camera.storage_int
-                title: Storage Interior (Q1656)
+                title: Förråd invändigt (Q1656)
             dimensions:
               aspect_ratio: 16/9
 
@@ -410,16 +468,56 @@ views:
   # ═══════════════════════════════════════════════════════════════
   # VIEW 3 — SECURITY
   # ═══════════════════════════════════════════════════════════════
-  - title: Security
+  - title: Säkerhet
     path: security
     icon: mdi:shield-home
     type: sections
     max_columns: 1
     sections:
 
+      # ── Hemstatus (rök + vatten) ─────────────────────────────
+      - title: HEMSTATUS
+        cards:
+          - type: custom:mushroom-template-card
+            primary: "{{ state_attr('sensor.house_home_status', 'label') | default('Allt OK') }}"
+            secondary: >-
+              {{ state_attr('binary_sensor.house_smoke_alarm', 'detector_count') | default('?') }} brandvarnare
+              · {{ state_attr('sensor.house_safety_summary', 'water_label') | default('—') }}
+            icon: mdi:shield-home
+            icon_color: >-
+              {% if is_state('sensor.house_home_status', 'alarm') %}red
+              {% elif is_state('sensor.house_home_status', 'warning') %}amber
+              {% else %}green{% endif %}
+            fill_container: true
+            tap_action:
+              action: more-info
+              entity: sensor.house_home_status
+
+      # ── Multisensor per zon (Frigate + AOA + scene) ──────────
+      - title: SENSORFUSION
+        cards:
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: template
+                icon: mdi:layers
+                content: >-
+                  Entré F{{ '✓' if is_state('binary_sensor.front_person_occupancy', 'on') else '·' }}
+                  A{{ '✓' if is_state('binary_sensor.front_aoa_person', 'on') else '·' }}
+                  S{{ '✓' if is_state('binary_sensor.front_scene_object_present', 'on') else '·' }}
+                icon_color: >-
+                  {{ 'red' if is_state('binary_sensor.front_aoa_person', 'on') else 'grey' }}
+              - type: template
+                icon: mdi:layers
+                content: >-
+                  Uppfart F{{ '✓' if is_state('binary_sensor.driveway_wide_person_occupancy', 'on') else '·' }}
+                  A{{ '✓' if is_state('binary_sensor.driveway_wide_aoa_person', 'on') else '·' }}
+                  S{{ '✓' if is_state('binary_sensor.driveway_wide_scene_object_present', 'on') else '·' }}
+                icon_color: >-
+                  {{ 'red' if is_state('binary_sensor.driveway_wide_aoa_person', 'on') else 'grey' }}
+
       # ── Live Detections ──────────────────────────────────────
       # grey = clear · amber = motion only · red = person detected
-      - title: LIVE DETECTIONS
+      - title: LIVE DETEKTIONER
         cards:
           - type: custom:mushroom-chips-card
             chips:
@@ -596,37 +694,18 @@ views:
                   tap_action:
                     action: more-info
 
-      # ── Face Recognition (Double Take + CodeProject.AI) ──────
+      # ── Face recognition — pausad (träning senare) ───────────
       - title: FACE RECOGNITION
+        visibility:
+          - condition: state
+            entity: sensor.house_home_status
+            state: "__face_hidden__"
         cards:
-          - type: custom:mushroom-template-card
-            primary: >-
-              {% set ns = namespace(names=[]) %}
-              {% if is_state('binary_sensor.dt_thomas_present', 'on') %}{% set ns.names = ns.names + ['Thomas'] %}{% endif %}
-              {% if is_state('binary_sensor.dt_nils_present', 'on') %}{% set ns.names = ns.names + ['Nils'] %}{% endif %}
-              {% if is_state('binary_sensor.dt_hugo_present', 'on') %}{% set ns.names = ns.names + ['Hugo'] %}{% endif %}
-              {% if is_state('binary_sensor.dt_anna_present', 'on') %}{% set ns.names = ns.names + ['Anna'] %}{% endif %}
-              {% if ns.names | count > 0 %}{{ ns.names | join(', ') }} igenkänd
-              {% else %}Aktiv — Double Take + CodeProject.AI{% endif %}
-            secondary: >-
-              {% set trained = ['Thomas'] %}
-              {% set pending = ['Nils', 'Hugo', 'Anna'] %}
-              Tränade: {{ trained | join(', ') }} · Kvar: {{ pending | join(', ') }}
-              {% set c = states('sensor.dt_thomas_confidence') %}
-              {% if c not in ['unknown', 'unavailable', 'none'] %} · Senaste: Thomas {{ c }}%{% endif %}
-            icon: mdi:face-recognition
-            icon_color: >-
-              {% if is_state('binary_sensor.dt_thomas_present', 'on')
-                 or is_state('binary_sensor.dt_nils_present', 'on')
-                 or is_state('binary_sensor.dt_hugo_present', 'on')
-                 or is_state('binary_sensor.dt_anna_present', 'on') %}green{% else %}blue{% endif %}
-            fill_container: true
-            tap_action:
-              action: url
-              url_path: http://192.168.68.175:3000
+          - type: markdown
+            content: Pausad
 
       # ── Smoke detectors (ZHA) — unified house alarm sensor ──────
-      - title: SMOKE DETECTORS
+      - title: BRANDVARNARE
         visibility:
           - condition: state
             entity: binary_sensor.house_smoke_alarm
@@ -667,62 +746,89 @@ views:
               action: more-info
               entity: binary_sensor.house_smoke_alarm
 
-      # ── Water leak (ZHA — dishwasher) ───────────────────────────
-      - title: WATER LEAK
+      # ── Water leak (ZHA — dishwasher) — alltid synlig ───────────
+      - title: VATTENLÄCKAGE
+        cards:
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: binary_sensor.sonoff_snzb_05p
+                state_not: unavailable
+            card:
+              type: custom:mushroom-entity-card
+              entity: binary_sensor.sonoff_snzb_05p
+              name: Kök · diskmaskin
+              icon: mdi:water-alert
+              layout: horizontal
+              fill_container: true
+              primary_info: name
+              secondary_info: state
+              icon_color: >-
+                {{ 'red' if is_state('binary_sensor.sonoff_snzb_05p', 'on') else 'green' }}
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: binary_sensor.sonoff_snzb_05p
+                state: unavailable
+            card:
+              type: custom:mushroom-template-card
+              primary: Vattensensor offline
+              secondary: >-
+                Zigbee svarar inte — para om nära dongeln.
+                Larm tyst tills sensorn är tillbaka.
+              icon: mdi:water-off-outline
+              icon_color: amber
+              fill_container: true
+              tap_action:
+                action: none
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: binary_sensor.sonoff_snzb_05p
+                state_not: unavailable
+            card:
+              type: custom:mushroom-entity-card
+              entity: sensor.sonoff_snzb_05p_batteri
+              name: Batteri
+              icon: mdi:battery
+              layout: horizontal
+              fill_container: true
+
+      # ── Yale Doorman — dold tills Sprint 1 ─────────────────────
+      - title: ACCESS
         visibility:
           - condition: state
-            entity: binary_sensor.sonoff_snzb_05p
-            state_not: unavailable
+            entity: sensor.house_home_status
+            state: "__yale_hidden__"
         cards:
-          - type: custom:mushroom-entity-card
-            entity: binary_sensor.sonoff_snzb_05p
-            name: Kök · diskmaskin
-            icon: mdi:water-alert
-            layout: horizontal
-            fill_container: true
-            primary_info: name
-            secondary_info: state
-            icon_color: >-
-              {{ 'red' if is_state('binary_sensor.sonoff_snzb_05p', 'on') else 'green' }}
-          - type: custom:mushroom-entity-card
-            entity: sensor.sonoff_snzb_05p_batteri
-            name: Batteri
-            icon: mdi:battery
-            layout: horizontal
-            fill_container: true
+          - type: markdown
+            content: Kommer snart
 
-      # ── Yale Doorman (Sprint 1) ──────────────────────────────
-      - title: ACCESS
+      - title: HISTORIK & MILJÖ
         cards:
           - type: custom:mushroom-template-card
-            primary: Yale Doorman — coming soon
-            secondary: Door lock + person correlation
-            icon: mdi:door-closed-lock
-            icon_color: disabled
-            fill_container: true
-            tap_action:
-              action: none
-
-      - title: MORE ANALYTICS
-        cards:
-          - type: custom:mushroom-template-card
-            primary: Analytics
-            secondary: Sidebar → Analytics · zoom · events
+            primary: Historik & miljö
+            secondary: Analytics · händelser · CO₂ · SPL · temperaturgrafer
             icon: mdi:chart-timeline-variant
             icon_color: blue
             fill_container: true
             tap_action:
               action: navigate
               navigation_path: /house-timeline
-          - type: custom:mushroom-template-card
-            primary: Environment
-            secondary: Sidebar → CO₂ · AQI · SPL · history
-            icon: mdi:chart-areaspline
-            icon_color: teal
-            fill_container: true
-            tap_action:
-              action: navigate
-              navigation_path: /house-graphs
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: action
+                icon: mdi:chart-timeline-variant
+                content: Analytics
+                tap_action:
+                  action: navigate
+                  navigation_path: /house-timeline
+              - type: action
+                icon: mdi:chart-areaspline
+                content: Environment
+                tap_action:
+                  action: navigate
+                  navigation_path: /house-graphs
 
 
   # ═══════════════════════════════════════════════════════════════
@@ -797,6 +903,10 @@ views:
             tap_action:
               action: navigate
               navigation_path: /lovelace/house-graphs
+          - type: markdown
+            content: >-
+              **Ute** = D6210 uppfart · **Inne** = brandvarnare (kök, hall, vardagsrum).
+              Raka linjer nattetid = ingen sampling (normalt).
           - type: horizontal-stack
             cards:
               - type: history-graph
@@ -1166,7 +1276,7 @@ views:
   # ═══════════════════════════════════════════════════════════════
   # VIEW 6 — OPERATIONS
   # ═══════════════════════════════════════════════════════════════
-  - title: Operations
+  - title: Drift
     path: ops
     icon: mdi:cog
     type: sections
@@ -1289,6 +1399,20 @@ views:
             icon: mdi:record-rec
             layout: horizontal
             fill_container: true
+
+      # ── Insights platform ────────────────────────────────────
+      - title: INSIGHTS
+        column_span: 2
+        cards:
+          - type: custom:mushroom-template-card
+            primary: Danielsson Insights
+            secondary: Analytics · miljö · story — add-on v0.2.4 på :8765
+            icon: mdi:chart-timeline-variant
+            icon_color: blue
+            fill_container: true
+            tap_action:
+              action: url
+              url_path: /house-timeline
 
       # ── System ───────────────────────────────────────────────
       - title: SYSTEM

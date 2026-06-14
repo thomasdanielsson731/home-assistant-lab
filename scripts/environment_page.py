@@ -60,7 +60,7 @@ ENVIRONMENT_HTML = """<!DOCTYPE html>
   <main id="charts">
     <div class="chart-card">
       <div class="chart-title">Climate</div>
-      <div class="chart-sub">Ute (D6210) + inne (brandvarnare) · °C och luftfuktighet %</div>
+      <div class="chart-sub">Ute (D6210) + inne (brandvarnare) · °C och luftfuktighet %. Avbrott i linjen = sampling paus (natt/bridge nere) — inte plötslig temperaturändring.</div>
       <div class="chart-wrap"><canvas id="chart-climate"></canvas></div>
     </div>
     <div class="chart-card">
