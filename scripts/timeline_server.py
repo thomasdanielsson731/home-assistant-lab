@@ -164,6 +164,7 @@ TIMELINE_V1_HTML = """<!DOCTYPE html>
     <span class="group-label" style="margin-left:0.5rem">Environment</span>
     <span class="legend-item"><span class="legend-line" style="background:#78d9ec"></span>Env metrics</span>
     <span class="legend-item"><span class="legend-dot" style="background:#c58af9"></span>Scene</span>
+    <span class="legend-item"><span class="legend-dot" style="background:#f9ab00"></span>Anomali (baseline)</span>
   </div>
   <main>
     <div id="canvas-wrap"><canvas id="timeline"></canvas></div>

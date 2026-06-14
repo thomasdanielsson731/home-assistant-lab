@@ -246,7 +246,7 @@ ENVIRONMENT_HTML = """<!DOCTYPE html>
       const canvas = document.getElementById(id);
       const hasData = datasets.some(d => d.data.length);
       if (!hasData) {
-        canvas.parentElement.innerHTML = '<p class="empty">No data in this range — check bridges on dev PC</p>';
+        canvas.parentElement.innerHTML = '<p class="empty">Ingen data i intervallet — kontrollera Danielsson Insights add-on</p>';
         return;
       }
       const scales = { ...chartDefaults.scales };

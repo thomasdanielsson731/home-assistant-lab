@@ -15,7 +15,7 @@
           {% for p, n in names.items() %}
             {% if is_state(p, 'home') %}{% set home.list = home.list + [n] %}{% endif %}
           {% endfor %}
-          {{ home.list | join(', ') if home.list else 'Nobody' }}
+          {{ home.list | join(', ') if home.list else 'Ingen hemma' }}
 
     - name: "House outdoor presence"
       unique_id: house_outdoor_presence
@@ -49,12 +49,14 @@
         {% if is_state('binary_sensor.house_smoke_alarm', 'on') %}alarm
         {% elif is_state('binary_sensor.sonoff_snzb_05p', 'on') %}water
         {% elif is_state('binary_sensor.sonoff_snzb_05p', 'unavailable') %}warning
+        {% elif state_attr('binary_sensor.house_smoke_alarm', 'detector_count') | int(3) < 3 %}warning
         {% elif is_state('binary_sensor.house_outdoor_presence', 'on') %}outdoor_activity
         {% else %}normal{% endif %}
       attributes:
         smoke: "{{ states('binary_sensor.house_smoke_alarm') }}"
         smoke_detail: "{{ state_attr('binary_sensor.house_smoke_alarm', 'active_sensors') }}"
         smoke_count: "{{ state_attr('binary_sensor.house_smoke_alarm', 'detector_count') }}"
+        smoke_expected: 3
         water: "{{ states('binary_sensor.sonoff_snzb_05p') }}"
         water_label: >-
           {% if is_state('binary_sensor.sonoff_snzb_05p', 'on') %}VATTEN DETEKTERAT
@@ -71,18 +73,23 @@
       unique_id: house_home_status
       icon: mdi:shield-check
       state: >-
+        {% set dc = state_attr('binary_sensor.house_smoke_alarm', 'detector_count') | int(3) %}
         {% if is_state('binary_sensor.house_smoke_alarm', 'on') %}alarm
         {% elif is_state('binary_sensor.sonoff_snzb_05p', 'on') %}alarm
         {% elif is_state('binary_sensor.sonoff_snzb_05p', 'unavailable') %}warning
+        {% elif dc < 3 %}warning
         {% elif states('binary_sensor.house_smoke_alarm') in ['unavailable', 'unknown'] %}warning
         {% else %}ok{% endif %}
       attributes:
         label: >-
+          {% set dc = state_attr('binary_sensor.house_smoke_alarm', 'detector_count') | int(3) %}
           {% if is_state('binary_sensor.house_smoke_alarm', 'on') %}RÖKALARM — kontrollera brandvarnare
           {% elif is_state('binary_sensor.sonoff_snzb_05p', 'on') %}VATTENLÄCKAGE — kök diskmaskin
-          {% elif is_state('binary_sensor.sonoff_snzb_05p', 'unavailable') %}Vattensensor offline — Zigbee
+          {% elif is_state('binary_sensor.sonoff_snzb_05p', 'unavailable') %}Vattensensor svarar inte
+          {% elif dc < 3 %}Brandvarnare {{ dc }}/3 — en sensor offline
           {% elif states('binary_sensor.house_smoke_alarm') in ['unavailable', 'unknown'] %}Brandvarnare oklar
           {% else %}Allt OK{% endif %}
         smoke: "{{ states('binary_sensor.house_smoke_alarm') }}"
+        smoke_count: "{{ state_attr('binary_sensor.house_smoke_alarm', 'detector_count') }}"
         water: "{{ states('binary_sensor.sonoff_snzb_05p') }}"
         platform: ok
