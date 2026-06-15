@@ -1,6 +1,6 @@
 # Unified house context sensors (Digital Twin foundation)
 
-- sensor:
+- binary_sensor:
     - name: "House outdoor presence"
       unique_id: house_outdoor_presence
       icon: mdi:walk
@@ -11,10 +11,15 @@
           'binary_sensor.driveway_id_aoa_person',
           'binary_sensor.backyard_aoa_person',
           'binary_sensor.front_scene_object_present',
-          'binary_sensor.driveway_wide_scene_object_present'
+          'binary_sensor.driveway_wide_scene_object_present',
+          'binary_sensor.driveway_id_scene_object_present',
+          'binary_sensor.front_person_occupancy',
+          'binary_sensor.driveway_wide_person_occupancy',
+          'binary_sensor.driveway_id_person_occupancy'
         ] %}
-        {{ 'on' if zones | select('is_state', 'on') | list | count > 0 else 'off' }}
+        {{ zones | select('is_state', 'on') | list | count > 0 }}
 
+- sensor:
     - name: "House air quality summary"
       unique_id: house_air_quality_summary
       icon: mdi:air-filter

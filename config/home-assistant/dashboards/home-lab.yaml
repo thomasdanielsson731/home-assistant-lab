@@ -46,7 +46,7 @@ views:
                 primary: >-
                   {% if is_state('binary_sensor.house_outdoor_presence', 'on') %}Aktivitet ute
                   {% else %}Ingen aktivitet ute{% endif %}
-                secondary: AOA · scene · Frigate
+                secondary: Utomhus · kameror & sensorer
                 icon: mdi:motion-sensor
                 icon_color: >-
                   {{ 'amber' if is_state('binary_sensor.house_outdoor_presence', 'on') else 'grey' }}
@@ -1151,7 +1151,7 @@ views:
                   {{ 'amber' if is_state('binary_sensor.driveway_id_person_occupancy', 'on')
                      or is_state('binary_sensor.driveway_wide_person_occupancy', 'on')
                      else 'blue' if is_state('binary_sensor.driveway_wide_motion', 'on')
-                     or is_state('binary_sensor.driveway_wide_car_occupancy', 'on')
+                     or is_state('binary_sensor.driveway_wide_aoa_vehicle', 'on')
                      else 'grey' }}
                 tap_action:
                   action: navigate
