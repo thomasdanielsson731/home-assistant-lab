@@ -17,7 +17,7 @@ Thomas may keep the Companion app **only** for security push notifications (`not
 ## Decision
 
 1. **Remove face recognition** from scope, config, event pipeline, and documentation:
-   - Stop and do not sync Double Take add-on or `config/double-take/`
+   - Double Take add-on uninstalled on HAOS (2026-06-15); do not sync `config/double-take/`
    - Remove CodeProject.AI / CompreFace runbooks and dev PC dependency
    - Remove `dt_*` entities, presence fusion, and Double Take MQTT handling in `event_normalizer.py`
 

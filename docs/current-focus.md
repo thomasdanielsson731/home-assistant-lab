@@ -91,7 +91,7 @@ ha apps logs 25d01a20_danielsson_insights
 | **Kök smoke detector** | Pairing button → `configure_smoke_detectors.py --reconfigure` |
 | Yale Doorman | Hardware + HA lock entity |
 | Kraftringen energy | API credentials for `energy_bridge.py` |
-| Stop Double Take add-on | `ha apps stop c7657554_double-take` (optional uninstall) |
+| Stop Double Take add-on | ✅ Uninstalled 2026-06-15 |
 
 ---
 

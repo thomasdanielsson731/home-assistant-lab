@@ -25,9 +25,6 @@ config/frigate/clips/
 config/frigate/recordings/
 config/frigate/exports/
 
-# Double Take
-config/double-take/.storage/
-
 # Claude Code
 .claude/
 

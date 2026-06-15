@@ -46,10 +46,8 @@ if (-not $SkipSync) {
 Write-Host "`nBefore:"
 Get-LoadSnapshot
 
-Write-Host "`nStopping non-lab add-ons (Scrypted, Double Take, duplicate Advanced SSH) ..."
+Write-Host "`nDisabling boot on duplicate Advanced SSH (error state) ..."
 $addons = @(
-    @{ Slug = "09e60fb6_scrypted"; Name = "Scrypted" },
-    @{ Slug = "c7657554_double-take"; Name = "Double Take" },
     @{ Slug = "a0d7b954_ssh"; Name = "Advanced SSH (error state)" }
 )
 foreach ($addon in $addons) {
@@ -84,7 +82,7 @@ Write-Host "`nAfter:"
 Get-LoadSnapshot
 
 Write-Host "`nAdd-on states:"
-Invoke-HaSsh 'for s in 09e60fb6_scrypted c7657554_double-take ccab4aaf_frigate-fa 25d01a20_danielsson_insights a0d7b954_grafana core_matter_server; do ha apps info $s 2>/dev/null | grep -E "^name:|^state:" | tr "\n" " "; echo; done'
+Invoke-HaSsh 'for s in ccab4aaf_frigate-fa 25d01a20_danielsson_insights a0d7b954_grafana core_matter_server; do ha apps info $s 2>/dev/null | grep -E "^name:|^state:" | tr "\n" " "; echo; done'
 
 Write-Host "`nDone. Hard-refresh HA UI (Ctrl+F5)."
 if ($DryRun) { Write-Host "(dry-run - no changes applied)" }

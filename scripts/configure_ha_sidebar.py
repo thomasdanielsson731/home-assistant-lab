@@ -37,9 +37,10 @@ KEEP_VISIBLE = {
     "config",
 }
 
-# Panels to hide (from get_panels inventory on this lab)
+# Panels to hide (built-in + integration add-ons not in KEEP_VISIBLE)
 HIDE_PANELS = [
     "home",
+    "home-lab",
     "light",
     "climate",
     "security",
@@ -51,8 +52,10 @@ HIDE_PANELS = [
     "todo",
     "map",
     "lovelace",
-    "ccab4aaf_frigate-fa",
     "hacs",
+    "ccab4aaf_frigate-fa",
+    "09e60fb6_scrypted",
+    "c7657554_double-take",
 ]
 
 
