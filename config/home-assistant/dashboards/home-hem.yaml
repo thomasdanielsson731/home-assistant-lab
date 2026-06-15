@@ -1,0 +1,409 @@
+title: Hem
+views:
+  - title: Hem
+    path: home
+    icon: mdi:home
+    type: sections
+    max_columns: 1
+    sections:
+
+      # ── Overview — Anna: väder, utomhusaktivitet, temperatur ──
+      - cards:
+          - type: horizontal-stack
+            cards:
+              - type: custom:mushroom-template-card
+                primary: >-
+                  {% set h = now().hour %}
+                  {% if h < 12 %}God morgon
+                  {% elif h < 17 %}God eftermiddag
+                  {% else %}God kväll{% endif %}
+                secondary: >-
+                  {% set vd = ['måndag','tisdag','onsdag','torsdag','fredag','lördag','söndag'] %}
+                  {% set md = ['januari','februari','mars','april','maj','juni','juli','augusti','september','oktober','november','december'] %}
+                  {{ vd[now().weekday()] }} · {{ now().day }} {{ md[now().month - 1] }}
+                icon: mdi:home-variant
+                icon_color: blue
+                fill_container: true
+                tap_action:
+                  action: none
+              - type: custom:mushroom-template-card
+                primary: "{{ states('weather.forecast_hem') | replace('_', ' ') | title }}"
+                secondary: Väder
+                icon: mdi:weather-partly-cloudy
+                icon_color: blue
+                layout: vertical
+                fill_container: true
+                tap_action:
+                  action: more-info
+                  entity: weather.forecast_hem
+          - type: horizontal-stack
+            cards:
+              - type: custom:mushroom-template-card
+                primary: >-
+                  {% if is_state('binary_sensor.house_outdoor_presence', 'on') %}Aktivitet ute
+                  {% else %}Ingen aktivitet ute{% endif %}
+                secondary: Visar inte vem som är inne
+                icon: mdi:motion-sensor
+                icon_color: >-
+                  {{ 'amber' if is_state('binary_sensor.house_outdoor_presence', 'on') else 'grey' }}
+                layout: vertical
+                fill_container: true
+              - type: custom:mushroom-template-card
+                primary: >-
+                  {% set inn = states('sensor.house_indoor_temperature') %}
+                  {% if inn in ['unknown', 'unavailable', ''] %}—
+                  {% else %}{{ inn }}°C{% endif %}
+                secondary: Inne · vardagsrum
+                icon: mdi:home-thermometer
+                icon_color: >-
+                  {% set inn = states('sensor.house_indoor_temperature') | float(none) %}
+                  {% if inn is none %}grey
+                  {% elif inn < 18 %}blue
+                  {% elif inn < 24 %}green
+                  {% elif inn < 26 %}amber
+                  {% else %}red{% endif %}
+                layout: vertical
+                fill_container: true
+              - type: custom:mushroom-template-card
+                primary: >-
+                  {% if states('sensor.driveway_env_temperature') in ['unknown', 'unavailable', ''] %}—
+                  {% else %}{{ states('sensor.driveway_env_temperature') }}°C{% endif %}
+                secondary: Ute · uppfart
+                icon: mdi:thermometer
+                icon_color: blue
+                layout: vertical
+                fill_container: true
+
+      # ── Allt OK? — rök, vatten, sammanfattning ───────────────
+      - cards:
+          - type: custom:mushroom-template-card
+            primary: "{{ state_attr('sensor.house_home_status', 'label') | default('Allt OK') }}"
+            secondary: >-
+              Brandvarnare {{ state_attr('binary_sensor.house_smoke_alarm', 'detector_count') | default('?') }}/3
+              · Vatten {{ state_attr('sensor.house_safety_summary', 'water_label') | default('—') }}
+            icon: >-
+              {% if is_state('sensor.house_home_status', 'alarm') %}mdi:shield-alert
+              {% elif is_state('sensor.house_home_status', 'warning') %}mdi:shield-alert-outline
+              {% else %}mdi:shield-check{% endif %}
+            icon_color: >-
+              {% if is_state('sensor.house_home_status', 'alarm') %}red
+              {% elif is_state('sensor.house_home_status', 'warning') %}amber
+              {% else %}green{% endif %}
+            fill_container: true
+            tap_action:
+              action: navigate
+              navigation_path: /lovelace/home-security/security
+          - type: custom:mushroom-chips-card
+            alignment: center
+            chips:
+              - type: template
+                icon: mdi:smoke-detector
+                content: >-
+                  {% set dc = state_attr('binary_sensor.house_smoke_alarm', 'detector_count') | int(0) %}
+                  {% if is_state('binary_sensor.house_smoke_alarm', 'on') %}RÖK!
+                  {% elif dc >= 3 %}Rök OK
+                  {% elif dc > 0 %}Rök {{ dc }}/3
+                  {% else %}Rök ?{% endif %}
+                icon_color: >-
+                  {% set dc = state_attr('binary_sensor.house_smoke_alarm', 'detector_count') | int(0) %}
+                  {% if is_state('binary_sensor.house_smoke_alarm', 'on') %}red
+                  {% elif dc < 3 %}amber
+                  {% else %}green{% endif %}
+                tap_action:
+                  action: navigate
+                  navigation_path: /lovelace/home-security/security
+              - type: template
+                icon: mdi:water-alert
+                content: >-
+                  {% if is_state('binary_sensor.sonoff_snzb_05p', 'on') %}VATTEN
+                  {% elif is_state('binary_sensor.sonoff_snzb_05p', 'unavailable') %}Vatten offline
+                  {% else %}Vatten OK{% endif %}
+                icon_color: >-
+                  {% if is_state('binary_sensor.sonoff_snzb_05p', 'on') %}red
+                  {% elif is_state('binary_sensor.sonoff_snzb_05p', 'unavailable') %}amber
+                  {% else %}green{% endif %}
+                tap_action:
+                  action: navigate
+                  navigation_path: /lovelace/home-security/security
+              - type: action
+                icon: mdi:lightbulb-off-outline
+                content: Släck allt
+                tap_action:
+                  action: call-service
+                  service: script.light_turn_off_common
+              - type: action
+                icon: mdi:chef-hat
+                content: Släck kök
+                tap_action:
+                  action: call-service
+                  service: script.light_turn_off_kitchen
+              - type: action
+                icon: mdi:sofa
+                content: Släck vardagsrum
+                tap_action:
+                  action: call-service
+                  service: script.light_turn_off_living_room
+              - type: action
+                icon: mdi:chart-timeline-variant
+                content: Idag ute
+                tap_action:
+                  action: navigate
+                  navigation_path: /house-timeline
+              - type: action
+                icon: mdi:cctv
+                content: Kameror
+                tap_action:
+                  action: navigate
+                  navigation_path: /lovelace/home-cameras/cameras
+
+      - title: ENTRÉ
+        cards:
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: binary_sensor.front_aoa_person
+                state: "on"
+            card:
+              type: custom:mushroom-template-card
+              primary: Någon vid entrén
+              secondary: Just nu · se Kameror
+              icon: mdi:door
+              icon_color: amber
+              fill_container: true
+              tap_action:
+                action: navigate
+                navigation_path: /lovelace/home-cameras/cameras
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: binary_sensor.front_aoa_person
+                state: "off"
+              - condition: state
+                entity: binary_sensor.front_motion
+                state: "on"
+            card:
+              type: custom:mushroom-template-card
+              primary: Rörelse vid entrén
+              secondary: Ingen person bekräftad
+              icon: mdi:motion-sensor
+              icon_color: blue
+              fill_container: true
+              tap_action:
+                action: navigate
+                navigation_path: /lovelace/home-cameras/cameras
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: binary_sensor.front_aoa_person
+                state: "off"
+              - condition: state
+                entity: binary_sensor.front_motion
+                state: "off"
+            card:
+              type: custom:mushroom-template-card
+              primary: Entrén lugnt
+              secondary: Ingen rörelse just nu
+              icon: mdi:door-closed
+              icon_color: green
+              fill_container: true
+              tap_action:
+                action: none
+
+      - title: SENASTE VID ENTRÉN
+        cards:
+          - type: custom:mushroom-template-card
+            entity: image.front_person
+            primary: Senaste vid entrén
+            secondary: >-
+              {% if states('image.front_person') in ['unknown', 'unavailable', ''] %}
+              Inga detektioner — lugnt
+              {% else %}
+              {% set dt = as_local(as_datetime(states('image.front_person'))) %}
+              {{ dt.strftime('%H:%M idag') }} · {{ relative_time(dt) }}
+              {% endif %}
+            icon: mdi:cctv
+            icon_color: >-
+              {{ 'amber' if states('image.front_person') not in ['unknown', 'unavailable', ''] else 'grey' }}
+            fill_container: true
+            tap_action:
+              action: navigate
+              navigation_path: /house-timeline
+
+      # ── Lights On Now — only lights that are actually on ────
+      - title: LAMPOR TÄNDA
+        cards:
+          - type: custom:mushroom-template-card
+            primary: >-
+              {% set on = states.light
+                | selectattr('state', 'eq', 'on')
+                | rejectattr('entity_id', 'search', 'ir_light|whitelight')
+                | list %}
+              {% if on | count == 0 %}Alla lampor släckta
+              {% elif on | count == 1 %}1 lampa tänd
+              {% else %}{{ on | count }} lampor tända{% endif %}
+            secondary: >-
+              {% set on = states.light
+                | selectattr('state', 'eq', 'on')
+                | rejectattr('entity_id', 'search', 'ir_light|whitelight')
+                | map(attribute='name') | list %}
+              {{ on | join(' · ') if on | count > 0 else 'Gå till Rum för att styra' }}
+            icon: mdi:lightbulb-group
+            icon_color: >-
+              {% set on = states.light
+                | selectattr('state', 'eq', 'on')
+                | rejectattr('entity_id', 'search', 'ir_light|whitelight')
+                | list %}
+              {{ 'amber' if on | count > 0 else 'disabled' }}
+            fill_container: true
+            tap_action:
+              action: navigate
+              navigation_path: /lovelace/home-rooms/rooms
+          - type: grid
+            columns: 2
+            square: false
+            cards:
+              - type: conditional
+                conditions:
+                  - condition: state
+                    entity: light.anna_och_thomas_sovrum
+                    state: "on"
+                card:
+                  type: custom:mushroom-light-card
+                  entity: light.anna_och_thomas_sovrum
+                  name: Sovrum
+                  layout: horizontal
+                  fill_container: true
+                  show_brightness_control: true
+              - type: conditional
+                conditions:
+                  - condition: state
+                    entity: light.hugos_rum
+                    state: "on"
+                card:
+                  type: custom:mushroom-light-card
+                  entity: light.hugos_rum
+                  name: Hugos rum
+                  layout: horizontal
+                  fill_container: true
+                  show_brightness_control: true
+              - type: conditional
+                conditions:
+                  - condition: state
+                    entity: light.living_room
+                    state: "on"
+                card:
+                  type: custom:mushroom-light-card
+                  entity: light.living_room
+                  name: Vardagsrum
+                  layout: horizontal
+                  fill_container: true
+                  show_brightness_control: true
+              - type: conditional
+                conditions:
+                  - condition: state
+                    entity: light.fonsterlampor
+                    state: "on"
+                card:
+                  type: custom:mushroom-light-card
+                  entity: light.fonsterlampor
+                  name: Fönsterlampor
+                  layout: horizontal
+                  fill_container: true
+                  show_brightness_control: true
+              - type: conditional
+                conditions:
+                  - condition: state
+                    entity: light.fonster_vanster
+                    state: "on"
+                card:
+                  type: custom:mushroom-light-card
+                  entity: light.fonster_vanster
+                  name: Fönster vänster
+                  layout: horizontal
+                  fill_container: true
+                  show_brightness_control: true
+              - type: conditional
+                conditions:
+                  - condition: state
+                    entity: light.fonster_hoger
+                    state: "on"
+                card:
+                  type: custom:mushroom-light-card
+                  entity: light.fonster_hoger
+                  name: Fönster höger
+                  layout: horizontal
+                  fill_container: true
+                  show_brightness_control: true
+              - type: conditional
+                conditions:
+                  - condition: state
+                    entity: light.matplats
+                    state: "on"
+                card:
+                  type: custom:mushroom-light-card
+                  entity: light.matplats
+                  name: Matplats
+                  layout: horizontal
+                  fill_container: true
+                  show_brightness_control: true
+              - type: conditional
+                conditions:
+                  - condition: state
+                    entity: light.spottar
+                    state: "on"
+                card:
+                  type: custom:mushroom-light-card
+                  entity: light.spottar
+                  name: Spottar
+                  layout: horizontal
+                  fill_container: true
+                  show_brightness_control: true
+              - type: conditional
+                conditions:
+                  - condition: state
+                    entity: light.taklampa
+                    state: "on"
+                card:
+                  type: custom:mushroom-light-card
+                  entity: light.taklampa
+                  name: Taklampa
+                  layout: horizontal
+                  fill_container: true
+                  show_brightness_control: true
+              - type: conditional
+                conditions:
+                  - condition: state
+                    entity: light.underskapsbelysning
+                    state: "on"
+                card:
+                  type: custom:mushroom-light-card
+                  entity: light.underskapsbelysning
+                  name: Underskåp
+                  layout: horizontal
+                  fill_container: true
+                  show_brightness_control: true
+              - type: conditional
+                conditions:
+                  - condition: state
+                    entity: light.sovrumstaklampa
+                    state: "on"
+                card:
+                  type: custom:mushroom-light-card
+                  entity: light.sovrumstaklampa
+                  name: Sovrum tak
+                  layout: horizontal
+                  fill_container: true
+                  show_brightness_control: true
+              - type: conditional
+                conditions:
+                  - condition: state
+                    entity: light.hugos_taklampa
+                    state: "on"
+                card:
+                  type: custom:mushroom-light-card
+                  entity: light.hugos_taklampa
+                  name: Hugo tak
+                  layout: horizontal
+                  fill_container: true
+                  show_brightness_control: true
+

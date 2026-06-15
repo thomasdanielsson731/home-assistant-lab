@@ -26,7 +26,7 @@ Home lab LAN at `192.168.68.0/24`. Static DHCP recommended for all infrastructur
 
 | Service | Port | Notes |
 |---|---|---|
-| Home Assistant | `8123` | LAN + optional Nabu Casa |
+| Home Assistant | `8123` | LAN; external via Cloudflare Tunnel → `https://ha.danielsson.cloud` |
 | SSH add-on | `22222` | Config sync |
 | Mosquitto | `1883` | Internal; do not forward WAN |
 | Frigate UI / API | `5000` | Add-on |
@@ -45,8 +45,11 @@ Recommended hardening from [architecture-review.md](../architecture-review.md):
 
 Not yet implemented — document target state before router changes.
 
-## DNS / MQTT
+## DNS / external access
 
+- **Domain:** `danielsson.cloud` (Loopia registrar)
+- **External HA URL (target):** `https://ha.danielsson.cloud` via [Cloudflare Tunnel](../runbooks/remote-access-cloudflare.md)
+- **DNS today:** Loopia nameservers (`ns1.loopia.se`) — use remote tunnel + CNAME, or move NS to Cloudflare
 - Frigate MQTT host: `core-mosquitto` (add-on internal name)
 - Axis MQTT topic prefix: `axis/<zone_id>/`
 - Energy stub: `danielsson/energy/*`

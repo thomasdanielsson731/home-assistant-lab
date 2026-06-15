@@ -1,0 +1,449 @@
+title: Rum
+views:
+  - title: Rum
+    path: rooms
+    icon: mdi:floor-plan
+    type: sections
+    max_columns: 2
+    sections:
+
+      # ── Master light control ──────────────────────────────────
+      - column_span: 2
+        cards:
+          - type: custom:mushroom-template-card
+            primary: Belysning
+            secondary: >-
+              {% set on = states.light
+                | selectattr('state', 'eq', 'on')
+                | rejectattr('entity_id', 'search', 'ir_light|whitelight')
+                | list %}
+              {% if on | count == 0 %}Alla lampor släckta
+              {% elif on | count == 1 %}1 lampa tänd
+              {% else %}{{ on | count }} lampor tända{% endif %}
+            icon: mdi:lightbulb-group
+            icon_color: >-
+              {% set on = states.light
+                | selectattr('state', 'eq', 'on')
+                | rejectattr('entity_id', 'search', 'ir_light|whitelight')
+                | list %}
+              {{ 'amber' if on | count > 0 else 'disabled' }}
+            fill_container: true
+            tap_action:
+              action: none
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: action
+                icon: mdi:lightbulb-off-outline
+                content: Släck allt
+                tap_action:
+                  action: call-service
+                  service: script.light_turn_off_common
+              - type: action
+                icon: mdi:chef-hat
+                content: Släck kök
+                tap_action:
+                  action: call-service
+                  service: script.light_turn_off_kitchen
+              - type: action
+                icon: mdi:sofa
+                content: Släck vardagsrum
+                tap_action:
+                  action: call-service
+                  service: script.light_turn_off_living_room
+              - type: action
+                icon: mdi:bed
+                content: Släck sovrum
+                tap_action:
+                  action: call-service
+                  service: script.light_turn_off_bedroom
+
+      # ── Temperatur (enkel) ───────────────────────────────────
+      - column_span: 2
+        cards:
+          - type: custom:mushroom-template-card
+            primary: >-
+              {% set inn = states('sensor.house_indoor_temperature') %}
+              {% if inn in ['unknown', 'unavailable', ''] %}Inne —
+              {% else %}Inne {{ inn }}°C{% endif %}
+            secondary: >-
+              {% set d = states('sensor.house_indoor_outdoor_delta') %}
+              {% if d in ['unknown', 'unavailable', ''] %}Vardagsrum & hall
+              {% else %}{{ state_attr('sensor.house_indoor_outdoor_delta', 'label') | default('Δ ' ~ d ~ '°C') }}{% endif %}
+            icon: mdi:home-thermometer
+            icon_color: >-
+              {% set inn = states('sensor.house_indoor_temperature') | float(none) %}
+              {% if inn is none %}grey
+              {% elif inn < 18 %}blue
+              {% elif inn < 24 %}green
+              {% elif inn < 26 %}amber
+              {% else %}red{% endif %}
+            fill_container: true
+            tap_action:
+              action: more-info
+              entity: sensor.house_indoor_temperature
+
+      # ── Kök ──────────────────────────────────────────────────
+      # Lamporna sitter bakom väggströmbrytare — "unavailable" betyder
+      # strömlös, inte trasig. Visas då som "Av · väggströmbrytare".
+      - title: KÖK
+        cards:
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: light.spottar
+                state_not: unavailable
+            card:
+              type: custom:mushroom-light-card
+              entity: light.spottar
+              name: Spottar
+              show_brightness_control: true
+              collapsible_controls: false
+              layout: horizontal
+              fill_container: true
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: light.spottar
+                state: unavailable
+            card:
+              type: custom:mushroom-template-card
+              primary: Spottar
+              secondary: Av · väggströmbrytare
+              icon: mdi:lightbulb-off-outline
+              icon_color: disabled
+              fill_container: true
+              tap_action:
+                action: none
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: light.matplats
+                state_not: unavailable
+            card:
+              type: custom:mushroom-light-card
+              entity: light.matplats
+              name: Matplats
+              show_brightness_control: true
+              collapsible_controls: false
+              layout: horizontal
+              fill_container: true
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: light.matplats
+                state: unavailable
+            card:
+              type: custom:mushroom-template-card
+              primary: Matplats
+              secondary: Av · väggströmbrytare
+              icon: mdi:lightbulb-off-outline
+              icon_color: disabled
+              fill_container: true
+              tap_action:
+                action: none
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: light.underskapsbelysning
+                state_not: unavailable
+            card:
+              type: custom:mushroom-light-card
+              entity: light.underskapsbelysning
+              name: Underskåp
+              show_brightness_control: true
+              collapsible_controls: false
+              layout: horizontal
+              fill_container: true
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: light.underskapsbelysning
+                state: unavailable
+            card:
+              type: custom:mushroom-template-card
+              primary: Underskåp
+              secondary: Av · väggströmbrytare
+              icon: mdi:lightbulb-off-outline
+              icon_color: disabled
+              fill_container: true
+              tap_action:
+                action: none
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: binary_sensor.sonoff_snzb_05p
+                state_not: unavailable
+            card:
+              type: custom:mushroom-entity-card
+              entity: binary_sensor.sonoff_snzb_05p
+              name: Vattensensor diskmaskin
+              icon: mdi:water-alert
+              layout: horizontal
+              fill_container: true
+              icon_color: >-
+                {{ 'red' if is_state('binary_sensor.sonoff_snzb_05p', 'on') else 'green' }}
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: binary_sensor.sonoff_snzb_05p
+                state: unavailable
+            card:
+              type: custom:mushroom-template-card
+              primary: Vattensensor offline
+              secondary: Sensorn svarar inte — be Thomas kolla
+              icon: mdi:water-off-outline
+              icon_color: amber
+              fill_container: true
+              tap_action:
+                action: navigate
+                navigation_path: /lovelace/home-security/security
+
+      # ── Vardagsrum ───────────────────────────────────────────
+      - title: VARDAGSRUM
+        cards:
+          - type: custom:mushroom-light-card
+            entity: light.living_room
+            name: Vardagsrum
+            show_brightness_control: true
+            show_color_temp_control: true
+            collapsible_controls: false
+            layout: horizontal
+            fill_container: true
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: light.taklampa
+                state_not: unavailable
+            card:
+              type: custom:mushroom-light-card
+              entity: light.taklampa
+              name: Taklampa
+              show_brightness_control: true
+              collapsible_controls: false
+              layout: horizontal
+              fill_container: true
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: light.taklampa
+                state: unavailable
+            card:
+              type: custom:mushroom-template-card
+              primary: Taklampa
+              secondary: Av · väggströmbrytare
+              icon: mdi:lightbulb-off-outline
+              icon_color: disabled
+              fill_container: true
+              tap_action:
+                action: none
+
+      # ── Fönsterlampor ────────────────────────────────────────
+      - title: FÖNSTERLAMPOR
+        cards:
+          - type: custom:mushroom-light-card
+            entity: light.fonsterlampor
+            name: Alla fönster
+            show_brightness_control: true
+            collapsible_controls: false
+            layout: horizontal
+            fill_container: true
+          - type: horizontal-stack
+            cards:
+              - type: conditional
+                conditions:
+                  - condition: state
+                    entity: light.fonster_vanster
+                    state_not: unavailable
+                card:
+                  type: custom:mushroom-light-card
+                  entity: light.fonster_vanster
+                  name: Vänster
+                  show_brightness_control: true
+                  collapsible_controls: true
+                  fill_container: true
+              - type: conditional
+                conditions:
+                  - condition: state
+                    entity: light.fonster_hoger
+                    state_not: unavailable
+                card:
+                  type: custom:mushroom-light-card
+                  entity: light.fonster_hoger
+                  name: Höger
+                  show_brightness_control: true
+                  collapsible_controls: true
+                  fill_container: true
+
+      # ── Sovrum ───────────────────────────────────────────────
+      - title: SOVRUM
+        cards:
+          - type: custom:mushroom-light-card
+            entity: light.anna_och_thomas_sovrum
+            name: Sovrum
+            show_brightness_control: true
+            show_color_temp_control: true
+            collapsible_controls: false
+            layout: horizontal
+            fill_container: true
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: light.sovrumstaklampa
+                state_not: unavailable
+            card:
+              type: custom:mushroom-light-card
+              entity: light.sovrumstaklampa
+              name: Taklampa
+              show_brightness_control: true
+              collapsible_controls: false
+              layout: horizontal
+              fill_container: true
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: light.sovrumstaklampa
+                state: unavailable
+            card:
+              type: custom:mushroom-template-card
+              primary: Taklampa
+              secondary: Av · väggströmbrytare
+              icon: mdi:lightbulb-off-outline
+              icon_color: disabled
+              fill_container: true
+              tap_action:
+                action: none
+
+      # ── Hugos rum ────────────────────────────────────────────
+      - title: HUGOS RUM
+        cards:
+          - type: custom:mushroom-light-card
+            entity: light.hugos_rum
+            name: Hugos rum
+            show_brightness_control: true
+            show_color_temp_control: true
+            collapsible_controls: false
+            layout: horizontal
+            fill_container: true
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: light.hugos_taklampa
+                state_not: unavailable
+            card:
+              type: custom:mushroom-light-card
+              entity: light.hugos_taklampa
+              name: Taklampa
+              show_brightness_control: true
+              collapsible_controls: false
+              layout: horizontal
+              fill_container: true
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: light.hugos_taklampa
+                state: unavailable
+            card:
+              type: custom:mushroom-template-card
+              primary: Taklampa
+              secondary: Av · väggströmbrytare
+              icon: mdi:lightbulb-off-outline
+              icon_color: disabled
+              fill_container: true
+              tap_action:
+                action: none
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: action
+                icon: mdi:lightbulb-off-outline
+                content: Släck Hugos rum
+                tap_action:
+                  action: call-service
+                  service: light.turn_off
+                  target:
+                    entity_id:
+                      - light.hugos_rum
+                      - light.hugos_taklampa
+
+      # ── Hugo rum ─────────────────────────────────────────────
+      - title: STÄDROBOT
+        column_span: 2
+        cards:
+          - type: custom:mushroom-vacuum-card
+            entity: vacuum.hoover
+            name: Städrobot
+            fill_container: true
+          - type: horizontal-stack
+            cards:
+              - type: custom:mushroom-entity-card
+                entity: sensor.hoover_batteri
+                name: Batteri
+                icon: mdi:battery
+                layout: vertical
+              - type: custom:mushroom-entity-card
+                entity: sensor.hoover_status
+                name: Status
+                icon: mdi:information
+                layout: vertical
+              - type: custom:mushroom-entity-card
+                entity: sensor.hoover_nuvarande_rum
+                name: Rum
+                icon: mdi:floor-plan
+                layout: vertical
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: action
+                icon: mdi:play
+                content: Starta
+                tap_action:
+                  action: call-service
+                  service: vacuum.start
+                  target:
+                    entity_id: vacuum.hoover
+              - type: action
+                icon: mdi:pause
+                content: Pausa
+                tap_action:
+                  action: call-service
+                  service: vacuum.pause
+                  target:
+                    entity_id: vacuum.hoover
+              - type: action
+                icon: mdi:stop
+                content: Stopp
+                tap_action:
+                  action: call-service
+                  service: vacuum.stop
+                  target:
+                    entity_id: vacuum.hoover
+              - type: action
+                icon: mdi:home-import-outline
+                content: Docka
+                tap_action:
+                  action: call-service
+                  service: vacuum.return_to_base
+                  target:
+                    entity_id: vacuum.hoover
+              - type: entity
+                entity: button.hoover_full_cleaning
+                icon: mdi:broom
+                content_info: name
+          - type: custom:mushroom-template-card
+            primary: >-
+              {% if is_state('vacuum.hoover', 'cleaning') %}Städar — {{ states('sensor.hoover_nuvarande_rum') }}
+              {% elif is_state('vacuum.hoover', 'docked') %}Dockad & laddad
+              {% else %}{{ states('vacuum.hoover') | title }}{% endif %}
+            secondary: "Totalt städat: {{ states('sensor.hoover_totalt_stadad_area') | round(0) }} m²"
+            icon: mdi:robot-vacuum
+            icon_color: >-
+              {{ 'green' if is_state('vacuum.hoover', 'docked') else 'blue' }}
+            fill_container: true
+            tap_action:
+              action: more-info
+              entity: vacuum.hoover
+          - type: picture-entity
+            entity: image.hoover_bottenvaning
+            name: Bottenvåning
+            show_state: false
+            tap_action:
+              action: more-info
+

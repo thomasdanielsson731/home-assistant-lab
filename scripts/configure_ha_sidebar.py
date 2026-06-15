@@ -18,11 +18,24 @@ if not TOKEN:
     sys.exit("HA_TOKEN not set in .env")
 
 URI = f"ws://{HOST}:8123/api/websocket"
-DEFAULT_PANEL = "home-lab"
+DEFAULT_PANEL = "home-hem"
+HEM_PANEL = "home-hem"
+CAMERAS_PANEL = "home-cameras"
+SECURITY_PANEL = "home-security"
+ROOMS_PANEL = "home-rooms"
 TECH_PANEL = "home-tech"
 TIMELINE_PANEL = "house-timeline"
 GRAPHS_PANEL = "house-graphs"
-KEEP_VISIBLE = {DEFAULT_PANEL, TECH_PANEL, TIMELINE_PANEL, GRAPHS_PANEL, "config"}
+KEEP_VISIBLE = {
+    HEM_PANEL,
+    CAMERAS_PANEL,
+    SECURITY_PANEL,
+    ROOMS_PANEL,
+    TECH_PANEL,
+    TIMELINE_PANEL,
+    GRAPHS_PANEL,
+    "config",
+}
 
 # Panels to hide (from get_panels inventory on this lab)
 HIDE_PANELS = [
@@ -77,7 +90,15 @@ def main() -> int:
     hide = sorted(set(hide))
 
     sidebar = {
-        "panelOrder": [DEFAULT_PANEL, TIMELINE_PANEL, GRAPHS_PANEL, TECH_PANEL],
+        "panelOrder": [
+            HEM_PANEL,
+            CAMERAS_PANEL,
+            SECURITY_PANEL,
+            ROOMS_PANEL,
+            TIMELINE_PANEL,
+            GRAPHS_PANEL,
+            TECH_PANEL,
+        ],
         "hiddenPanels": hide,
         "defaultPanel": DEFAULT_PANEL,
     }

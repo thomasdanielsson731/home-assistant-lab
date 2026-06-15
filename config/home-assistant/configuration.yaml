@@ -3,6 +3,8 @@ homeassistant:
   unit_system: metric
   currency: SEK
   country: SE
+  internal_url: http://192.168.68.175:8123
+  external_url: https://ha.danielsson.cloud
 
 # Load default config set
 default_config:
@@ -26,11 +28,13 @@ recorder:
       - sensor.*_scene_persons
       - sensor.*_scene_vehicles
 
-# HTTP
+# HTTP — trust Cloudflared add-on (172.30.33.0/24) for external access via danielsson.cloud
 http:
   use_x_forwarded_for: true
   trusted_proxies:
     - 127.0.0.1
+    - 172.30.33.0/24
+    - 172.30.33.6
 
 # Logging
 logger:
@@ -43,11 +47,32 @@ frontend:
 
 lovelace:
   dashboards:
-    home-lab:
+    home-hem:
       mode: yaml
-      filename: dashboards/home-anna.yaml
-      title: Danielsson Home
-      icon: mdi:home-assistant
+      filename: dashboards/home-hem.yaml
+      title: Hem
+      icon: mdi:home
+      show_in_sidebar: true
+      require_admin: false
+    home-cameras:
+      mode: yaml
+      filename: dashboards/home-cameras.yaml
+      title: Kameror
+      icon: mdi:cctv
+      show_in_sidebar: true
+      require_admin: false
+    home-security:
+      mode: yaml
+      filename: dashboards/home-security.yaml
+      title: Säkerhet
+      icon: mdi:shield-home
+      show_in_sidebar: true
+      require_admin: false
+    home-rooms:
+      mode: yaml
+      filename: dashboards/home-rooms.yaml
+      title: Rum
+      icon: mdi:floor-plan
       show_in_sidebar: true
       require_admin: false
     home-tech:

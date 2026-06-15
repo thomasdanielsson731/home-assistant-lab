@@ -144,7 +144,7 @@ Complete the Axis analytics pipeline end-to-end.
 |---|---|
 | Double Take / CodeProject.AI / CompreFace | Removed — ADR-006 |
 | Family Companion presence | Household declined HA app |
-| Nabu Casa remote access | Evaluate after local setup stable |
+| Nabu Casa remote access | Superseded by Cloudflare Tunnel — see [remote-access-cloudflare.md](runbooks/remote-access-cloudflare.md) |
 | ALPR | No current automation need |
 | HA REST sensors for D6210 | Replaced by MQTT bridge |
 | Meross MS100F + MSH300 hub | Hub suspected dead |

@@ -1,0 +1,194 @@
+title: Säkerhet
+views:
+  - title: Säkerhet
+    path: security
+    icon: mdi:shield-home
+    type: sections
+    max_columns: 1
+    sections:
+
+      # ── Hemstatus (rök + vatten) ─────────────────────────────
+      - title: HEMSTATUS
+        cards:
+          - type: custom:mushroom-template-card
+            primary: "{{ state_attr('sensor.house_home_status', 'label') | default('Allt OK') }}"
+            secondary: >-
+              {{ state_attr('binary_sensor.house_smoke_alarm', 'detector_count') | default('?') }} brandvarnare
+              · {{ state_attr('sensor.house_safety_summary', 'water_label') | default('—') }}
+            icon: mdi:shield-home
+            icon_color: >-
+              {% if is_state('sensor.house_home_status', 'alarm') %}red
+              {% elif is_state('sensor.house_home_status', 'warning') %}amber
+              {% else %}green{% endif %}
+            fill_container: true
+            tap_action:
+              action: more-info
+              entity: sensor.house_home_status
+
+      - title: UTE
+        cards:
+          - type: custom:mushroom-template-card
+            primary: >-
+              {% if is_state('binary_sensor.house_outdoor_presence', 'on') %}Aktivitet utomhus
+              {% else %}Ingen aktivitet utomhus{% endif %}
+            secondary: >-
+              {{ state_attr('sensor.house_outdoor_activity_summary', 'active_zones') | default('none') }}
+            icon: mdi:motion-sensor
+            icon_color: >-
+              {{ 'amber' if is_state('binary_sensor.house_outdoor_presence', 'on') else 'green' }}
+            fill_container: true
+            tap_action:
+              action: navigate
+              navigation_path: /lovelace/home-cameras/cameras
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: template
+                icon: mdi:door
+                content: >-
+                  {% if is_state('binary_sensor.front_aoa_person', 'on') %}Entré · person
+                  {% elif is_state('binary_sensor.front_motion', 'on') %}Entré · rörelse
+                  {% else %}Entré · lugnt{% endif %}
+                icon_color: >-
+                  {{ 'amber' if is_state('binary_sensor.front_aoa_person', 'on')
+                     else 'blue' if is_state('binary_sensor.front_motion', 'on')
+                     else 'green' }}
+              - type: template
+                icon: mdi:timer-sand
+                content: >-
+                  {% set loiter = [
+                    'binary_sensor.front_aoa_loitering',
+                    'binary_sensor.driveway_wide_aoa_loitering',
+                    'binary_sensor.driveway_id_aoa_loitering'
+                  ] %}
+                  {% if loiter | select('is_state', 'on') | list | count > 0 %}Kvarvarande vid entré
+                  {% else %}Ingen loitering{% endif %}
+                icon_color: >-
+                  {% set loiter = [
+                    'binary_sensor.front_aoa_loitering',
+                    'binary_sensor.driveway_wide_aoa_loitering',
+                    'binary_sensor.driveway_id_aoa_loitering'
+                  ] %}
+                  {{ 'amber' if loiter | select('is_state', 'on') | list | count > 0 else 'grey' }}
+              - type: action
+                icon: mdi:chart-timeline-variant
+                content: Vad hände idag?
+                tap_action:
+                  action: navigate
+                  navigation_path: /house-timeline
+
+      # ── Smoke detectors (ZHA) — unified house alarm sensor ──────
+      - title: BRANDVARNARE
+        cards:
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: binary_sensor.house_smoke_alarm
+                state_not: unavailable
+            card:
+              type: custom:mushroom-template-card
+              primary: >-
+                {% set dc = state_attr('binary_sensor.house_smoke_alarm', 'detector_count') | int(0) %}
+                {% if is_state('binary_sensor.house_smoke_alarm', 'on') %}RÖKALARM
+                {% elif dc >= 3 %}3 brandvarnare · inget rök
+                {% elif dc > 0 %}{{ dc }}/3 brandvarnare online
+                {% else %}Brandvarnare oklar{% endif %}
+              secondary: >-
+                {% if is_state('binary_sensor.house_smoke_alarm', 'on') %}
+                {{ state_attr('binary_sensor.house_smoke_alarm', 'active_sensors') | default('Kontrollera brandvarnare') }}
+                {% else %}Tryck för detaljer{% endif %}
+              icon: mdi:smoke-detector
+              icon_color: >-
+                {% set dc = state_attr('binary_sensor.house_smoke_alarm', 'detector_count') | int(0) %}
+                {% if is_state('binary_sensor.house_smoke_alarm', 'on') %}red
+                {% elif dc < 3 %}amber
+                {% else %}green{% endif %}
+              fill_container: true
+              tap_action:
+                action: more-info
+                entity: binary_sensor.house_smoke_alarm
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: binary_sensor.house_smoke_alarm
+                state: unavailable
+            card:
+              type: custom:mushroom-template-card
+              primary: Brandvarnare oklar
+              secondary: ZHA svarar inte — kontrollera brandvarnarna
+              icon: mdi:smoke-detector-off
+              icon_color: amber
+              fill_container: true
+              tap_action:
+                action: none
+
+      # ── Water leak (ZHA — dishwasher) — alltid synlig ───────────
+      - title: VATTENLÄCKAGE
+        cards:
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: binary_sensor.sonoff_snzb_05p
+                state_not: unavailable
+            card:
+              type: custom:mushroom-template-card
+              primary: >-
+                {% if is_state('binary_sensor.sonoff_snzb_05p', 'on') %}VATTEN DETEKTERAT
+                {% else %}Torrt{% endif %}
+              secondary: Kök · diskmaskin
+              icon: mdi:water-alert
+              icon_color: >-
+                {{ 'red' if is_state('binary_sensor.sonoff_snzb_05p', 'on') else 'green' }}
+              fill_container: true
+              tap_action:
+                action: more-info
+                entity: binary_sensor.sonoff_snzb_05p
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: binary_sensor.sonoff_snzb_05p
+                state: unavailable
+            card:
+              type: custom:mushroom-template-card
+              primary: Vattensensor offline
+              secondary: >-
+                Sensorn svarar inte — be Thomas kolla diskmaskin-sensorn.
+                Vattenlarm tyst tills den är tillbaka.
+              icon: mdi:water-off-outline
+              icon_color: amber
+              fill_container: true
+              tap_action:
+                action: none
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: binary_sensor.sonoff_snzb_05p
+                state_not: unavailable
+            card:
+              type: custom:mushroom-entity-card
+              entity: sensor.sonoff_snzb_05p_batteri
+              name: Batteri
+              icon: mdi:battery
+              layout: horizontal
+              fill_container: true
+
+      # ── Yale Doorman — dold tills Sprint 1 ─────────────────────
+      - title: ACCESS
+        visibility:
+          - condition: state
+            entity: sensor.house_home_status
+            state: "__yale_hidden__"
+        cards:
+          - type: markdown
+            content: Kommer snart
+
+      - title: HISTORIK
+        cards:
+          - type: custom:mushroom-template-card
+            primary: Vad hände utomhus idag?
+            secondary: Öppna Analytics — händelser & bilder
+            icon: mdi:chart-timeline-variant
+            icon_color: blue
+            fill_container: true
+            tap_action:
+              action: navigate
+              navigation_path: /house-timeline

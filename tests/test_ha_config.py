@@ -10,17 +10,27 @@ REPO = Path(__file__).resolve().parents[1]
 HA = REPO / "config" / "home-assistant"
 DASHBOARDS = HA / "dashboards"
 
+ANNA_DASHBOARDS = {
+    "home-hem.yaml": "home",
+    "home-cameras.yaml": "cameras",
+    "home-security.yaml": "security",
+    "home-rooms.yaml": "rooms",
+}
+
 
 def test_dashboard_split_files():
-    assert (DASHBOARDS / "home-anna.yaml").is_file()
+    for filename in ANNA_DASHBOARDS:
+        assert (DASHBOARDS / filename).is_file()
     assert (DASHBOARDS / "home-tech.yaml").is_file()
     assert not (DASHBOARDS / "home-lab.yaml").exists()
+    assert not (DASHBOARDS / "home-anna.yaml").exists()
 
 
-def test_anna_dashboard_views():
-    data = yaml.safe_load((DASHBOARDS / "home-anna.yaml").read_text(encoding="utf-8"))
-    paths = {view["path"] for view in data["views"]}
-    assert paths == {"home", "cameras", "security", "rooms"}
+def test_anna_dashboards_single_view_each():
+    for filename, path in ANNA_DASHBOARDS.items():
+        data = yaml.safe_load((DASHBOARDS / filename).read_text(encoding="utf-8"))
+        assert len(data["views"]) == 1
+        assert data["views"][0]["path"] == path
 
 
 def test_tech_dashboard_views():
@@ -31,11 +41,18 @@ def test_tech_dashboard_views():
 
 def test_configuration_registers_split_dashboards():
     text = (HA / "configuration.yaml").read_text(encoding="utf-8")
-    assert "home-lab:" in text
-    assert "filename: dashboards/home-anna.yaml" in text
+    for panel_id, filename in (
+        ("home-hem", "home-hem.yaml"),
+        ("home-cameras", "home-cameras.yaml"),
+        ("home-security", "home-security.yaml"),
+        ("home-rooms", "home-rooms.yaml"),
+    ):
+        assert f"{panel_id}:" in text
+        assert f"filename: dashboards/{filename}" in text
     assert "home-tech:" in text
     assert "filename: dashboards/home-tech.yaml" in text
     assert "require_admin: true" in text
+    assert "home-lab:" not in text
 
 
 def test_loitering_automation_enabled():
@@ -70,16 +87,21 @@ def test_light_control_scripts_defined():
 
 
 def test_anna_lampor_tanda_uses_mushroom_light_cards():
-    text = (DASHBOARDS / "home-anna.yaml").read_text(encoding="utf-8")
-    lampor_idx = text.index("LAMPOR TÄNDA")
-    rooms_idx = text.index("VIEW 2 — KAMEROR")
-    section = text[lampor_idx:rooms_idx]
-    assert "custom:mushroom-light-card" in section
-    assert "type: entities" not in section
-    assert "entity-filter" not in section
+    text = (DASHBOARDS / "home-hem.yaml").read_text(encoding="utf-8")
+    assert "LAMPOR TÄNDA" in text
+    assert "custom:mushroom-light-card" in text
+    assert "type: entities" not in text
+    assert "entity-filter" not in text
 
 
 def test_sidebar_script_keeps_tech_panel():
     text = (REPO / "scripts/configure_ha_sidebar.py").read_text(encoding="utf-8")
+    assert 'DEFAULT_PANEL = "home-hem"' in text
     assert 'TECH_PANEL = "home-tech"' in text
-    assert "home-tech" in text
+    assert "home-cameras" in text
+
+
+def test_no_stale_home_lab_navigation_paths():
+    for filename in (*ANNA_DASHBOARDS.keys(), "home-tech.yaml"):
+        text = (DASHBOARDS / filename).read_text(encoding="utf-8")
+        assert "/lovelace/home-lab" not in text

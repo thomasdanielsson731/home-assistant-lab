@@ -212,7 +212,7 @@ views:
                      else 'grey' }}
                 tap_action:
                   action: navigate
-                  navigation_path: /lovelace/home-lab/cameras
+                  navigation_path: /lovelace/home-cameras/cameras
               - type: template
                 icon: mdi:cctv
                 content: Uppfart
@@ -224,7 +224,7 @@ views:
                      else 'grey' }}
                 tap_action:
                   action: navigate
-                  navigation_path: /lovelace/home-lab/cameras
+                  navigation_path: /lovelace/home-cameras/cameras
               - type: template
                 icon: mdi:cctv
                 content: Bakgård
