@@ -15,7 +15,7 @@ labels: camera
 - [ ] Stream not connecting (RTSP error)
 - [ ] Detection not working (no events)
 - [ ] Recording not writing to SSD
-- [ ] Face recognition not triggering
+- [ ] Outdoor presence not updating (`binary_sensor.house_outdoor_presence`)
 - [ ] Wrong zone / incorrect detection area
 
 ## Description

@@ -183,50 +183,6 @@ class EventStore:
 
         agg_path.write_text(json.dumps(agg, indent=2), encoding="utf-8")
 
-    def attach_identity(self, camera: str, name: str, confidence: float, source: str = "double_take") -> str | None:
-        """Attach identity to most recent person event at camera (within 2 min)."""
-        if not self.timeline_jsonl.exists():
-            return None
-
-        cutoff = self._now() - timedelta(minutes=2)
-        lines = self.timeline_jsonl.read_text(encoding="utf-8").strip().splitlines()
-        for line in reversed(lines[-100:]):
-            event = json.loads(line)
-            if event.get("type") != "person":
-                continue
-            if event.get("location", {}).get("camera") != camera:
-                continue
-            ts = datetime.fromisoformat(event["timestamp"])
-            if ts.tzinfo is None:
-                ts = ts.replace(tzinfo=TZ)
-            if ts < cutoff:
-                break
-            event["identity"] = {
-                "type": "person",
-                "name": name.title(),
-                "source": source,
-                "confidence": confidence,
-            }
-            event["summary"] = f"{name.title()} at {event['location'].get('zone', camera)}"
-            event_id = event["event_id"]
-            encoded = json.dumps(event, ensure_ascii=False)
-            # Rewrite JSON file
-            for path in (self.events_root / "person").rglob(f"{event_id}.json"):
-                path.write_text(json.dumps(event, indent=2, ensure_ascii=False), encoding="utf-8")
-            # Update matching line in timeline log
-            all_lines = self.timeline_jsonl.read_text(encoding="utf-8").splitlines()
-            self.timeline_jsonl.write_text(
-                "\n".join(
-                    encoded if json.loads(line).get("event_id") == event_id else line
-                    for line in all_lines
-                ) + ("\n" if all_lines else ""),
-                encoding="utf-8",
-            )
-            log.info("Identity attached: %s → %s", event_id, name)
-            return event_id
-        return None
-
-
 def make_summary(event: dict) -> str:
     """Template-based timeline summary (v1)."""
     etype = event["type"]

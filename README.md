@@ -24,13 +24,13 @@ Axis Cameras (6)  ──RTSP──►  Frigate (NVR + detection)  ──MQTT─�
         │                                                          ▲
         └──MQTT (AOA, scene)──────────────────────────────────────┘
                                      │
-                              Double Take  ──►  CodeProject.AI (face context)
+                              Danielsson Insights add-on (HAOS :8765)
                                      │
                               event_normalizer → correlation_engine
                                      │
-                              Timeline API (HAOS :8765) + HA sidebar Analytics
+                              Timeline API + HA sidebar Analytics
                                      │
-                              InfluxDB bridge (Danielsson Insights add-on → :8086)
+                              InfluxDB bridge (metrics → :8086)
 ```
 
 ---
@@ -43,8 +43,7 @@ Axis Cameras (6)  ──RTSP──►  Frigate (NVR + detection)  ──MQTT─�
 | OS | Home Assistant OS (HAOS) — x86-64 |
 | Storage | External 1 TB SSD at `/media/frigate` |
 | NVR | Frigate 0.17.1 add-on |
-| Face middleware | Double Take 1.13.1 add-on |
-| Face recognizer | CodeProject.AI on Windows dev PC (`192.168.68.136:32168`) |
+| Analytics | Danielsson Insights add-on (:8765) |
 | MQTT | Mosquitto add-on |
 
 ---
@@ -57,7 +56,6 @@ Axis Cameras (6)  ──RTSP──►  Frigate (NVR + detection)  ──MQTT─�
 | Editors | VS Code + Cursor |
 | AI | Claude Code, Cursor agents (`agents/`) |
 | Local LLM | Ollama + Qwen (planned) |
-| Face AI | CodeProject.AI `:32168` — **only service on dev PC** |
 | Config sync | `scripts/sync-config.ps1` / `.sh` via SSH |
 | Legacy | `start-bridges.ps1` — **do not run** (platform on HAOS add-on) |
 
@@ -67,7 +65,7 @@ Axis Cameras (6)  ──RTSP──►  Frigate (NVR + detection)  ──MQTT─�
 
 | Zone ID | Model | Location | Purpose |
 |---|---|---|---|
-| `front` | Axis P3288-LVE | Front entrance | Person / face detection |
+| `front` | Axis P3288-LVE | Front entrance | Person detection at entry |
 | `driveway_wide` | Axis Q3558-LVE | Driveway — wide | Area overview, vehicle detection |
 | `driveway_id` | Axis M2036-LE | Driveway — close | Identification point |
 | `backyard` | Axis Q1656-LE | Backyard | Perimeter coverage |
@@ -84,7 +82,7 @@ Axis Cameras (6)  ──RTSP──►  Frigate (NVR + detection)  ──MQTT─�
 | 1 — Foundation | HAOS, MQTT, naming, backups | **Done** |
 | 2 — Cameras | 6 cameras in Frigate, detection, recording | **Done** |
 | 3 — Dashboard | 5 views, mobile-first | **Done** |
-| 4 — Face Recognition | Double Take + CodeProject.AI | **In progress** |
+| 4 — ~~Face Recognition~~ | Removed — [ADR-006](docs/decisions/006-no-face-no-companion-presence.md) | **Removed** |
 | 5 — Axis Analytics | AOA, scene metadata, air quality | **Done** |
 | 6 — AI Integration | Ollama/Qwen, scene understanding | Planned |
 | 7 — Home Intelligence Timeline | Events, correlation, Timeline UI, HA sidebar | **Done** |
@@ -101,7 +99,6 @@ Full detail: [docs/roadmap.md](docs/roadmap.md) · Work queue: [docs/backlog.md]
 config/                  Service configuration (no secrets committed)
   home-assistant/        HA config, automations, MQTT sensors, dashboards
   frigate/               NVR config + per-camera masks
-  double-take/           Face recognition middleware
 docs/
   vision/
     danielsson-insights.md  Product vision + Cursor prompts

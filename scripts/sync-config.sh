@@ -45,10 +45,4 @@ rsync -avz --progress \
   "$REPO_ROOT/config/frigate/config.yml" \
   "${HA_USER}@${HA_HOST}:${HA_CONFIG_PATH}/frigate/config.yml"
 
-rsync -avz --progress \
-  $DRY_RUN \
-  -e "ssh -p ${HA_SSH_PORT}" \
-  "$REPO_ROOT/config/double-take/config.yml" \
-  "${HA_USER}@${HA_HOST}:${HA_CONFIG_PATH}/double-take/config.yml"
-
 echo "Done. Restart affected add-ons in HA if config changed."

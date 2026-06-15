@@ -67,7 +67,7 @@ Select the **Home** tab. You'll build 4 sections.
 
 ---
 
-### Section 1.1 — Greeting and Presence
+### Section 1.1 — Greeting and Outdoor Presence
 
 **Add a section:**
 Click **+ Add Section**. Leave column width at default (full width).
@@ -82,22 +82,17 @@ Click **+ Add Section**. Leave column width at default (full width).
    - **Subtitle:** Leave empty
 5. Click **Save**
 
-**Card 2 — Person presence chips**
+**Card 2 — Outdoor presence**
 
 1. Click **+ Add Card**
-2. Search: `Mushroom Chips`
-3. Select **Mushroom: Chips card**
-4. Click **+ Add chip → Entity**
-5. Add three entity chips, one per person:
-   - **Entity:** `person.thomas`
-   - **Content info:** `state`
-   - Click **+ Add chip → Entity** again
-   - **Entity:** `person.nils`
-   - **Content info:** `state`
-   - Click **+ Add chip → Entity** again
-   - **Entity:** `person.hugo`
-   - **Content info:** `state`
-6. Click **Save**
+2. Search: `Mushroom Entity`
+3. Select **Mushroom: Entity card**
+4. Settings:
+   - **Entity:** `binary_sensor.house_outdoor_presence`
+   - **Name:** `Outdoor activity`
+5. Click **Save**
+
+> Household `person.*` presence chips removed — [ADR-006](../decisions/006-no-face-no-companion-presence.md).
 
 ---
 
@@ -389,7 +384,12 @@ Select the **Security** tab. Four sections.
 
 ---
 
-### Section 4.3 — Face Recognition
+### Section 4.3 — Face Recognition *(obsolete — ADR-006)*
+
+**Do not build.** Face recognition (Double Take, CodeProject.AI, `dt_*`) was removed 2026-06-14. Use `binary_sensor.house_outdoor_presence` instead. See [ADR-006](../decisions/006-no-face-no-companion-presence.md).
+
+<details>
+<summary>Historical Phase 4 instructions (archived)</summary>
 
 **Add a section:** Click **+ Add Section**
 
@@ -415,6 +415,8 @@ Card 2 — Per-person presence chips:
   - `binary_sensor.dt_thomas_present`
   - `binary_sensor.dt_nils_present`
   - `binary_sensor.dt_hugo_present`
+
+</details>
 
 ---
 
@@ -477,7 +479,7 @@ For each add-on, add a **Mushroom Entity card**:
 | Add-on | Entity | Icon |
 |---|---|---|
 | Frigate | `binary_sensor.frigate_running` *(or check add-on sensor in HA)* | `mdi:cctv` |
-| Double Take | add-on state entity | `mdi:face-recognition` |
+| Danielsson Insights | add-on state entity | `mdi:chart-timeline-variant` |
 | Mosquitto | add-on state entity | `mdi:lan` |
 | SSH Terminal | add-on state entity | `mdi:console` |
 
@@ -588,7 +590,6 @@ This table summarises section column counts per view. Use it when the edit mode 
 | Rooms | Outdoor | 2 |
 | Security | Alarm Status | 1 |
 | Security | Live Detections | 1 |
-| Security | Face Recognition | 1 |
 | Security | Event Log | 1 |
 | Operations | System Health | 1 |
 | Operations | Add-ons | 2 |
@@ -605,11 +606,10 @@ Build in this order to match what's available at each phase:
 | Order | What to build | Phase dependency |
 |---|---|---|
 | 1 | View 3 — Rooms (full) | None — just light entities |
-| 2 | View 1 — Home: Greeting + Presence + Lights sections | None |
+| 2 | View 1 — Home: Greeting + Outdoor Presence + Lights sections | None |
 | 3 | View 5 — Operations (partial, skip camera connectivity) | None |
 | 4 | View 4 — Security: Alarm + Event Log sections | None |
 | 5 | View 2 — Cameras (all sections) | Phase 2: Frigate running |
 | 6 | View 1 — Home: Recent Events section | Phase 2: Frigate running |
 | 7 | View 4 — Security: Live Detections section | Phase 2: Frigate running |
 | 8 | View 5 — Operations: Camera Connectivity section | Phase 2: Frigate running |
-| 9 | View 4 — Security: Face Recognition section | Phase 4: Double Take live |

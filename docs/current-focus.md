@@ -14,9 +14,9 @@ Quick-start context for AI assistants. Read this + [CLAUDE.md](../CLAUDE.md) + [
 | **Environment** (HA sidebar) | Env + SPL charts (`http://192.168.68.175:8765/environment`) |
 | **Danielsson Home** (`home-lab`) | Secondary — ops, security, cameras, rooms |
 
-**HA:** `192.168.68.175` · **Dev PC:** `192.168.68.136` (CodeProject.AI only)
+**HA:** `192.168.68.175` · **Dev PC:** `192.168.68.136` (Ollama experiments only — no face rec stack)
 
-See [ADR-005](decisions/005-home-intelligence-timeline.md) · [event-model.md](analytics/event-model.md)
+See [ADR-005](decisions/005-home-intelligence-timeline.md) · [ADR-006](decisions/006-no-face-no-companion-presence.md) · [event-model.md](analytics/event-model.md)
 
 ---
 
@@ -24,7 +24,7 @@ See [ADR-005](decisions/005-home-intelligence-timeline.md) · [event-model.md](a
 
 | Phase | Focus | Status |
 |---|---|---|
-| **4** | Face recognition — CodeProject.AI + Double Take | **In progress** |
+| **4** | ~~Face recognition~~ | **Removed** — [ADR-006](decisions/006-no-face-no-companion-presence.md) |
 | **5** | Axis analytics — MQTT to HA + events | Done |
 | **6** | Energy bridge + narratives | Partial (Kraftringen pending) |
 | **7** | Analytics platform — API + UI + correlation | Done |
@@ -42,11 +42,11 @@ MQTT sources → Danielsson Insights add-on on HAOS
   correlation_engine (enriched events)
   influx_metrics_bridge → InfluxDB :8086
   timeline_server :8765 → /timeline, /environment, /story
-
-Double Take (HA) → CodeProject.AI on dev PC :32168
 ```
 
 Event files on HA: `/share/danielsson-insights/events/`
+
+**Not in pipeline:** Double Take, CodeProject.AI, Companion-based household presence.
 
 ---
 
@@ -55,7 +55,7 @@ Event files on HA: `/share/danielsson-insights/events/`
 - **Every 6 h:** `repo-maintenance.ps1` — commit + push + sync HA config
 - **Daily 04:00:** above + HA YAML reload
 - **HAOS add-on:** Danielsson Insights v0.2.4 — auto-start, Supervisor watchdog on `/timeline`
-- **Dev PC:** keep CodeProject.AI running; do **not** run `start-bridges.ps1` (legacy)
+- **Dev PC:** do **not** run `start-bridges.ps1` (legacy); stop CodeProject.AI if still installed
 
 ---
 
@@ -87,12 +87,10 @@ ha apps logs 25d01a20_danielsson_insights
 
 | Item | Action |
 |---|---|
-| **Phase 4 — verify match** | Walk `front` → check DT Matches + `dt_thomas_*` |
-| Training photos | Thomas ✅ trained; Nils, Hugo, Anna ⬜ |
 | **Kök smoke detector** | Pairing button → `configure_smoke_detectors.py --reconfigure` |
 | Yale Doorman | Hardware + HA lock entity |
 | Kraftringen energy | API credentials for `energy_bridge.py` |
-| Companion apps | Nils/Hugo/Anna phones → fix "Unknown" presence |
+| Stop Double Take add-on | `ha apps stop c7657554_double-take` (optional uninstall) |
 
 ---
 
@@ -105,7 +103,6 @@ ha apps logs 25d01a20_danielsson_insights
 | `scripts/verify-insights-ha.ps1` | Smoke test add-on + secrets |
 | `scripts/timeline_server.py` | Analytics UI + REST API |
 | `scripts/influx_metrics_bridge.py` | metrics.jsonl → InfluxDB |
-| `scripts/install-codeproject-ai.ps1` | Phase 4 CodeProject.AI installer |
 | `config/home-assistant/dashboards/house-timeline.yaml` | HA Analytics iframe |
 | `config/home-assistant/secrets.yaml` (host) | `timeline_url` / `environment_url` → direct `:8765` |
 
@@ -118,6 +115,6 @@ ha apps logs 25d01a20_danielsson_insights
 | [backlog.md](backlog.md) | Work queue |
 | [roadmap.md](roadmap.md) | Phase tasks |
 | [runbooks/timeline-addon.md](runbooks/timeline-addon.md) | HAOS add-on ops |
-| [runbooks/codeproject-ai-setup.md](runbooks/codeproject-ai-setup.md) | Phase 4 face recognition |
+| [decisions/006-no-face-no-companion-presence.md](decisions/006-no-face-no-companion-presence.md) | Why face rec + family Companion are out |
 | [runbooks/influxdb-setup.md](runbooks/influxdb-setup.md) | InfluxDB + add-on bridge |
 | [decisions/005-home-intelligence-timeline.md](decisions/005-home-intelligence-timeline.md) | Why API-first timeline |

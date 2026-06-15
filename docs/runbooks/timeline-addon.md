@@ -6,7 +6,7 @@ Add-on source: **`danielsson_insights/`** at repo root + Supervisor repository U
 
 **Current version:** 0.2.4 — includes `influx_metrics_bridge`, Supervisor watchdog, Ingress-safe relative URLs.
 
-CodeProject.AI stays on the Windows dev PC (`:32168`).
+Face recognition removed — [ADR-006](../decisions/006-no-face-no-companion-presence.md). No dev PC bridges required.
 
 ---
 
@@ -78,7 +78,7 @@ environment_url: "http://192.168.68.175:8765/environment"
 .\scripts\verify-insights-ha.ps1    # smoke test
 ```
 
-Keep CodeProject.AI running on dev PC. Remove `HomeLab-Bridges` from Windows Startup if present.
+Remove `HomeLab-Bridges` from Windows Startup if present.
 
 ---
 

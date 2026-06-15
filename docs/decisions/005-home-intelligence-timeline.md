@@ -8,7 +8,9 @@
 
 The primary insights UX is **Analytics** — served by `timeline_server.py` on **HAOS** via the Danielsson Insights add-on (`http://192.168.68.175:8765/timeline`), embedded in HA via YAML dashboard **`house-timeline`** (iframe with direct URL — not Ingress). Lovelace `home-lab` remains secondary.
 
-**Updated 2026-06-12:** Platform cut over from Windows dev PC bridges to HAOS add-on v0.2.4. Dev PC retains CodeProject.AI only.
+**Updated 2026-06-12:** Platform cut over from Windows dev PC bridges to HAOS add-on v0.2.4.
+
+**Updated 2026-06-14:** Face recognition removed — [ADR-006](006-no-face-no-companion-presence.md).
 
 Architecture:
 

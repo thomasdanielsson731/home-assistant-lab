@@ -21,7 +21,7 @@ Vision: [vision.md](vision.md) · Scope: [scope.md](scope.md) · Work queue: [ba
 | 14 areas + person entities | ✅ |
 | HACS + Mushroom Cards, Frigate Card | ✅ |
 | Config sync from repo | ✅ |
-| Presence via TP-Link Deco + Companion | ⬜ |
+| Presence via TP-Link Deco (optional network hint) | ⬜ optional — not used for dashboard |
 
 ---
 
@@ -51,24 +51,15 @@ Vision: [vision.md](vision.md) · Scope: [scope.md](scope.md) · Work queue: [ba
 
 ---
 
-## Phase 4 — Face Recognition `[In Progress]`
+## Phase 4 — Face Recognition `[Removed — ADR-006]`
 
-**Goal:** Known persons identified at `front` and `driveway_id`. Unknown person alerts.
-
-**Decision:** CodeProject.AI on Windows dev PC — see [ADR-003](decisions/003-face-recognizer.md).
+**Status:** Removed 2026-06-14. Double Take, CodeProject.AI, and household face ID are out of scope. See [ADR-006](decisions/006-no-face-no-companion-presence.md).
 
 | Task | Status |
 |---|---|
-| Double Take 1.13.1 installed and configured | ✅ |
-| Frigate → Double Take webhook | ✅ |
-| CodeProject.AI installed on dev PC | ✅ |
-| Face module enabled in CodeProject.AI | ✅ |
-| Training images for Thomas, Nils, Hugo, Anna | 🔄 Thomas ✅; others ⬜ |
-| Recognition at `front` (>85% confidence) | ⬜ |
-| Unknown person alert automation | ⬜ |
-| Known person context in Security dashboard | ⬜ |
-
-**Done when:** All household members reliably identified. Unknown persons trigger push notification with snapshot.
+| Double Take / CodeProject.AI pipeline | ❌ Removed |
+| Family Companion presence | ❌ Out of scope |
+| Thomas iPhone push for security alerts | ✅ Optional — automations use `notify.mobile_app_thomas_iphone_15` |
 
 ---
 
@@ -134,7 +125,7 @@ Vision: [vision.md](vision.md) · Scope: [scope.md](scope.md) · Work queue: [ba
 
 | Task | Status |
 |---|---|
-| Event normalizer v0 (Frigate, D6210, Double Take) | ✅ |
+| Event normalizer v0 (Frigate, D6210, Axis) | ✅ |
 | Event normalizer — AOA occupancy, scene, SPL metrics | ✅ |
 | Event store (`timeline.jsonl`, `metrics.jsonl`) | ✅ |
 | Timeline API v1 (`/api/v1/events`, `metrics`, `occupancy`) | ✅ |
@@ -173,9 +164,8 @@ Vision: [vision.md](vision.md) · Scope: [scope.md](scope.md) · Work queue: [ba
 
 | Task | Status |
 |---|---|
-| House state template (who, env, activity, energy) | ⬜ |
+| House state template (env, outdoor activity, energy) | ⬜ |
 | State aggregation from all Phase 5–7 sources | ⬜ |
-| "Who is home?" unified answer | ⬜ |
 | NL query interface (LLM over stored events) | ⬜ |
 | Weekly insight report (automated or agent-generated) | ⬜ |
 

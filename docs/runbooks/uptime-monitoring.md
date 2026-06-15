@@ -25,7 +25,6 @@ Run **Uptime Kuma** (Docker on dev PC or small Pi) with HTTP checks:
 | Home Assistant | `http://192.168.68.175:8123` | 60 s |
 | Danielsson Insights | `http://192.168.68.175:8765/timeline` | 60 s |
 | Frigate | `http://192.168.68.175:5000` | 120 s |
-| CodeProject.AI | `http://192.168.68.136:32168/v1/status` | 120 s |
 
 Notify via Telegram or mobile push on 2 consecutive failures.
 

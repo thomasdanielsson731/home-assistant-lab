@@ -49,9 +49,9 @@ Paste the agent file into a Cursor rule, or reference it at the start of a chat:
 
 All agents should read before working:
 
-1. [docs/current-focus.md](../docs/current-focus.md)
-2. [CLAUDE.md](../CLAUDE.md)
-3. [docs/vision.md](../docs/vision.md)
-4. [docs/scope.md](../docs/scope.md)
+1. [docs/current-focus.md](../docs/current-focus.md) — **start here** (active phase, commands)
+2. [docs/scope.md](../docs/scope.md) — in/out of scope incl. [ADR-006](../docs/decisions/006-no-face-no-companion-presence.md)
+3. [CLAUDE.md](../CLAUDE.md) — production facts, entity IDs, commands
+4. [docs/vision.md](../docs/vision.md) — long-term direction
 
 Review agents should also skim [docs/dashboard-design.md](../docs/dashboard-design.md) and `config/home-assistant/dashboards/home-lab.yaml`.

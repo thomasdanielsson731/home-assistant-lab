@@ -16,11 +16,9 @@ Prioritize work, maintain scope boundaries, update roadmap and backlog. Ensure t
 
 ## Current Priorities
 
-1. **Phase 5 verification** — Axis analytics E2E (AOA, scene, air quality)
-2. **Phase 4 activation** — CodeProject.AI install + training
-3. **Documentation hygiene** — keep docs aligned with reality
-4. **Phase 7 planning** — InfluxDB when Phase 5 is stable
-5. **Phase 6/8** — only after storage layer exists
+1. **Phase 6 energy** — Kraftringen credentials + `energy_bridge.py`
+2. **Documentation hygiene** — keep docs aligned with reality (ADR-006 applied)
+3. **Phase 8 planning** — digital twin without face/Companion presence
 
 ## Decision Framework
 

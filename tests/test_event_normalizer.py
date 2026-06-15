@@ -71,38 +71,6 @@ class TestHandleFrigateEvent:
         assert event["location"]["zone"] == "driveway"
 
 
-class TestHandleDoubleTake:
-    def test_attaches_identity(self, normalizer, store):
-        with patch("event_normalizer._download_snapshot", return_value=False):
-            normalizer.handle_frigate_event(FRIGATE_END_PERSON)
-
-        normalizer.handle_double_take({
-            "camera": "front",
-            "match": {"name": "thomas", "confidence": 92},
-        })
-        event = json.loads(store.timeline_jsonl.read_text().strip())
-        assert event["identity"]["name"] == "Thomas"
-        assert event["identity"]["confidence"] == pytest.approx(0.92)
-
-    def test_ignores_missing_match(self, normalizer, store):
-        normalizer.handle_double_take({"camera": "front"})
-        assert not store.timeline_jsonl.exists()
-
-    def test_handles_list_payload(self, normalizer, store):
-        with patch("event_normalizer._download_snapshot", return_value=False):
-            normalizer.handle_frigate_event(FRIGATE_END_PERSON)
-
-        msg = MagicMock()
-        msg.topic = "double_take/matches"
-        msg.payload = json.dumps([
-            {"camera": "front", "match": {"name": "anna", "confidence": 88}},
-        ]).encode()
-        normalizer.on_message(None, None, msg)
-        event = json.loads(store.timeline_jsonl.read_text().strip())
-        assert event["identity"]["name"] == "Anna"
-
-
-class TestHandleEnvMetric:
     def test_ignores_until_aqi_metric(self, normalizer, store):
         normalizer.handle_env_metric("axis/driveway_env/air/temperature", "18.5")
         normalizer.handle_env_metric("axis/driveway_env/air/co2", "431")

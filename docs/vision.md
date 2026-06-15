@@ -59,7 +59,7 @@ Not a 3D model. A **live state model** of the house:
 
 | Dimension | Examples |
 |---|---|
-| Who | Thomas / Nils / Hugo / Anna — home, away, at front door |
+| Who | Outdoor activity via `binary_sensor.house_outdoor_presence` — not per-person home/away |
 | Environment | Temperature, humidity, CO₂, AQI per zone |
 | Activity | Motion, person/vehicle counts, loitering |
 | Energy | Consumption patterns, cost drivers |
@@ -70,7 +70,7 @@ The twin answers questions like:
 - "Why was electricity higher this week?"
 - "Which rooms are used least?"
 - "When should we ventilate?"
-- "Is anyone home?"
+- "Is anyone outside?"
 
 ---
 
@@ -82,7 +82,7 @@ The twin answers questions like:
 - Local-first processing (no cloud for security data)
 - Camera analytics (Frigate + Axis AOA + scene metadata)
 - Environmental sensing (D6210 air quality)
-- Face recognition for **context** (who arrived), not surveillance
+- Outdoor presence from camera analytics (`binary_sensor.house_outdoor_presence`)
 - Time-series storage and dashboards for insight
 - Local LLM experiments (Ollama + Qwen)
 - Cursor/Claude agents for development and analysis
@@ -91,7 +91,7 @@ The twin answers questions like:
 ### Out of scope (for now)
 
 - Automating every light, blind, and switch (HomeKit handles this)
-- Cloud face recognition or cloud LLM for security paths
+- Face recognition, Double Take, or family Companion presence — [ADR-006](decisions/006-no-face-no-companion-presence.md)
 - ALPR unless a specific need arises
 - Nabu Casa / remote access until local setup is stable
 - Production-grade HA clustering or multi-site
@@ -104,8 +104,8 @@ The twin answers questions like:
 Windows PC (dev)                    Dell Latitude 3120 (prod)
 ├─ VS Code + Cursor                 ├─ Home Assistant OS
 ├─ Claude Code / Cursor agents      ├─ Frigate + Mosquitto
-├─ Ollama + Qwen                    ├─ Double Take
-├─ CodeProject.AI (face recognizer) ├─ 6× Axis cameras (RTSP + MQTT)
+├─ Ollama + Qwen                    ├─ Danielsson Insights add-on
+├─ sync scripts                     ├─ 6× Axis cameras (RTSP + MQTT)
 ├─ air_quality_bridge.py            └─ 1 TB SSD (recordings)
 └─ Git (this repo)
 ```
@@ -119,7 +119,7 @@ Windows PC (dev)                    Dell Latitude 3120 (prod)
 | 1 | Foundation — HAOS, MQTT, naming, backups | Done |
 | 2 | Cameras + Frigate — 6 cameras, detection, recording | Done |
 | 3 | Dashboard — 5 views, mobile-first | Done |
-| 4 | Face recognition — who is at the door | In progress |
+| 4 | ~~Face recognition~~ | **Removed** — [ADR-006](decisions/006-no-face-no-companion-presence.md) |
 | 5 | Axis analytics — AOA, scene, air quality via MQTT | Done |
 | 6 | AI integration — local LLM, scene understanding | Future |
 | 7 | Home Intelligence Timeline — events, correlation, HA sidebar | Done |

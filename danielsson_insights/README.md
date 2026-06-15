@@ -8,8 +8,6 @@ Runs the full analytics platform on the HA host (24/7):
 - `air_quality_bridge.py`, `audio_bridge.py`, `aoa_bridge.py`
 - `influx_metrics_bridge.py` — metrics → InfluxDB (when `influx_url` set)
 
-CodeProject.AI stays on the Windows dev PC.
-
 **Version:** 0.2.4 — Supervisor watchdog, direct URL dashboard support, Influx in add-on.
 
 ## Install

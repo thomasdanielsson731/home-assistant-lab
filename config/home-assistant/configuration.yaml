@@ -7,9 +7,24 @@ homeassistant:
 # Load default config set
 default_config:
 
-# Keep 90 days of history for outdoor env quarter graphs
+# Keep 90 days of history for outdoor env quarter graphs.
+# Exclude high-churn entities to reduce DB size and I/O on 4 GB HA host.
 recorder:
   purge_keep_days: 90
+  commit_interval: 60
+  auto_purge: true
+  exclude:
+    domains:
+      - automation
+      - script
+      - update
+      - persistent_notification
+    entity_globs:
+      - image.*
+      - binary_sensor.*_motion
+      - binary_sensor.*_scene_object_present
+      - sensor.*_scene_persons
+      - sensor.*_scene_vehicles
 
 # HTTP
 http:
@@ -21,7 +36,7 @@ http:
 logger:
   default: warning
   logs:
-    custom_components.frigate: info
+    custom_components.frigate: warning
 
 frontend:
   themes: !include_dir_merge_named themes

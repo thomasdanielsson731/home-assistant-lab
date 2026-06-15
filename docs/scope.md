@@ -32,7 +32,7 @@ Explicit boundaries for the Home Assistant Lab / Data Insights Lab. When in doub
 | 6× Axis cameras | `front`, `driveway_*`, `backyard`, `storage_*` | Frigate RTSP + Axis MQTT |
 | D6210 air quality | `driveway_env` | `air_quality_bridge.py` → MQTT |
 | HA device sensors | Rooms, energy, weather | Native HA integrations |
-| Person presence | Thomas, Nils, Hugo, Anna | Companion app / Deco |
+| Person presence | Outdoor activity only | Camera analytics (AOA, scene, Frigate) — not phone/face |
 | Frigate detections | All camera zones | MQTT + HA integration |
 
 ### Analytics and Vision
@@ -40,7 +40,6 @@ Explicit boundaries for the Home Assistant Lab / Data Insights Lab. When in doub
 - Frigate object detection (person, car)
 - Axis Object Analytics (person occupancy, vehicle, loitering)
 - Scene frame/track metadata (person/vehicle counts, snapshots)
-- Face recognition for household context (Double Take + CodeProject.AI)
 - Future: local LLM scene descriptions, anomaly detection
 
 ### Storage and Insights
@@ -65,8 +64,9 @@ Explicit boundaries for the Home Assistant Lab / Data Insights Lab. When in doub
 | Item | Reason | Alternative |
 |---|---|---|
 | Lamp/blind automation | HomeKit already works well | Use HA only for security/presence context |
-| Cloud AI for security data | Privacy policy — local only | Ollama, CodeProject.AI, CompreFace (local) |
-| AWS Rekognition / cloud face ID | Same | CodeProject.AI or CompreFace |
+| Cloud AI for security data | Privacy policy — local only | Ollama (local LLM experiments) |
+| Face recognition / Double Take | Removed — [ADR-006](decisions/006-no-face-no-companion-presence.md) | Camera analytics + correlation |
+| Family Companion app presence | Household declined HA app | Outdoor analytics; Thomas push for alerts only |
 | ALPR (license plates) | No current automation need | Add if a specific use case appears |
 | Nabu Casa remote access | Evaluate later | VPN or Tailscale if needed |
 | Multi-home / multi-tenant | Single property lab | N/A |
@@ -89,7 +89,7 @@ Explicit boundaries for the Home Assistant Lab / Data Insights Lab. When in doub
 The lab is "working" when:
 
 - [ ] All Phase 5 MQTT pipelines verified end-to-end (AOA, scene, air quality)
-- [ ] Face recognition identifies household members at `front`
+- [ ] Outdoor activity and correlation events reliable at entry zones
 - [ ] At least one insight dashboard shows a trend (not just live state)
 - [ ] Time-series data retained for 30+ days
 - [ ] An AI assistant can answer "what happened today?" from stored events

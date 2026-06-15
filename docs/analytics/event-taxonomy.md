@@ -8,7 +8,7 @@ Classification, lifecycle, and retention for Danielsson Insights events.
 
 | Type | Description | Primary sources | Phase |
 |---|---|---|---|
-| `person` | Human detected or identified | Frigate, AOA, Double Take | Live |
+| `person` | Human detected | Frigate, AOA | Live |
 | `vehicle` | Car, truck, bus, motorcycle | Frigate, AOA | Live |
 | `bicycle` | Bicycle with optional rider attribution | Frigate + scene + correlation engine | Live |
 | `cat` | Cat detected (neighbour cats) | Frigate / custom ACAP model | Planned |
@@ -117,7 +117,7 @@ Outdoor events use property zones. Indoor events (door, smoke, Zigbee) use room 
 
 When sources disagree on the same event:
 
-1. **Identity:** Double Take > Frigate label
+1. **Identity:** Correlation engine only when rules assign a name — no face ID ([ADR-006](../decisions/006-no-face-no-companion-presence.md))
 2. **Presence speed:** AOA > Frigate (lower latency)
 3. **Snapshot quality:** Frigate > Axis scene snapshot
 4. **Counts:** Axis scene metadata > Frigate count sensor

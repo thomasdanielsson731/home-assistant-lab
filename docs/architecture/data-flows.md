@@ -2,12 +2,13 @@
 
 Per-integration paths into the Danielsson event platform. All flows converge on `events/timeline.jsonl` and `events/metrics.jsonl` on HAOS (`/share/danielsson-insights/events/`).
 
+> Face recognition and family Companion presence removed — [ADR-006](../decisions/006-no-face-no-companion-presence.md).
+
 ## Frigate → timeline
 
 ```
 Axis RTSP → Frigate detect/record → MQTT frigate/events → event_normalizer.py → timeline.jsonl
                                                       ↘ HA Frigate integration (entities)
-Double Take ← Frigate snapshots (HTTP)
 ```
 
 Event types: `person`, `vehicle`, `bicycle` (+ enriched `arrival`, `delivery` via correlation engine).
@@ -28,14 +29,9 @@ Camera VAPIX / MQTT → Mosquitto axis/<zone>/…
 ZHA smoke alarm MQTT state → normalizer → smoke events
 ZHA temp sensor MQTT       → normalizer → metrics (temperature per room)
 Yale lock (future)         → normalizer → door events
-Companion app              → person.* entities → presence fusion templates
 ```
 
-## Double Take → timeline
-
-```
-Frigate snapshot → Double Take → CodeProject.AI (dev PC) → MQTT compreface/… → normalizer (identity hints)
-```
+Outdoor activity uses camera analytics templates (`binary_sensor.house_outdoor_presence`) — not phone presence.
 
 ## Metrics retention
 

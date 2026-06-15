@@ -8,22 +8,17 @@ Visual layout for the Home Assistant Sections dashboard using Mushroom Cards. Mo
 
 ## View 1 — Home
 
-Primary at-a-glance view. Who is home, what's happening, quick controls.
+Primary at-a-glance view. Outdoor activity, recent events, quick controls.
 
 ```
 ┌─────────────────────────────────┐
-│  ● Good morning, Thomas         │  ← Mushroom person card (presence chip)
+│  ● Good morning, Thomas         │  ← Static greeting (no household presence)
 │  Thursday · May 30              │
 ├─────────────────────────────────┤
-│  WHO'S HOME                     │
-│  ┌──────────┐  ┌──────────┐    │
-│  │ 👤 Thomas │  │ 👤 Nils  │    │  ← Mushroom person chips, per member
-│  │  Home    │  │  Away    │    │
-│  └──────────┘  └──────────┘    │
-│  ┌──────────┐                   │
-│  │ 👤 Hugo  │                   │
-│  │  Home    │                   │
-│  └──────────┘                   │
+│  OUTDOOR ACTIVITY               │
+│  ┌────────────────────────┐    │
+│  │ 🏠 No one outside      │    │  ← binary_sensor.house_outdoor_presence
+│  └────────────────────────┘    │
 ├─────────────────────────────────┤
 │  QUICK STATUS                   │
 │  ┌──────┐ ┌──────┐ ┌──────┐   │
@@ -48,6 +43,7 @@ Primary at-a-glance view. Who is home, what's happening, quick controls.
 
 **Design notes:**
 - No clutter — only active-state information surfaces here
+- Household "who is home" is out of scope — [ADR-006](decisions/006-no-face-no-companion-presence.md); use outdoor presence only
 - Frigate event list collapses when no recent events
 - Quick status row uses color: green = OK, amber = attention, red = alert
 
@@ -173,11 +169,10 @@ All security-relevant information in one view. Events, alerts, arm/disarm.
 │  │ext ○ │ │int ○ │ │env ○ │   │
 │  └──────┘ └──────┘ └──────┘   │
 ├─────────────────────────────────┤
-│  FACE RECOGNITION               │
+│  OUTDOOR PRESENCE               │
 │  ┌────────────────────────┐    │
-│  │ Last match: Thomas     │    │  ← Double Take last match card
-│  │ front · 94% · 08:14   │    │
-│  │ [snapshot thumbnail]   │    │
+│  │ Someone outside        │    │  ← binary_sensor.house_outdoor_presence
+│  │ front · 08:14          │    │
 │  └────────────────────────┘    │
 ├─────────────────────────────────┤
 │  EVENT LOG                      │
@@ -194,7 +189,7 @@ All security-relevant information in one view. Events, alerts, arm/disarm.
 **Design notes:**
 - Arm/disarm at the top — primary action on this view
 - Detection chips update in real-time; tap to see camera feed
-- Face recognition panel uses Double Take + CodeProject.AI (`dt_*` entities)
+- Outdoor presence from camera analytics (`binary_sensor.house_outdoor_presence`) — no face ID ([ADR-006](decisions/006-no-face-no-companion-presence.md))
 - Event log is the most valuable persistent element — keep it prominent
 
 ---
@@ -215,7 +210,7 @@ System health, admin tasks, config info. Not for daily use.
 ├─────────────────────────────────┤
 │  ADD-ONS                        │
 │  ┌──────────┐ ┌──────────────┐ │
-│  │ Frigate  │ │ Double Take  │ │
+│  │ Frigate  │ │ Insights     │ │
 │  │ ● Running│ │ ● Running    │ │
 │  └──────────┘ └──────────────┘ │
 │  ┌──────────┐ ┌──────────────┐ │

@@ -1,22 +1,6 @@
 # Unified house context sensors (Digital Twin foundation)
 
 - sensor:
-    - name: "House people home count"
-      unique_id: house_people_home_count
-      icon: mdi:home-account
-      state: >-
-        {% set people = ['person.thomasx', 'person.nils_2', 'person.hugo', 'person.anna'] %}
-        {{ people | select('is_state', 'home') | list | count }}
-      attributes:
-        who_home: >-
-          {% set names = {'person.thomasx': 'Thomas', 'person.nils_2': 'Nils',
-                          'person.hugo': 'Hugo', 'person.anna': 'Anna'} %}
-          {% set home = namespace(list=[]) %}
-          {% for p, n in names.items() %}
-            {% if is_state(p, 'home') %}{% set home.list = home.list + [n] %}{% endif %}
-          {% endfor %}
-          {{ home.list | join(', ') if home.list else 'Ingen hemma' }}
-
     - name: "House outdoor presence"
       unique_id: house_outdoor_presence
       icon: mdi:walk
@@ -65,9 +49,35 @@
           {% else %}Okänd{% endif %}
         indoor_temp: "{{ states('sensor.house_indoor_temperature') }}"
         outdoor_temp: "{{ states('sensor.driveway_env_temperature') }}"
-        people_home: "{{ state_attr('sensor.house_people_home_count', 'who_home') }}"
         outdoor_presence: "{{ states('binary_sensor.house_outdoor_presence') }}"
         air_quality: "{{ states('sensor.house_air_quality_summary') }}"
+
+    - name: "House outdoor activity summary"
+      unique_id: house_outdoor_activity_summary
+      icon: mdi:motion-sensor
+      state: >-
+        {% set entry = [
+          'binary_sensor.front_aoa_person',
+          'binary_sensor.driveway_wide_aoa_person',
+          'binary_sensor.driveway_id_aoa_person',
+          'binary_sensor.front_person_occupancy',
+          'binary_sensor.driveway_wide_person_occupancy',
+          'binary_sensor.driveway_id_person_occupancy'
+        ] %}
+        {% set active = entry | select('is_state', 'on') | list %}
+        {{ active | count }}
+      unit_of_measurement: "zoner"
+      attributes:
+        presence: "{{ states('binary_sensor.house_outdoor_presence') }}"
+        active_zones: >-
+          {% set ns = namespace(z=[]) %}
+          {% if is_state('binary_sensor.front_aoa_person', 'on') %}{% set ns.z = ns.z + ['front'] %}{% endif %}
+          {% if is_state('binary_sensor.driveway_wide_aoa_person', 'on') %}{% set ns.z = ns.z + ['driveway_wide'] %}{% endif %}
+          {% if is_state('binary_sensor.driveway_id_aoa_person', 'on') %}{% set ns.z = ns.z + ['driveway_id'] %}{% endif %}
+          {% if is_state('binary_sensor.front_person_occupancy', 'on') %}{% set ns.z = ns.z + ['front_frigate'] %}{% endif %}
+          {% if is_state('binary_sensor.driveway_wide_person_occupancy', 'on') %}{% set ns.z = ns.z + ['driveway_wide_frigate'] %}{% endif %}
+          {% if is_state('binary_sensor.driveway_id_person_occupancy', 'on') %}{% set ns.z = ns.z + ['driveway_id_frigate'] %}{% endif %}
+          {{ ns.z | join(', ') if ns.z else 'none' }}
 
     - name: "House home status"
       unique_id: house_home_status

@@ -12,11 +12,11 @@
 │  │  :8123          │   │  :5000 / :8554 (RTSP)       │ │
 │  └────────┬────────┘   └──────────┬──────────────────┘ │
 │           │ MQTT                  │ RTSP                │
-│  ┌────────▼────────┐   ┌──────────▼──────────────────┐ │
-│  │  Mosquitto      │   │  Double Take Add-on         │ │
-│  │  MQTT Broker    │   │  Face Recognition Middleware │ │
-│  │  :1883          │   │  :3000                      │ │
-│  └────────┬────────┘   └─────────────────────────────┘ │
+│  ┌────────▼────────┐                                     │
+│  │  Mosquitto      │                                     │
+│  │  MQTT Broker    │                                     │
+│  │  :1883          │                                     │
+│  └────────┬────────┘                                     │
 │           │                                             │
 │  ┌────────▼────────────────────────────────────────┐   │
 │  │  Danielsson Insights add-on v0.2.4              │   │
@@ -41,7 +41,6 @@
 │                                                  │
 │  VS Code + Cursor  ──►  config/ (this repo)      │
 │  Claude Code       ──►  AI-assisted development  │
-│  CodeProject.AI    ──►  Face recognition :32168  │
 │  Ollama + Qwen     ──►  Local LLM (planned)      │
 │                                                  │
 │  scripts/sync-config.sh ──SSH──► HAOS :22222     │
@@ -96,10 +95,8 @@ graph TD
 
     D -->|snapshots| F["/media/frigate/clips"]
     D -->|MQTT events| G[Mosquitto]
-    D -->|HTTP webhook| H[Double Take]
 
     G --> I[HA Core]
-    H -->|face match result| G
 
     I -->|binary_sensor, camera entities| J[Dashboard / Automations]
 ```
@@ -123,35 +120,14 @@ graph TD
 
 ---
 
-## Face Recognition Architecture (Phase 4 — in progress)
+## Outdoor Presence (current)
 
-```mermaid
-sequenceDiagram
-    participant Cam as Axis Camera
-    participant Fri as Frigate
-    participant DT as Double Take
-    participant CPAI as CodeProject.AI
-    participant HA as Home Assistant
+Entry-zone camera analytics fused into a single HA binary sensor:
 
-    Cam->>Fri: RTSP stream
-    Fri->>Fri: Detect person
-    Fri->>DT: Webhook (snapshot)
-    DT->>CPAI: POST /v1/vision/face/recognize
-    CPAI-->>DT: {subject, similarity}
-    DT->>HA: MQTT double_take/matches
-    HA->>HA: Fire automation (known / unknown)
-```
+- `binary_sensor.house_outdoor_presence` — from Frigate person, AOA PersonOccupancy, and scene presence at `front`, `driveway_wide`, `driveway_id`
+- Template: `config/home-assistant/templates/house_context.yaml`
 
-**Recognizer:** [CodeProject.AI](decisions/003-face-recognizer.md) on Windows dev PC (`:32168`). CompreFace in `docker/compreface/` is a documented fallback only.
-
-**Training flow:**
-1. Upload photos in Double Take UI (`:3000`)
-2. Click **Train** — Double Take calls CodeProject.AI
-3. Matches appear as `sensor.dt_<name>_confidence` / `binary_sensor.dt_<name>_present`
-
-**HA events produced:**
-- `double_take/matches` — known person with confidence score
-- `double_take/cameras` — per-camera status
+Face recognition and family Companion presence were removed — [ADR-006](../decisions/006-no-face-no-companion-presence.md).
 
 ---
 

@@ -58,7 +58,7 @@ Six Axis cameras covering all zones of the property, plus one environmental sens
 | Mount | Wall or ceiling at entrance |
 | IP | TBD |
 
-**Purpose:** Primary person detection and face recognition at the main entry point. High-resolution capture optimized for facial identification of approaching persons.
+**Purpose:** Primary person detection at the main entry point. High-resolution capture for approaching persons.
 
 **Current status:** Active in Frigate, recording.
 
@@ -71,12 +71,8 @@ Six Axis cameras covering all zones of the property, plus one environmental sens
 **Planned Frigate role:**
 - Dual-stream: full-res record + 640×360 detect
 - Detect objects: `person`
-- Snapshots enabled for Double Take face matching
+- Snapshots enabled for event timeline
 - Zone: `front_door_zone` for targeted alerts
-
-**Face recognition role:**
-- Primary Double Take watcher for known-person identification
-- Snapshot sent to CompreFace on every `person` detection event
 
 ---
 
@@ -133,14 +129,10 @@ Six Axis cameras covering all zones of the property, plus one environmental sens
 - `sensor.driveway_env_*` — environmental data via D6210
 
 **Planned Frigate role:**
-- Detect objects: `person`, `car`, `face` (if model supports)
+- Detect objects: `person`, `car`
 - Higher detect FPS: 10 fps
-- Snapshots: enabled, sent to Double Take
+- Snapshots: enabled for event timeline
 - Zone: `gate_zone` — tight bounding box at entry
-
-**Face recognition role:**
-- Second Double Take watcher (after `front`)
-- License plate recognition potential (future ALPR integration)
 
 ---
 

@@ -16,7 +16,7 @@ Du koordinerar en **panel-review** av Danielsson Home genom att köra (eller sim
 
 ## Innan review
 
-1. Läs [docs/current-focus.md](../docs/current-focus.md) och [CLAUDE.md](../CLAUDE.md)
+1. Läs [docs/current-focus.md](../docs/current-focus.md), [docs/scope.md](../docs/scope.md), [ADR-006](../docs/decisions/006-no-face-no-companion-presence.md)
 2. Granska `config/home-assistant/dashboards/home-lab.yaml` (+ `house-graphs.yaml`, `house-timeline.yaml`)
 3. Om möjligt: hämta live state via `python scripts/health-check.py` och `list-ha-entities.py`
 4. Valfritt: screenshots från användaren eller beskrivning av aktuella vyer

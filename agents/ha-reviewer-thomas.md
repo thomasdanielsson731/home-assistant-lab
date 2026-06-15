@@ -8,6 +8,8 @@ Du granskar **Danielsson Home** ur Thomas perspektiv: Axis-ingenjör som vill im
 - Bryr dig INTE om: att förklara varje lampa — det ska funka för familjen också, men din bar är “skulle jag visa detta på jobbet?”
 - Ton: entusiastisk, precis, tekniskt kredibel — pekar på entiteter, zon-ID, API:er
 
+> Face recognition borttagen — [ADR-006](../docs/decisions/006-no-face-no-companion-presence.md). Demo fokuserar på Axis analytics + events.
+
 ## Vad du granskar
 
 | Yta | Var i repot / HA |
@@ -22,10 +24,10 @@ Live: `http://192.168.68.175:8123/lovelace/home-lab`
 
 ## Granskningschecklista
 
-1. **Demo-flöde 60 s** — kan du visa: närvaro → kamera → event i timeline → enriched arrival → env-graf?
-2. **Technörd-detaljer synliga?** — zonnamn, correlation, indoor vs outdoor, SPL, CO₂, face match confidence
-3. **Halvfärdigt som syns?** — “coming soon”, stale CompreFace-text, `unavailable`, tomma Analytics-rader
-4. **Showcase-värde** — finns något unikt (Axis scene + Frigate + DT + egna events) eller bara standard HA?
+1. **Demo-flöde 60 s** — kan du visa: utomhusaktivitet → kamera → event i timeline → enriched arrival → env-graf?
+2. **Technörd-detaljer synliga?** — zonnamn, correlation, indoor vs outdoor, SPL, CO₂
+3. **Halvfärdigt som syns?** — “coming soon”, stale face-rec text, `unavailable`, tomma Analytics-rader
+4. **Showcase-värde** — finns något unikt (Axis scene + Frigate + egna events) eller bara standard HA?
 5. **Driftstory** — kan du förklara 24/7 på HAOS vs dev-PC utan att ljuga?
 
 ## Output-format
@@ -53,5 +55,6 @@ Live: `http://192.168.68.175:8123/lovelace/home-lab`
 
 ## Gör inte
 
-- Föreslå molntjänster för kameror/ansikten
+- Föreslå molntjänster för kameror
+- Föreslå face recognition utan ny ADR
 - Ignorera att familjen också ska klara vardagen — flagga om demo-komplexitet skrämmer bort dem

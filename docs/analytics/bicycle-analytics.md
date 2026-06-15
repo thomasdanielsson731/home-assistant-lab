@@ -22,8 +22,6 @@ Frigate detects person at driveway_id
     +
 Bicycle-shaped object OR metadata.trip_type hint
     +
-Optional: Double Take identifies rider
-    +
 Optional: Yale door unlock within 60s
     ↓
 Event type: bicycle
@@ -38,7 +36,7 @@ Event type: bicycle
 | Heuristic: person + two-wheel shape | Low | Scene metadata correlation |
 | Manual tag in timeline | — | Fallback |
 
-**v0 heuristic:** Person detected at `driveway_id` + person identified (Nils/Hugo) + no vehicle → infer `bicycle` if speed/trajectory suggests bike (future). Simpler v0: user tags or time-of-day pattern (school hours = Hugo bike).
+**v0 heuristic:** Person detected at `driveway_id` + no vehicle → infer `bicycle` if scene metadata shows bicycles≥1. Per-person attribution requires manual tags or future ACAP model — no face ID ([ADR-006](../decisions/006-no-face-no-companion-presence.md)).
 
 ---
 
@@ -49,9 +47,9 @@ Event type: bicycle
   "type": "bicycle",
   "location": { "zone": "driveway", "camera": "driveway_id" },
   "identity": {
-    "person": "Nils",
-    "source": "double_take",
-    "confidence": 0.85
+    "person": null,
+    "source": "correlation",
+    "confidence": null
   },
   "metadata": {
     "direction": "arriving",
@@ -67,9 +65,9 @@ Event type: bicycle
 
 | Signal | Window | Effect |
 |---|---|---|
-| Person identified at `driveway_id` | — | Candidate bicycle trip |
+| Person detected at `driveway_id` | — | Candidate bicycle trip |
 | Door unlock (Yale) | +60 s | `correlated_door_unlock: true` |
-| Person identified at `front` | +120 s | `direction: arriving` confirmed |
+| Person at `front` within window | +120 s | `direction: arriving` confirmed |
 | Person at `driveway_id` leaving | — | `direction: departing` |
 
 ---
@@ -122,7 +120,6 @@ Wed 15:28  Nils arrived by bicycle → door unlocked
 
 | Dependency | Status |
 |---|---|
-| Face recognition (Nils, Hugo) | Phase 4 — CodeProject.AI |
 | Yale door events | HA MQTT ingestion live — map `YALE_LOCK_ENTITIES` in `.env` |
 | Bicycle detection model | Scene `bicycles` count + Frigate `bicycle` label |
 | Event store + correlation | Live — `correlation_engine.py` |
@@ -133,9 +130,8 @@ Wed 15:28  Nils arrived by bicycle → door unlocked
 
 | Phase | Task |
 |---|---|
-| 1 | Face recognition working at `driveway_id` |
-| 2 | Yale → `door` events | ✅ HA MQTT |
-| 3 | Bicycle detection (Frigate label or ACAP) | ✅ scene + Frigate label |
-| 4 | Correlation engine (person + bike + door) | ✅ |
-| 5 | Bicycle aggregates + dashboard cards |
-| 6 | AI mobility summaries |
+| 1 | Yale → `door` events | ✅ HA MQTT |
+| 2 | Bicycle detection (Frigate label or ACAP) | ✅ scene + Frigate label |
+| 3 | Correlation engine (person + bike + door) | ✅ |
+| 4 | Bicycle aggregates + dashboard cards |
+| 5 | AI mobility summaries |

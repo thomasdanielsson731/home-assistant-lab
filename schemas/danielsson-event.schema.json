@@ -64,7 +64,7 @@
     },
     "source": {
       "type": "string",
-      "enum": ["frigate", "axis_aoa", "axis_scene", "double_take", "yale", "d6210", "ha", "normalizer"]
+      "enum": ["frigate", "axis_aoa", "axis_scene", "yale", "d6210", "ha", "normalizer", "correlation"]
     },
     "enriched": {
       "type": "boolean",

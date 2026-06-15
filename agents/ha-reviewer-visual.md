@@ -14,7 +14,7 @@ Du granskar **utseende och visuell hierarki** i Danielsson Home — Mushroom Car
 |---|---|
 | Home | Status-rad balans, chip-färger (CO₂/AQI), hälsningskort |
 | Cameras | 2-kolumns grid, tomma ytor, kameraproportioner 16:9 |
-| Security | Larmfärger (röd/grön), face-kort vs smoke vs water hierarki |
+| Security | Larmfärger (röd/grön), smoke vs water hierarki |
 | Rooms | Repetition taklampa/väggströmbrytare-kort, column_span |
 | Operations | Chip-rader vs kort — ser det ut som samma produkt? |
 

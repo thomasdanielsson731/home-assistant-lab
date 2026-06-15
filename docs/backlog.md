@@ -2,9 +2,9 @@
 
 Prioritized work items. Effort: S (< 2h), M (half-day), L (full day), XL (multiple days).
 
-Vision: [vision.md](vision.md) · Active phase: **4 (Face Recognition)**
+Vision: [vision.md](vision.md) · Active phase: **6 (Energy + narratives)**
 
-**Runtime (2026-06-12):** Analytics platform on **Danielsson Insights add-on v0.2.4** on HAOS (`192.168.68.175:8765`). Dev PC runs **CodeProject.AI only** (`:32168`).
+**Runtime (2026-06-14):** Analytics platform on **Danielsson Insights add-on v0.2.4** on HAOS (`192.168.68.175:8765`). Face recognition and family Companion presence **removed** — [ADR-006](decisions/006-no-face-no-companion-presence.md).
 
 ---
 
@@ -30,19 +30,13 @@ Complete the Axis analytics pipeline end-to-end.
 
 ---
 
-## Now — Phase 4 Face Recognition
+## Removed — Phase 4 Face Recognition (ADR-006)
 
-CodeProject.AI path — see [ADR-003](decisions/003-face-recognizer.md) · [runbook](runbooks/codeproject-ai-setup.md).
-
-| # | Item | Effort | Status |
-|---|---|---|---|
-| P4-1 | Install CodeProject.AI on Windows dev PC | S | ✅ `.NET 9` + CPAI service on dev PC |
-| P4-2 | Enable Face module, firewall `:32168`, verify API | S | ✅ LAN firewall rule |
-| P4-3 | Sync DT config + restart Double Take | S | ✅ MQTT auth, DeepStack API, timeout 60s |
-| P4-4 | Training photos + **Train** in DT UI | M | 🔄 Thomas 23 imgs trained; Nils, Hugo, Anna ⬜ |
-| P4-5 | Live match at `front` / `driveway_id` — target >85% | M | ⬜ no verified match yet |
-| P4-6 | Unknown person alert automation | S | ⬜ `smart_notifications.yaml`, `initial_state: false` |
-| P4-7 | Face match status on Security dashboard | S | 🔄 card live; needs first match for `dt_*` entities |
+| # | Item | Status |
+|---|---|---|
+| — | Double Take, CodeProject.AI, CompreFace, `dt_*`, presence fusion | ❌ Removed 2026-06-14 |
+| — | Family Companion presence / "who is home" dashboard | ❌ Out of scope |
+| — | Thomas security push (`notify.mobile_app_thomas_iphone_15`) | ✅ Kept in automations (disabled by default) |
 
 ---
 
@@ -50,7 +44,7 @@ CodeProject.AI path — see [ADR-003](decisions/003-face-recognizer.md) · [runb
 
 | # | Item | Effort | Status |
 |---|---|---|---|
-| P7-1 | Event normalizer — Frigate + DT + D6210 → JSON | M | ✅ |
+| P7-1 | Event normalizer — Frigate + Axis + D6210 → JSON | M | ✅ |
 | P7-2 | Timeline list UI (`:8765`) | S | ✅ |
 | P7-3 | Verify person events from live Frigate tracks | S | ✅ health-check |
 | P7-4 | Bridge startup on HAOS add-on (24/7) | S | ✅ add-on v0.2.4 |
@@ -63,7 +57,7 @@ CodeProject.AI path — see [ADR-003](decisions/003-face-recognizer.md) · [runb
 | P7-11 | HA Timeline dashboard (`house-timeline`) | S | ✅ direct `:8765` URLs |
 | P7-12 | Bridge heartbeat metrics + `bridge_watchdog.py` | S | ✅ |
 | P7-13 | HAOS Insights add-on + deploy script | M | ✅ v0.2.4, watchdog, Ingress-safe URLs |
-| P7-14 | Presence fusion v1 — templates + normalizer hints | M | ✅ |
+| P7-14 | Outdoor presence template + house context sensors | M | ✅ |
 | P7-15 | Ingress 401 fix — direct URL secrets + regression tests | M | ✅ 2026-06-11 |
 | P7-16 | Dashboard polish — smoke section, panel warning, camera grid | S | ✅ 2026-06-11 |
 
@@ -103,7 +97,7 @@ CodeProject.AI path — see [ADR-003](decisions/003-face-recognizer.md) · [runb
 
 | # | Item | Effort | Dependencies |
 |---|---|---|---|
-| F1 | House state template sensor (who, env, activity) | M | P5, P4 |
+| F1 | House state template sensor (outdoor activity, env, energy) | M | P5 |
 | F2 | NL query over stored events (LLM + context) | L | L1, L3 |
 | F3 | Weekly insight report (agent-generated) | M | F1, L7 |
 | F4 | Wyoming STT/TTS for local voice (optional) | M | L4 |
@@ -146,7 +140,8 @@ CodeProject.AI path — see [ADR-003](decisions/003-face-recognizer.md) · [runb
 
 | Item | Reason |
 |---|---|
-| Cloud face recognition | Local-only privacy policy |
+| Double Take / CodeProject.AI / CompreFace | Removed — ADR-006 |
+| Family Companion presence | Household declined HA app |
 | Nabu Casa remote access | Evaluate after local setup stable |
 | ALPR | No current automation need |
 | HA REST sensors for D6210 | Replaced by MQTT bridge |

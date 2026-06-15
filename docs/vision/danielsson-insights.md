@@ -21,7 +21,7 @@ Collect → Enrich → Analyze → Visualize → Understand
 | Event hub | Home Assistant OS | State + automation trigger, not the analytics store |
 | Vision | Frigate + 6× Axis cameras | Detections, snapshots, clips |
 | On-camera analytics | Axis AOA + scene metadata | Fast presence, counts |
-| Face context | Double Take + CodeProject.AI | Person identity |
+| Outdoor presence | `binary_sensor.house_outdoor_presence` | Entry-zone fusion (no face ID) |
 | Access | Yale Doorman V3 (hardware pending) | Door events via HA MQTT (`door` type live in normalizer) |
 | Environment | D6210 via MQTT bridge | Environmental events |
 | Future | Zigbee, custom ACAP models | Smoke, cat |
@@ -32,12 +32,12 @@ Collect → Enrich → Analyze → Visualize → Understand
 
 | Domain | Event type | Status |
 |---|---|---|
-| Persons | `person` | Frigate + AOA live; face recognition in progress |
+| Persons | `person` | Frigate + AOA live |
 | Vehicles | `vehicle` | Frigate + AOA on driveway cameras |
 | Bicycles | `bicycle` | Live — correlation engine (person + scene bike + optional door) |
 | Cats | `cat` | Planned — custom model or Frigate label |
 | Deliveries | `delivery` | Live — correlation engine + scene automation |
-| Arrivals | `arrival` | Live — identity, vehicle→person, door unlock |
+| Arrivals | `arrival` | Live — vehicle→person, door unlock (no identity attach) |
 | Environment | `environment` | D6210 live via `air_quality_bridge.py` |
 | Doors | `door` | Live — `homeassistant/lock/+/state` (map `YALE_LOCK_ENTITIES`) |
 | Smoke | `smoke` | Future Zigbee |
@@ -84,7 +84,7 @@ Use these when starting a new analytics task. Read [event-model.md](../analytics
 
 ### Prompt 6 — Bicycle Analytics
 
-> Understand family mobility. Input: camera detections, face recognition, Yale lock events. Output: trips, person attribution, weekly/seasonal trends.
+> Understand family mobility. Input: camera detections, scene bicycle counts, Yale lock events. Output: trips, weekly/seasonal trends (no per-person face ID — [ADR-006](../decisions/006-no-face-no-companion-presence.md)).
 
 ---
 

@@ -17,6 +17,6 @@
 #       - sensor.driveway_env_aqi
 #       - sensor.driveway_env_humidity
 #       - sensor.driveway_env_pm25
-#       - sensor.house_people_home_count
+#       - binary_sensor.house_outdoor_presence
 #       - binary_sensor.front_aoa_person
 #       - binary_sensor.driveway_wide_aoa_vehicle

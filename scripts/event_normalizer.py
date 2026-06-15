@@ -6,7 +6,6 @@ Subscribes to MQTT and writes canonical events to events/.
 
 Sources:
   - frigate/events        → person, vehicle
-  - double_take/matches   → identity enrichment
   - axis/driveway_env/air/# → environment (every 15 min)
   - axis/+/audio/spl      → metrics (SPL)
   - axis/+/scene/frame    → scene events
@@ -36,7 +35,6 @@ from paho.mqtt.client import CallbackAPIVersion
 # Allow import from scripts/
 sys.path.insert(0, str(Path(__file__).parent))
 from correlation_engine import CorrelationEngine  # noqa: E402
-from presence_fusion import PresenceFusionCache, enrich_person_event  # noqa: E402
 from event_store import (  # noqa: E402
     CAMERA_ZONE,
     FRIGATE_LABEL_TYPE,
@@ -69,7 +67,6 @@ log = logging.getLogger("event_normalizer")
 
 store = EventStore()
 correlator = CorrelationEngine(store)
-fusion = PresenceFusionCache()
 _env_cache: dict[str, float | int] = {}
 _last_env_event = 0.0
 # zone:scenario → (active, started_at, start_event_written)
@@ -252,36 +249,9 @@ def handle_frigate_event(payload: dict) -> None:
             "thumbnail": snapshot_rel,
         }
 
-    if fusion.enabled():
-        event = enrich_person_event(event, fusion.members())
     event["summary"] = make_summary(event)
     eid = store.write(event)
     _correlate(event, eid)
-
-
-def handle_double_take(payload: dict) -> None:
-    match = payload.get("match") or payload.get("payload", {}).get("match")
-    if not match:
-        return
-    name = match.get("name") or match.get("id")
-    if not name:
-        return
-    camera = payload.get("camera", "front")
-    conf = match.get("confidence", 0)
-    if conf > 1:
-        conf = conf / 100.0
-    attached_id = store.attach_identity(camera, name, float(conf))
-    if attached_id and store.timeline_jsonl.exists():
-        for line in reversed(store.timeline_jsonl.read_text(encoding="utf-8").splitlines()):
-            if not line.strip():
-                continue
-            try:
-                ev = json.loads(line)
-            except json.JSONDecodeError:
-                continue
-            if ev.get("event_id") == attached_id:
-                correlator.process(ev)
-                break
 
 
 def reset_env_state() -> None:
@@ -664,13 +634,6 @@ def on_message(client, userdata, msg):
     try:
         if msg.topic == "frigate/events":
             handle_frigate_event(json.loads(msg.payload))
-        elif msg.topic == "double_take/matches":
-            data = json.loads(msg.payload)
-            if isinstance(data, list):
-                for item in data:
-                    handle_double_take(item)
-            else:
-                handle_double_take(data)
         elif msg.topic.startswith("axis/driveway_env/air/"):
             handle_env_metric(msg.topic, msg.payload.decode())
         elif msg.topic.endswith("/audio/spl"):
@@ -701,7 +664,6 @@ def main() -> None:
     client.connect(MQTT_HOST, 1883, 60)
 
     client.subscribe("frigate/events")
-    client.subscribe("double_take/matches")
     client.subscribe("axis/driveway_env/air/#")
     client.subscribe("axis/+/audio/spl")
     client.subscribe("axis/+/scene/frame")
@@ -711,7 +673,6 @@ def main() -> None:
     client.subscribe("homeassistant/binary_sensor/+/state")
     client.subscribe("homeassistant/sensor/+/state")
 
-    fusion.start_background()
     log.info("Event normalizer started  mqtt=%s  store=%s", MQTT_HOST, store.events_root)
     client.loop_forever()
 

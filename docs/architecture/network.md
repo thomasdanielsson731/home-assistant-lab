@@ -7,7 +7,7 @@ Home lab LAN at `192.168.68.0/24`. Static DHCP recommended for all infrastructur
 | Host | IP | Role |
 |---|---|---|
 | HAOS (Dell Latitude 3120) | `192.168.68.175` | Home Assistant, Frigate, MQTT, Insights add-on |
-| Dev PC (Windows) | `192.168.68.136` | CodeProject.AI `:32168`, git repo, sync scripts |
+| Dev PC (Windows) | `192.168.68.136` | Git repo, sync scripts, Ollama (optional) |
 | Router (TP-Link Deco M9+) | gateway | WAN, Wi‑Fi, optional device presence |
 
 ## Camera network (PoE)
@@ -31,11 +31,9 @@ Home lab LAN at `192.168.68.0/24`. Static DHCP recommended for all infrastructur
 | Mosquitto | `1883` | Internal; do not forward WAN |
 | Frigate UI / API | `5000` | Add-on |
 | Frigate RTSP re-stream | `8554` | Add-on |
-| Double Take | `3000` | Add-on |
 | Danielsson Insights | `8765` | Add-on + Ingress |
 | Grafana | Ingress | HA sidebar |
 | InfluxDB | `8086` | Add-on internal |
-| CodeProject.AI | `32168` | Dev PC only |
 
 ## VLAN design (future)
 

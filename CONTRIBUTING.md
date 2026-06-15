@@ -35,7 +35,7 @@ feat: add driveway_id camera to Frigate config
 fix: correct RTSP URL for storage_ext camera
 docs: add D6210 integration options to cameras.md
 config: update Frigate retention to 14 days for events
-chore: update .gitignore for Double Take storage paths
+chore: update .gitignore for event storage paths
 ```
 
 ---

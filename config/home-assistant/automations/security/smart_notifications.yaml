@@ -2,10 +2,9 @@
 #
 # Notify ONLY for:
 #   1. Cats (neighbour cats, custom Frigate model)
-#   2. Persons who are NOT family (Thomas, Nils, Hugo, Anna)
+#   2. Unknown persons at entry (Frigate person — no household identity layer)
 #
-# Requires Phase 4 (Double Take) for unknown-person filtering.
-# Set initial_state: true on individual automations when ready.
+# Thomas iPhone push only (family does not use HA Companion for presence).
 
 - id: notify_cat_detected
   alias: "Notify — cat detected"
@@ -33,11 +32,11 @@
           image: /api/frigate/notifications/{{ trigger.payload_json.after.id }}/snapshot.jpg
 
 - id: notify_unknown_person_entry
-  alias: "Notify — unknown person at entry"
+  alias: "Notify — person at entry"
   initial_state: false
   description: >
-    Push when a person is detected and no family member is identified.
-    Enable after Double Take is trained for Thomas, Nils, Hugo, Anna.
+    Push when Frigate detects a person at an entry camera.
+    Enable when you want Thomas-only security alerts (no face filtering).
   mode: single
   max_exceeded: silent
   trigger:
@@ -49,16 +48,10 @@
         {{ trigger.payload_json.type == 'new'
            and trigger.payload_json.after.label == 'person'
            and trigger.payload_json.after.camera in ['front', 'driveway_id', 'driveway_wide'] }}
-    - condition: template
-      value_template: >
-        {{ not is_state('binary_sensor.dt_thomas_present', 'on')
-           and not is_state('binary_sensor.dt_nils_present', 'on')
-           and not is_state('binary_sensor.dt_hugo_present', 'on')
-           and not is_state('binary_sensor.dt_anna_present', 'on') }}
   action:
     - service: notify.mobile_app_thomas_iphone_15
       data:
-        title: "Unknown person"
+        title: "Person at entry"
         message: >-
           {{ trigger.payload_json.after.camera | replace('_', ' ') | title }}
         data:

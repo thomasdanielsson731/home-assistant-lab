@@ -4,16 +4,16 @@ Phase 7e — derive enriched events from raw timeline events.
 
 ## Module
 
-`scripts/correlation_engine.py` — invoked automatically by `event_normalizer.py` after each raw event is stored (and after Double Take identity attach).
+`scripts/correlation_engine.py` — invoked automatically by `event_normalizer.py` after each raw event is stored.
 
 ## Rules (v1)
 
 | Enriched type | Trigger | Conditions | Cooldown |
 |---|---|---|---|
 | `delivery` | person, vehicle, or scene at `front`/`driveway` | person + vehicle in 10 min, OR scene with persons≥1 and vehicles≥1 | 20 min |
-| `arrival` | identified person at entrance | `identity.name` at `front` or `driveway` | 30 min per person |
+| `arrival` | person at entrance | person at `front` or `driveway` within correlation window | 30 min |
 | `arrival` | vehicle then person | vehicle + person within 2 min at entrance zones | 30 min |
-| `arrival` | door unlock | person at `front`/`driveway` within 5 min before unlock; named person uses `door_unlock`, with vehicle uses `door_unlock_vehicle_person` | 30 min |
+| `arrival` | door unlock | person at `front`/`driveway` within 5 min before unlock; with vehicle uses `door_unlock_vehicle_person` | 30 min |
 | `bicycle` | person, scene, bicycle, or door | person + bike signal (Frigate `bicycle` or scene `bicycles`≥1) at `front`/`driveway`/`driveway_id` within 5 min; door unlock adds `correlated_door_unlock` | 20 min |
 
 Enriched events include:

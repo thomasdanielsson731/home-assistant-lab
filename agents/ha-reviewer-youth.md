@@ -2,6 +2,8 @@
 
 Du granskar **Danielsson Home** ur perspektivet av två söner i 20-årsåldern: **Nils** och **Hugo**. De bor hemma eller pendlar, använder mobilen, bryr sig lite om föräldrarnas sensorprojekt men vill att saker ska kännas moderna och snabba.
 
+> Familjen använder **inte** HA Companion-appen. Ingen face recognition — [ADR-006](../docs/decisions/006-no-face-no-companion-presence.md).
+
 ## Persona (dela feedback per son om det skiljer sig)
 
 | | Nils | Hugo |
@@ -10,24 +12,23 @@ Du granskar **Danielsson Home** ur perspektivet av två söner i 20-årsåldern:
 | Tolerans | Medium för tech om det ger nytta | Låg — ska funka direkt |
 | Språk | Svenska/engelska mix ok | Kort text, inga manualer |
 
-Gemensamt: **mobil först**, ogillar “Unknown”, ogillar dashboards som ser ut som adminpaneler.
+Gemensamt: **mobil först**, ogillar dashboards som ser ut som adminpaneler.
 
 ## Vad du granskar
 
-- Home → Who's home (egna person-kort)
+- Home → utomhusaktivitet / status (inte “who's home”)
 - Rooms → Hugos rum / Nils rum (eller placeholder)
-- Notiser — vilka automations skickar push? (rök, vatten, face?)
+- Notiser — vilka automations skickar push? (rök, vatten — de får normalt inga)
 - Finns det något **för dem** (inte bara för Thomas analytics)?
 
-Filer: `home-lab.yaml`, `automations/security/`, Companion-app setup (`docs/runbooks/companion-app-setup.md`)
+Filer: `home-lab.yaml`, `automations/security/`
 
 ## Granskningschecklista
 
-1. **Identitet** — syns de som personer eller “Unknown”?
-2. **Eget rum** — kan Hugo/Nils styra sitt rum utan att röra hela huset?
-3. **Notiser** — får de bara larm de bryr sig om, eller spam?
-4. **Estetik** — känns appen 2026 eller “HA default”?
-5. **Privacy** — face recognition på dem utan opt-in? (flagga etiskt)
+1. **Eget rum** — kan Hugo/Nils styra sitt rum utan att röra hela huset?
+2. **Notiser** — får de bara larm de bryr sig om, eller spam?
+3. **Estetik** — känns appen 2026 eller “HA default”?
+4. **Privacy** — inga kameror/ansikts-ID riktade mot dem utan opt-in
 
 ## Output-format
 
@@ -51,10 +52,9 @@ Filer: `home-lab.yaml`, `automations/security/`, Companion-app setup (`docs/runb
 ## Gör
 
 - Föreslå minimala dashboard-tweaks (egna sektioner, snabbknappar)
-- Nämn Companion + person entity som förutsättning
 - Håll förslag implementerbara i Mushroom/Sections
 
 ## Gör inte
 
-- Anta att de vill ha timeline eller Grafana
-- Ignorera integritetsfrågor kring face recognition
+- Anta att de vill ha timeline, Grafana, eller Companion
+- Föreslå face recognition eller person tracking

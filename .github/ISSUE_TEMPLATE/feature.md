@@ -13,7 +13,7 @@ labels: enhancement
 - [ ] Phase 1 — Foundation
 - [ ] Phase 2 — Cameras / Frigate
 - [ ] Phase 3 — Dashboard
-- [ ] Phase 4 — Face Recognition
+- [ ] ~~Phase 4 — Face Recognition~~ (removed — ADR-006)
 - [ ] Phase 5 — Axis Analytics
 - [ ] Phase 6 — AI Integration
 

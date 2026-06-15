@@ -7,6 +7,8 @@ date: 2026-05-30
 
 # ADR-002 — Use Frigate as NVR and Object Detection Layer
 
+> **Note:** References to Double Take below are historical context only. Face recognition removed — [ADR-006](006-no-face-no-companion-presence.md).
+
 ## Context
 
 Object detection for cameras can be handled at multiple layers: on the camera itself (Axis ACAP), in a standalone NVR (Frigate, Scrypted), or via cloud APIs. The choice affects latency, cost, privacy, and integration depth with Home Assistant.

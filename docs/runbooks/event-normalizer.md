@@ -11,7 +11,6 @@ Danielsson Home Intelligence — MQTT → canonical events + metrics.
 | MQTT topic | Output | Notes |
 |---|---|---|
 | `frigate/events` | `person`, `vehicle` | On `type: end` only |
-| `double_take/matches` | identity enrichment | Attaches name to recent person event |
 | `axis/driveway_env/air/#` | `environment` + metrics | Every 15 min |
 | `axis/+/audio/spl` | `metrics.jsonl` | SPL every 5 min per zone |
 | `axis/+/scene/frame` | `scene` | On detection count change |

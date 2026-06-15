@@ -38,9 +38,7 @@ HIDE_PANELS = [
     "map",
     "lovelace",
     "ccab4aaf_frigate-fa",
-    "c7657554_double-take",
     "hacs",
-    "09e60fb6_scrypted",
 ]
 
 

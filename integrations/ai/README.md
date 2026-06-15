@@ -60,4 +60,4 @@ Replace cloud voice with a fully local pipeline:
 - All AI workloads should run on a separate machine if the Dell Latitude 3120
   is CPU-only — inference is heavy.
 - GPU acceleration (NVIDIA/AMD) dramatically improves throughput.
-- Start with the face recognition pipeline before adding LLM features.
+- Start with scene caption enrichment before adding broader LLM features. Face recognition removed — [ADR-006](../../docs/decisions/006-no-face-no-companion-presence.md).

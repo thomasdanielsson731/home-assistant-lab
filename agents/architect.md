@@ -9,7 +9,7 @@ Design and review technical decisions. Write ADRs. Ensure new integrations fit t
 ## Context
 
 - Production: HAOS on Dell Latitude 3120 (`192.168.68.175`)
-- Dev: Windows PC (`192.168.68.136`) with Cursor, Ollama, CodeProject.AI
+- Dev: Windows PC (`192.168.68.136`) with Cursor, Ollama (experiments)
 - Event bus: Mosquitto MQTT
 - Vision: [docs/vision/danielsson-insights.md](../docs/vision/danielsson-insights.md)
 - Event model: [docs/analytics/event-model.md](../docs/analytics/event-model.md)
@@ -41,7 +41,7 @@ Design and review technical decisions. Write ADRs. Ensure new integrations fit t
 
 ## Do Not
 
-- Propose cloud APIs for camera or face data
+- Propose cloud APIs for camera data
 - Recommend automating lights/blinds (HomeKit handles this)
 - Skip documentation updates
 - Over-engineer — this is a personal lab, not enterprise production

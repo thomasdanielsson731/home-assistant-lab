@@ -43,7 +43,7 @@ cp .env.example .env   # fill in HA_HOST, HA_USER
 
 From HA → Add-ons → Add-on Store:
 - Frigate (via HACS or community repo)
-- Double Take (via community repo)
+- Danielsson Insights (via repo URL — see [timeline-addon.md](timeline-addon.md))
 - MQTT Broker (Mosquitto)
 
 ## 7. Configure MQTT

@@ -55,7 +55,7 @@ JSON Schema: [`schemas/danielsson-event.schema.json`](../../schemas/danielsson-e
 | Class | `enriched` | Example |
 |---|---|---|
 | **Raw detection** | `false` | `person`, `vehicle`, `occupancy` start/end, `scene` |
-| **Enriched** | `true` | `arrival` (Thomas arrived home) derived from person + vehicle + face + door |
+| **Enriched** | `true` | `arrival` derived from person + vehicle + door at entry zones |
 
 Enriched events set `parent_event_ids` to link back to raw detections. The correlation engine (Phase 7e) writes enriched events without redesigning the schema.
 
@@ -86,9 +86,9 @@ AOA transitions emit `occupancy` events with `metadata.phase`: `start` | `end`. 
   "location": { "zone": "front", "camera": "front" },
   "identity": {
     "type": "person",
-    "name": "Thomas",
-    "source": "double_take",
-    "confidence": 0.97
+    "name": "Unknown",
+    "source": "frigate",
+    "confidence": 0.0
   },
   "metadata": {
     "direction": "arriving",
@@ -117,9 +117,9 @@ AOA transitions emit `occupancy` events with `metadata.phase`: `start` | `end`. 
   "type": "bicycle",
   "location": { "zone": "driveway", "camera": "driveway_id" },
   "identity": {
-    "person": "Nils",
-    "source": "double_take",
-    "confidence": 0.85
+    "person": "Unknown",
+    "source": "correlation",
+    "confidence": 0.0
   },
   "metadata": {
     "direction": "arriving",
@@ -223,17 +223,19 @@ Canonical zone IDs — see [naming-conventions.md](../naming-conventions.md).
 ```json
 {
   "type": "person",
-  "name": "Thomas",
-  "source": "double_take",
-  "confidence": 0.96
+  "name": "Unknown",
+  "source": "frigate",
+  "confidence": 0.0
 }
 ```
 
 | Identity class | Known values (v1) | Source |
 |---|---|---|
-| Person | Thomas, Anna, Nils, Hugo | Double Take / CodeProject.AI |
+| Person | Optional name when correlation assigns one | `correlation` engine only — no face ID |
 | Cat | `black_cat`, `tabby_cat`, … | Custom model (future) |
 | Vehicle | — | Type only, no plate (v1) |
+
+> Face recognition removed — [ADR-006](../decisions/006-no-face-no-companion-presence.md).
 
 ---
 
@@ -309,7 +311,6 @@ Each folder stores JSON event files and references to media assets. See [../../e
 | Scene frame MQTT | `scene` | `event_normalizer.py` |
 | D6210 via `air_quality_bridge` | `environment` + metrics | `event_normalizer.py` |
 | Audio SPL MQTT | metrics | `event_normalizer.py` → `metrics.jsonl` |
-| Double Take match | enriches `person` identity | DT MQTT → identity attach → correlation |
 | HA lock MQTT | `door` | `homeassistant/lock/+/state` |
 | Correlation engine | `arrival`, `delivery`, `bicycle` | `correlation_engine.py` |
 

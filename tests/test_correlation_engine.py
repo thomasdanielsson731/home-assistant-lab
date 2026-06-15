@@ -77,7 +77,7 @@ class TestArrivalRule:
             etype="person",
             zone="front",
             eid="p_thomas",
-            identity={"type": "person", "name": "Thomas", "source": "double_take", "confidence": 0.95},
+            identity={"type": "person", "name": "Thomas", "source": "correlation", "confidence": 0.95},
         )
         result = engine.process(person)
         assert len(result) == 1
@@ -100,7 +100,7 @@ class TestArrivalRule:
 
     def test_skips_duplicate_arrival_for_same_person(self, engine, store):
         now = datetime.now(TZ)
-        identity = {"type": "person", "name": "Anna", "source": "double_take", "confidence": 0.9}
+        identity = {"type": "person", "name": "Anna", "source": "correlation", "confidence": 0.9}
         p1 = _write_raw(store, ts=now - timedelta(minutes=5), etype="person", zone="front", eid="p1", identity=identity)
         engine.process(p1)
         p2 = _write_raw(store, ts=now, etype="person", zone="front", eid="p2", identity=identity)
@@ -117,7 +117,7 @@ class TestDoorArrivalRule:
             etype="person",
             zone="front",
             eid="p1",
-            identity={"type": "person", "name": "Nils", "source": "double_take", "confidence": 0.9},
+            identity={"type": "person", "name": "Nils", "source": "correlation", "confidence": 0.9},
         )
         door = {
             "event_id": "d1",
@@ -149,7 +149,7 @@ class TestBicycleRule:
             etype="person",
             zone="driveway_id",
             eid="p1",
-            identity={"type": "person", "name": "Hugo", "source": "double_take", "confidence": 0.88},
+            identity={"type": "person", "name": "Hugo", "source": "correlation", "confidence": 0.88},
         )
         scene = {
             "event_id": "s1",

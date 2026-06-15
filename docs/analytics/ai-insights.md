@@ -9,7 +9,7 @@ Enrichment, correlation, and natural-language understanding over the event model
 ```
 Events (raw)
     ↓
-Enrichment (LLM caption, identity attach, correlation)
+Enrichment (LLM caption, correlation)
     ↓
 Insights (patterns, anomalies, summaries)
     ↓
@@ -28,7 +28,6 @@ Collect → Enrich → Analyze → Visualize → Understand
 |---|---|---|---|
 | Scene caption | Event snapshot | `ai_summary` text | Qwen-VL / LLaVA (Ollama) |
 | Event correlation | Event batch (same window) | `metadata.correlations` | Rule engine + LLM |
-| Identity attach | Person crop + Double Take | `identity` block | CodeProject.AI |
 | Anomaly flag | Daily aggregate vs baseline | `insight.anomaly: true` | Statistical + LLM |
 | Weekly summary | 7-day aggregates | Markdown report | Qwen (Ollama) |
 
@@ -40,7 +39,7 @@ Collect → Enrich → Analyze → Visualize → Understand
 {
   "event_id": "evt_20260606_181200_driveway_bicycle",
   "type": "bicycle",
-  "ai_summary": "Nils arrived home on his bicycle via the driveway gate. He unlocked the front door 45 seconds later.",
+  "ai_summary": "A person arrived at the driveway gate on a bicycle. The front door was unlocked 45 seconds later.",
   "enriched": true,
   "metadata": {
     "correlations": [
@@ -59,10 +58,10 @@ User asks → LLM queries event store + aggregates → natural language answer.
 | Question | Data needed |
 |---|---|
 | "What happened today?" | Today's events → timeline summary |
-| "Why was energy high this week?" | Energy aggregates + presence correlation |
+| "Why was energy high this week?" | Energy aggregates + outdoor activity correlation |
 | "When does the black cat usually visit?" | Cat events → time-of-day histogram |
-| "How often does Nils cycle home?" | Bicycle events → weekly count |
-| "Is anyone home?" | Person entities + recent person events |
+| "How many bicycle trips this week?" | Bicycle events → weekly count |
+| "Is anyone outside?" | `binary_sensor.house_outdoor_presence` + recent person events |
 
 Context window: last 24 h events JSON + daily aggregates + house state template sensors.
 

@@ -4,7 +4,7 @@
 
 ## Type
 
-- [ ] Config change (Frigate, HA, Double Take)
+- [ ] Config change (Frigate, HA, Insights add-on)
 - [ ] Automation / script
 - [ ] Dashboard
 - [ ] Documentation

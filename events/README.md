@@ -28,7 +28,7 @@ events/{type}/{yyyy}/{mm}/{dd}/{event_id}_thumb.jpg
 
 ## Status
 
-**Live** — `scripts/event_normalizer.py` writes from Frigate, Double Take, D6210, AOA, scene, SPL metrics, HA door locks.
+**Live** — `scripts/event_normalizer.py` writes from Frigate, D6210, AOA, scene, SPL metrics, HA door locks.
 
 - Timeline log: `events/timeline.jsonl`
 - Metrics: `events/metrics.jsonl`

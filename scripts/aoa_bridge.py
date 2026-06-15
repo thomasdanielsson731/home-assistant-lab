@@ -43,7 +43,7 @@ SCENARIO_TOPICS = {
     "VehicleOcc":      "VehicleOcc/Active",
 }
 
-POLL_INTERVAL = 5
+POLL_INTERVAL = 10
 
 CAM_USER  = os.environ["CAM_USER"]
 CAM_PASS  = os.environ["CAM_PASS"]

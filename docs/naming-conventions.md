@@ -23,7 +23,8 @@ Consistent naming across all layers — HA entities, Frigate cameras, files, aut
 | `id` | identification (not "ID number") |
 | `env` | environmental |
 | `wide` | wide-angle overview |
-| `dt` | Double Take |
+
+> **`dt` prefix removed** — face recognition out of scope ([ADR-006](../docs/decisions/006-no-face-no-companion-presence.md)).
 
 ---
 
@@ -90,12 +91,14 @@ MQTT topic: `axis/<zone_id>/audio/spl` — JSON `{"max_spl", "min_spl", "spl"}`.
 
 Live zones: `front`, `driveway_wide`, `backyard`.
 
-### Double Take sensors (face recognition)
+### Outdoor activity (house context)
 
 ```
-sensor.dt_<person_name>_confidence
-binary_sensor.dt_<person_name>_present
+binary_sensor.house_outdoor_presence
+sensor.house_outdoor_activity_summary
 ```
+
+Derived from entry-zone AOA, scene, and Frigate — not phone or face ID.
 
 ### Area-based entities (lights, switches, etc.)
 
@@ -236,5 +239,5 @@ front_camera_user: ...
 front_camera_password: ...
 driveway_wide_camera_ip: ...
 mqtt_password: ...
-compreface_api_key: ...
+timeline_url: ...
 ```

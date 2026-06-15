@@ -1,5 +1,7 @@
 # Architecture Review — v1 Critique and Revised Design
 
+> **Historical (2026-05):** Written before Phase 4 removal. Face recognition and CompreFace items are **obsolete** — superseded by [ADR-006](decisions/006-no-face-no-companion-presence.md). OpenVINO, VLAN, D6210, and monitoring items remain relevant.
+
 Acting as a senior systems architect: honest assessment of the current design, identified weaknesses, and a revised v1 recommendation.
 
 ---
@@ -41,10 +43,10 @@ Acting as a senior systems architect: honest assessment of the current design, i
 
 ---
 
-### 3. CompreFace is underspecified
+### 3. CompreFace is underspecified *(obsolete — ADR-006)*
 **Risk:** "Separate host or VM" is vague. If CompreFace runs on the HAOS host as a container, it competes with Frigate for CPU. If it runs on the Windows dev machine, it's only available when the PC is on.
 
-**Recommended decision:** Run CompreFace as a **Docker container on a lightweight always-on host** (a Raspberry Pi 4 or the same Latitude 3120 in a separate Docker context, if HAOS allows custom containers via SSH workaround). Document this as ADR-003.
+**Status:** Face recognition removed from scope — [ADR-006](decisions/006-no-face-no-companion-presence.md). This item is retained for historical context only.
 
 ---
 
@@ -78,12 +80,11 @@ Acting as a senior systems architect: honest assessment of the current design, i
 ---
 
 ### 7. Dashboard complexity ahead of data
-**Risk:** The dashboard design references face recognition, AI, and Axis analytics sensors that don't exist yet. Building the full dashboard now will result in broken cards and maintenance drag.
+**Risk:** The dashboard design referenced face recognition and other future-state sensors. Building those sections before data exists causes broken cards.
 
 **Recommendation:** Build dashboards in phases:
 - Phase 2 complete → build Cameras + Security views only
 - Phase 3 → add Rooms + Operations
-- Phase 4 → add face recognition to Security view
 - Phase 5 → add analytics sensors to Operations
 
 ---
@@ -107,7 +108,7 @@ graph TD
         Frigate["Frigate\nOpenVINO detector\n(if supported)"]
         HA["Home Assistant Core"]
         MQTT["Mosquitto :1883"]
-        DT["Double Take\n(Phase 4)"]
+        Insights["Danielsson Insights\n:8765"]
     end
 
     subgraph Firewall["Firewall / Router"]
@@ -117,9 +118,8 @@ graph TD
     CamVLAN -->|RTSP :554| FW
     FW -->|RTSP| Frigate
     Frigate -->|events| MQTT
-    Frigate -->|webhook| DT
     MQTT --> HA
-    DT -->|MQTT| MQTT
+    Insights -->|events API| HA
 
     subgraph DevPC["Windows Dev Machine"]
         VSCode["VS Code + Cursor"]
@@ -136,7 +136,6 @@ graph TD
 |---|---|
 | OpenVINO detector specified | CPU-only is a risk with 6 cameras — must resolve before Phase 2 |
 | Camera VLAN added | Security hardening before cameras go live |
-| CompreFace deferred to Phase 4 with host decision required | Can't be "TBD" — blocks face recognition planning |
 | D6210 via Axis MQTT specified | Consistent with Phase 5 Axis analytics pipeline |
 | Dashboard built in phases | Avoids broken cards from non-existent data |
 | Secrets backup procedure required | Prevents lock-out after host failure |
@@ -147,6 +146,5 @@ graph TD
 
 1. **Identify CPU model** of the Dell Latitude 3120 and check OpenVINO compatibility
 2. **Plan camera VLAN** — even a basic one before cameras go live
-3. **Decide CompreFace hosting** — document as ADR-003
-4. **Check M2036 firmware** — needs 10.12+ for Axis MQTT
-5. **Set up secret backup** — Bitwarden or equivalent
+3. **Check M2036 firmware** — needs 10.12+ for Axis MQTT
+4. **Set up secret backup** — Bitwarden or equivalent

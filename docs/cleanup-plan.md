@@ -2,7 +2,7 @@
 
 > **Archived (2026-06-14):** Pre-Frigate checklist from early lab setup. Phases 1–3 and most Phase 5 items are complete. Use [backlog.md](backlog.md) for current work. Kept for historical reference only.
 
-Step-by-step checklist for bringing an existing HA installation to a clean, consistent baseline before adding Frigate, face recognition, or AI features.
+Step-by-step checklist for bringing an existing HA installation to a clean, consistent baseline before adding Frigate or analytics features. Face recognition removed — [ADR-006](decisions/006-no-face-no-companion-presence.md).
 
 Work through sections in order. Complete each section fully before moving to the next.
 
@@ -141,11 +141,13 @@ Quick cleanup before building dashboards.
 - [ ] **Settings → System → General** — verify coordinates are correct
 - [ ] Verify timezone is correct (e.g. `Europe/Stockholm`)
 
-### 5.2 — Set person entities
+### 5.2 — Person entities (optional)
 
-- [ ] Create a Person entity for each household member: Thomas, Nils, Hugo
-- [ ] Link each person to a device tracker (phone, etc.)
-- [ ] Verify presence detection is working (home / away switching correctly)
+> **ADR-006:** Family members do not use the Companion app. Person entities are optional for Thomas (push notifications only).
+
+- [ ] Thomas: Companion app linked only if security push is desired
+- [ ] Do **not** require home/away tracking for Nils, Hugo, Anna
+- [ ] Dashboard uses `binary_sensor.house_outdoor_presence` for outdoor activity — not `person.*`
 
 ### 5.3 — Install required dashboard card packages via HACS
 
@@ -169,4 +171,4 @@ Before moving to Frigate integration, all of the following must be true:
 - [ ] External SSD mounted and accessible
 - [ ] Camera IPs confirmed and documented in secrets.yaml
 - [ ] HACS cards installed
-- [ ] Person entities created and presence working
+- [ ] Outdoor presence template verified (`binary_sensor.house_outdoor_presence`)

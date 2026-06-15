@@ -1,11 +1,14 @@
 ---
 id: ADR-003
 title: Use CodeProject.AI as face recognizer backend
-status: Accepted
+status: Superseded
 date: 2026-06-06
+superseded_by: ADR-006
 ---
 
 # ADR-003 — Use CodeProject.AI as Face Recognizer Backend
+
+> **Superseded by [ADR-006](006-no-face-no-companion-presence.md)** — face recognition removed from scope 2026-06-14.
 
 ## Context
 

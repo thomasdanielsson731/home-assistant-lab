@@ -22,23 +22,3 @@
           image: /api/frigate/notifications/{{ trigger.payload_json.after.id }}/snapshot.jpg
   mode: single
   max_exceeded: silent
-
-- id: double_take_person_identified
-  alias: "Double Take — Known person identified"
-  description: "Log and optionally act when a known face is matched"
-  trigger:
-    - platform: mqtt
-      topic: "double_take/matches"
-  condition:
-    - condition: template
-      value_template: "{{ trigger.payload_json.match is defined }}"
-  action:
-    - service: logbook.log
-      data:
-        name: "Face Recognition"
-        message: >
-          {{ trigger.payload_json.match.name }} identified
-          at {{ trigger.payload_json.camera }}
-          with {{ trigger.payload_json.match.confidence }}% confidence.
-  mode: queued
-  max: 5

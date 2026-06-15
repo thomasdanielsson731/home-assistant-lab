@@ -25,7 +25,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | Add-on | Port | Status |
 |---|---|---|
 | Frigate 0.17.1 | 5000 (UI), 8554 (RTSP re-stream) | Running |
-| Double Take 1.13.1 | 3000 | Running |
+| Danielsson Insights | 8765 | Running |
 | Mosquitto | 1883 | Running |
 | SSH & Web Terminal | 22222 | Running |
 
@@ -98,7 +98,7 @@ Note: `docs/naming-conventions.md` specifies `camera.frigate_<zone_id>` as the i
 
 Storage `PersonOccupancy` uses door-only AOA zones (not full frame). Scene entities expire after 10 s if no MQTT message received. Image entities (`image.front_latest_detection` etc.) update on `axis/<zone>/scene/snapshot`.
 
-**Double Take entity pattern** (Phase 4): `sensor.dt_<person_name>_confidence`, `binary_sensor.dt_<person_name>_present`
+**Outdoor activity:** `binary_sensor.house_outdoor_presence` — fused from entry-zone camera analytics (not phone or face ID).
 
 **Automation IDs**: `<domain>_<trigger>_<action>` (e.g. `security_person_detected_notify`). File placement: `automations/<domain>/<action>.yaml`. Domains: `security`, `presence`, `camera`, `notification`.
 
@@ -155,7 +155,7 @@ INFLUX_ORG=home
 INFLUX_BUCKET=homelab
 ```
 
-The script excludes `secrets.yaml`, `.storage/`, `*.db`, and `*.log` from sync. It pushes HA config, Frigate config, and Double Take config in three passes. The bash script uses `rsync`; the PowerShell script uses `scp` (Windows has no rsync by default).
+The script excludes `secrets.yaml`, `.storage/`, `*.db`, and `*.log` from sync. It pushes HA config and Frigate config in two passes. The bash script uses `rsync`; the PowerShell script uses `scp` (Windows has no rsync by default).
 
 ### YAML Lint
 
@@ -257,7 +257,6 @@ The Python event platform in `scripts/` forms a pipeline that normalizes, stores
 ```
 MQTT sources
   Frigate (person/vehicle) ──┐
-  Double Take (identity)  ──┤
   Axis AOA/scene/audio    ──┼──► event_normalizer.py ──► event_store.py ──► events/timeline.jsonl
   D6210 air quality       ──┤                                            ──► events/metrics.jsonl
   Yale door lock          ──┤
@@ -299,7 +298,7 @@ Enriched events set `enriched=true` and `parent_event_ids` pointing to the raw e
 .\scripts\stop-bridges.ps1              # ensure dev PC bridges are off
 ```
 
-**Presence fusion:** `sensor.house_occupancy_summary` + `sensor.*_presence_fused` (Companion + Double Take); `presence_fusion.py` enriches Frigate person events at entrance zones.
+**Outdoor presence:** `binary_sensor.house_outdoor_presence` from entry-zone AOA/scene/Frigate — see `templates/house_context.yaml`. No face ID or family Companion fusion.
 
 ## Config Directory Layout
 
@@ -332,14 +331,8 @@ config/
     secrets.yaml.example  # shape only — real secrets.yaml lives on host, never committed
   frigate/
     config.yml          → rsync'd to HAOS /config/frigate/config.yml
-  double-take/
-    config.yml          → rsync'd to HAOS /config/double-take/config.yml
-docker/
-  compreface/
-    docker-compose.yml  # CompreFace face recognition (Phase 4 Option B)
 integrations/            # Design notes for planned integrations (not synced to host)
   axis-analytics/
-  face-recognition/
   ai/
 ```
 
@@ -359,7 +352,7 @@ password: !secret front_camera_password
 front_camera_password: "the-actual-value"
 ```
 
-Secret key pattern: `<zone_id>_camera_ip`, `<zone_id>_camera_user`, `<zone_id>_camera_password`, `mqtt_password`, `compreface_api_key`.
+Secret key pattern: `<zone_id>_camera_ip`, `<zone_id>_camera_user`, `<zone_id>_camera_password`, `mqtt_password`.
 
 ## Axis Camera Streams
 
@@ -407,24 +400,16 @@ All AOA payloads are JSON `{Data: {active: bool}}` — use `value_template: "{{ 
 | 1 | Foundation — naming, areas, MQTT, backups | Done |
 | 2 | Cameras + Frigate — 6 cameras, recording, HA integration (99 entities) | Done |
 | 3 | Dashboard — 5 views live at `/lovelace/home-lab` | Done |
-| 4 | Face recognition (Double Take + CodeProject.AI) | In Progress — Thomas trained; verify live match |
+| 4 | ~~Face recognition~~ | **Removed** — [ADR-006](docs/decisions/006-no-face-no-companion-presence.md) |
 | 5 | Axis analytics (ACAP + MQTT) | Done — all 6 cameras verified |
 | 6 | AI integration / narratives | In progress — story ready; Kraftringen credentials pending |
 | 7 | Analytics platform (events, correlation, HA sidebar) | Done — HAOS add-on v0.2.4 |
 | 7b | InfluxDB metrics retention | Done — bridge in add-on, `home_lab` DB |
 | 8 | Digital twin (unified house state) | Future |
 
-### Phase 4: Face Recognizer
+### Phase 4 removed (ADR-006)
 
-**Decision:** CodeProject.AI on Windows dev PC — see `docs/decisions/003-face-recognizer.md`.
-
-Double Take config points to `http://192.168.68.136:32168`. Next steps:
-
-1. ✅ CodeProject.AI installed — keep service running on dev PC
-2. Upload training photos for Nils, Hugo, Anna via Double Take UI at `http://192.168.68.175:3000`
-3. Verify live match at `front` → `dt_thomas_*` entities
-
-Fallback: CompreFace via `docker/compreface/` if accuracy is insufficient.
+Face recognition (Double Take, CodeProject.AI, CompreFace) and family Companion presence were removed 2026-06-14. Thomas may keep the Companion app for security push only. See `docs/decisions/006-no-face-no-companion-presence.md`.
 
 ## Key Docs
 
@@ -443,7 +428,7 @@ Fallback: CompreFace via `docker/compreface/` if accuracy is insufficient.
 - `docs/hardware/cameras.md` — per-camera specs, HA roles, Frigate roles
 - `docs/dashboard-design.md` — visual layout for all 5 dashboard views
 - `docs/decisions/` — Architecture Decision Records (ADRs)
-- `docs/runbooks/` — step-by-step operational procedures (initial-setup, frigate-setup, aoa-setup, d6210-setup, audio-analytics-setup, double-take-setup)
+- `docs/runbooks/` — step-by-step operational procedures (initial-setup, frigate-setup, aoa-setup, d6210-setup, audio-analytics-setup)
 - `docs/cleanup-plan.md` — known cleanup tasks and tech debt
 
 ## User Context

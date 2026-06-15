@@ -1,5 +1,4 @@
 # stop-bridges.ps1 — Stop dev PC bridges (Analytics now on HAOS)
-# Keeps CodeProject.AI (:32168) and other non-lab processes running.
 
 $scripts = @(
     "air_quality_bridge.py",
@@ -26,5 +25,5 @@ foreach ($leaf in $scripts) {
 if ($stopped -eq 0) {
     Write-Host "No bridge processes were running."
 } else {
-    Write-Host "Stopped $stopped process(es). CodeProject.AI (:32168) left running."
+    Write-Host "Stopped $stopped bridge process(es)."
 }
