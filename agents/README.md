@@ -13,7 +13,7 @@ Role definitions for AI assistants working in this repo. Reference the appropria
 
 ## HA dashboard review panel (personas)
 
-Granska **Danielsson Home** (`home-lab.yaml`) och relaterade vyer. Kör alla via [ha-review-panel.md](ha-review-panel.md).
+Granska **Danielsson Home** (`home-anna.yaml`, sidebar id `home-lab`) och **Teknik** (`home-tech.yaml`, admin). Kör alla via [ha-review-panel.md](ha-review-panel.md).
 
 | Persona | File | Perspektiv |
 |---|---|---|
@@ -30,7 +30,7 @@ Granska **Danielsson Home** (`home-lab.yaml`) och relaterade vyer. Kör alla via
 
 ```
 Kör HA Review Panel enligt agents/ha-review-panel.md.
-Granska home-lab.yaml och ge syntes med top 5 åtgärder på svenska.
+Granska home-anna.yaml och home-tech.yaml och ge syntes med top 5 åtgärder på svenska.
 ```
 
 ### En persona i taget
@@ -54,4 +54,4 @@ All agents should read before working:
 3. [CLAUDE.md](../CLAUDE.md) — production facts, entity IDs, commands
 4. [docs/vision.md](../docs/vision.md) — long-term direction
 
-Review agents should also skim [docs/dashboard-design.md](../docs/dashboard-design.md) and `config/home-assistant/dashboards/home-lab.yaml`.
+Review agents should also skim [docs/dashboard-design.md](../docs/dashboard-design.md) and `config/home-assistant/dashboards/home-anna.yaml` (+ `home-tech.yaml` for admin views).

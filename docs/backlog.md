@@ -115,7 +115,7 @@ Complete the Axis analytics pipeline end-to-end.
 |---|---|---|
 | — | HAOS, SSH, MQTT, backups, naming, areas | ✅ |
 | — | 6 cameras in Frigate, 99 HA entities | ✅ |
-| — | 5 dashboard views at `/lovelace/home-lab` | ✅ |
+| — | Anna dashboard (`/lovelace/home-lab`) + Teknik admin (`/lovelace/home-tech`) | ✅ |
 | — | Person detection → push notification | ✅ |
 | F2 | Axis MQTT config via `configure_cameras.py` | ✅ |
 | F3 | HA sensors from Axis MQTT metadata | ✅ |

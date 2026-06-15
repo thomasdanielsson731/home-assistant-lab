@@ -45,7 +45,7 @@ Vision: [vision.md](vision.md) · Scope: [scope.md](scope.md) · Work queue: [ba
 
 | Task | Status |
 |---|---|
-| 5 views live at `/lovelace/home-lab` | ✅ |
+| Anna + Teknik dashboards at `/lovelace/home-lab` and `/lovelace/home-tech` | ✅ |
 | Home, Cameras, Rooms, Security, Operations | ✅ |
 | Frigate Card + Mushroom Cards | ✅ |
 

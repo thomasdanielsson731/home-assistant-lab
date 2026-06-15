@@ -10,7 +10,8 @@ See [ADR-005](../decisions/005-home-intelligence-timeline.md) · [ha-timeline-da
 
 | Dashboard | Path | Role |
 |---|---|---|
-| `home-lab.yaml` | `/lovelace/home-lab` | Home, Cameras, Security, Rooms, Operations |
+| `home-anna.yaml` (sidebar: **Danielsson Home**, id `home-lab`) | `/lovelace/home-lab` | Hem, Kameror, Säkerhet, Rum — familjevänlig vy |
+| `home-tech.yaml` (sidebar: **Teknik**, admin only) | `/lovelace/home-tech` | Teknik + Drift — sensorer, grafer, systemstatus |
 | `house-timeline.yaml` | `/house-timeline` | Analytics iframe |
 | `house-graphs.yaml` | `/house-graphs` | Environment iframe |
 

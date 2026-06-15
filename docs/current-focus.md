@@ -12,7 +12,8 @@ Quick-start context for AI assistants. Read this + [CLAUDE.md](../CLAUDE.md) + [
 |---|---|
 | **Analytics** (HA sidebar) | Primary — events, occupancy, metrics (`http://192.168.68.175:8765/timeline`) |
 | **Environment** (HA sidebar) | Env + SPL charts (`http://192.168.68.175:8765/environment`) |
-| **Danielsson Home** (`home-lab`) | Secondary — ops, security, cameras, rooms |
+| **Danielsson Home** (`home-lab` → `home-anna.yaml`) | Secondary — hem, kameror, säkerhet, rum |
+| **Teknik** (`home-tech`, admin) | Sensorer, drift, systemstatus |
 
 **HA:** `192.168.68.175` · **Dev PC:** `192.168.68.136` (Ollama experiments only — no face rec stack)
 

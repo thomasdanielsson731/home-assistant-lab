@@ -1,0 +1,828 @@
+﻿title: Danielsson Teknik
+views:
+  - title: Teknik
+    path: tech
+    icon: mdi:chart-timeline-variant
+    type: sections
+    max_columns: 1
+    sections:
+
+      - title: HISTORIK & MILJÖ
+        cards:
+          - type: custom:mushroom-template-card
+            primary: Historik & miljö
+            secondary: Analytics · händelser · CO₂ · SPL · temperaturgrafer
+            icon: mdi:chart-timeline-variant
+            icon_color: blue
+            fill_container: true
+            tap_action:
+              action: navigate
+              navigation_path: /house-timeline
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: action
+                icon: mdi:chart-timeline-variant
+                content: Analytics
+                tap_action:
+                  action: navigate
+                  navigation_path: /house-timeline
+              - type: action
+                icon: mdi:chart-areaspline
+                content: Miljö
+                tap_action:
+                  action: navigate
+                  navigation_path: /house-graphs
+              - type: action
+                icon: mdi:book-open-page-variant
+                content: Story
+                tap_action:
+                  action: url
+                  url_path: http://192.168.68.175:8765/story
+
+      - title: UTE LUFT (D6210)
+        cards:
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: template
+                icon: mdi:thermometer
+                content: >-
+                  {% set t = states('sensor.driveway_env_temperature') %}
+                  {% if t in ['unknown', 'unavailable', ''] %}Ute —
+                  {% else %}Ute {{ t }}°C{% endif %}
+                icon_color: blue
+              - type: template
+                icon: mdi:water-percent
+                content: >-
+                  {% set h = states('sensor.driveway_env_humidity') %}
+                  {% if h in ['unknown', 'unavailable', ''] %}Fukt —
+                  {% else %}Fukt {{ h }}%{% endif %}
+                icon_color: blue
+              - type: template
+                icon: mdi:molecule-co2
+                content: >-
+                  {% set c = states('sensor.driveway_env_co2') %}
+                  {% if c in ['unknown', 'unavailable', ''] %}CO₂ —
+                  {% elif c | int(0) == 0 %}CO₂ uppstart
+                  {% else %}CO₂ {{ c | int(0) }}{% endif %}
+                icon_color: grey
+              - type: template
+                icon: mdi:air-filter
+                content: >-
+                  {% set aqi = states('sensor.driveway_env_aqi') %}
+                  {% if aqi in ['unknown', 'unavailable', ''] %}AQI —
+                  {% elif aqi | int(0) == 0 %}AQI uppstart
+                  {% else %}AQI {{ aqi }}{% endif %}
+                icon_color: >-
+                  {% set aqi = states('sensor.driveway_env_aqi') | int(0) %}
+                  {% if aqi == 0 %}grey
+                  {% elif aqi <= 50 %}green
+                  {% elif aqi <= 100 %}amber
+                  {% else %}red{% endif %}
+              - type: template
+                icon: mdi:blur
+                content: >-
+                  {% set pm = states('sensor.driveway_env_pm2_5') %}
+                  {% if pm in ['unknown', 'unavailable', ''] %}PM2.5 —
+                  {% else %}PM2.5 {{ pm }}{% endif %}
+                icon_color: grey
+              - type: template
+                icon: mdi:delta
+                content: >-
+                  Δ {{ states('sensor.house_indoor_outdoor_delta') }}°C
+                icon_color: blue
+
+      - title: SENSORFUSION
+        cards:
+          - type: markdown
+            content: >-
+              **F** = Frigate · **A** = AOA · **S** = Scene · ✓ = aktiv
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: template
+                icon: mdi:layers
+                content: >-
+                  Entré F{{ '✓' if is_state('binary_sensor.front_person_occupancy', 'on') else '·' }}
+                  A{{ '✓' if is_state('binary_sensor.front_aoa_person', 'on') else '·' }}
+                  S{{ '✓' if is_state('binary_sensor.front_scene_object_present', 'on') else '·' }}
+                icon_color: >-
+                  {{ 'amber' if is_state('binary_sensor.front_person_occupancy', 'on')
+                     or is_state('binary_sensor.front_aoa_person', 'on')
+                     or is_state('binary_sensor.front_scene_object_present', 'on') else 'grey' }}
+              - type: template
+                icon: mdi:layers
+                content: >-
+                  Uppf.b F{{ '✓' if is_state('binary_sensor.driveway_wide_person_occupancy', 'on') else '·' }}
+                  A{{ '✓' if is_state('binary_sensor.driveway_wide_aoa_person', 'on') else '·' }}
+                  S{{ '✓' if is_state('binary_sensor.driveway_wide_scene_object_present', 'on') else '·' }}
+                icon_color: >-
+                  {{ 'amber' if is_state('binary_sensor.driveway_wide_person_occupancy', 'on')
+                     or is_state('binary_sensor.driveway_wide_aoa_person', 'on')
+                     or is_state('binary_sensor.driveway_wide_scene_object_present', 'on') else 'grey' }}
+              - type: template
+                icon: mdi:layers
+                content: >-
+                  Uppf.ID F{{ '✓' if is_state('binary_sensor.driveway_id_person_occupancy', 'on') else '·' }}
+                  A{{ '✓' if is_state('binary_sensor.driveway_id_aoa_person', 'on') else '·' }}
+                  S{{ '✓' if is_state('binary_sensor.driveway_id_scene_object_present', 'on') else '·' }}
+                icon_color: >-
+                  {{ 'amber' if is_state('binary_sensor.driveway_id_person_occupancy', 'on')
+                     or is_state('binary_sensor.driveway_id_aoa_person', 'on')
+                     or is_state('binary_sensor.driveway_id_scene_object_present', 'on') else 'grey' }}
+              - type: template
+                icon: mdi:layers
+                content: >-
+                  Bkg F{{ '✓' if is_state('binary_sensor.backyard_person_occupancy', 'on') else '·' }}
+                  A{{ '✓' if is_state('binary_sensor.backyard_aoa_person', 'on') else '·' }}
+                  S{{ '✓' if is_state('binary_sensor.backyard_scene_object_present', 'on') else '·' }}
+                icon_color: >-
+                  {{ 'amber' if is_state('binary_sensor.backyard_person_occupancy', 'on')
+                     or is_state('binary_sensor.backyard_aoa_person', 'on')
+                     or is_state('binary_sensor.backyard_scene_object_present', 'on') else 'grey' }}
+              - type: template
+                icon: mdi:layers
+                content: >-
+                  Förr.ut F{{ '✓' if is_state('binary_sensor.storage_ext_person_occupancy', 'on') else '·' }}
+                  A{{ '✓' if is_state('binary_sensor.storage_ext_aoa_person', 'on') else '·' }}
+                  S{{ '✓' if is_state('binary_sensor.storage_ext_scene_object_present', 'on') else '·' }}
+                icon_color: >-
+                  {{ 'amber' if is_state('binary_sensor.storage_ext_person_occupancy', 'on')
+                     or is_state('binary_sensor.storage_ext_aoa_person', 'on')
+                     or is_state('binary_sensor.storage_ext_scene_object_present', 'on') else 'grey' }}
+              - type: template
+                icon: mdi:layers
+                content: >-
+                  Förr.in F{{ '✓' if is_state('binary_sensor.storage_int_person_occupancy', 'on') else '·' }}
+                  A{{ '✓' if is_state('binary_sensor.storage_int_aoa_person', 'on') else '·' }}
+                  S{{ '✓' if is_state('binary_sensor.storage_int_scene_object_present', 'on') else '·' }}
+                icon_color: >-
+                  {{ 'amber' if is_state('binary_sensor.storage_int_person_occupancy', 'on')
+                     or is_state('binary_sensor.storage_int_aoa_person', 'on')
+                     or is_state('binary_sensor.storage_int_scene_object_present', 'on') else 'grey' }}
+              - type: template
+                icon: mdi:motion-sensor
+                content: >-
+                  Entry {{ states('sensor.house_outdoor_activity_summary') }} zoner
+                icon_color: >-
+                  {{ 'amber' if is_state('binary_sensor.house_outdoor_presence', 'on') else 'grey' }}
+
+      - title: PERIMETER
+        cards:
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: template
+                icon: mdi:door
+                content: >-
+                  {% if is_state('binary_sensor.front_aoa_person', 'on') %}Entré · Person
+                  {% elif is_state('binary_sensor.front_motion', 'on') %}Entré · Rörelse
+                  {% else %}Entré · Lugnt{% endif %}
+                icon_color: >-
+                  {{ 'amber' if is_state('binary_sensor.front_aoa_person', 'on')
+                     else 'blue' if is_state('binary_sensor.front_motion', 'on')
+                     else 'green' }}
+              - type: template
+                icon: mdi:car
+                content: >-
+                  {% if is_state('binary_sensor.driveway_id_aoa_person', 'on') %}Uppfart · Person
+                  {% elif is_state('binary_sensor.driveway_wide_aoa_vehicle', 'on') %}Uppfart · Fordon
+                  {% elif is_state('binary_sensor.driveway_wide_motion', 'on') %}Uppfart · Rörelse
+                  {% else %}Uppfart · Lugnt{% endif %}
+                icon_color: >-
+                  {{ 'amber' if is_state('binary_sensor.driveway_id_aoa_person', 'on')
+                     else 'blue' if is_state('binary_sensor.driveway_wide_aoa_vehicle', 'on')
+                        or is_state('binary_sensor.driveway_wide_motion', 'on')
+                     else 'green' }}
+              - type: template
+                icon: mdi:walk
+                content: >-
+                  {{ 'Aktivitet entry' if is_state('binary_sensor.house_outdoor_presence', 'on')
+                     else 'Entry lugnt' }}
+                icon_color: >-
+                  {{ 'amber' if is_state('binary_sensor.house_outdoor_presence', 'on') else 'grey' }}
+
+      - title: LIVE DETEKTIONER
+        cards:
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: template
+                icon: mdi:cctv
+                content: Entré
+                icon_color: >-
+                  {{ 'amber' if is_state('binary_sensor.front_person_occupancy', 'on')
+                     else 'blue' if is_state('binary_sensor.front_motion', 'on')
+                     else 'grey' }}
+                tap_action:
+                  action: navigate
+                  navigation_path: /lovelace/home-lab/cameras
+              - type: template
+                icon: mdi:cctv
+                content: Uppfart
+                icon_color: >-
+                  {{ 'amber' if is_state('binary_sensor.driveway_id_person_occupancy', 'on')
+                     or is_state('binary_sensor.driveway_wide_person_occupancy', 'on')
+                     else 'blue' if is_state('binary_sensor.driveway_wide_motion', 'on')
+                     or is_state('binary_sensor.driveway_wide_aoa_vehicle', 'on')
+                     else 'grey' }}
+                tap_action:
+                  action: navigate
+                  navigation_path: /lovelace/home-lab/cameras
+              - type: template
+                icon: mdi:cctv
+                content: Bakgård
+                icon_color: >-
+                  {{ 'amber' if is_state('binary_sensor.backyard_person_occupancy', 'on')
+                     else 'blue' if is_state('binary_sensor.backyard_motion', 'on')
+                     else 'grey' }}
+              - type: template
+                icon: mdi:cctv
+                content: Förråd ut
+                icon_color: >-
+                  {{ 'amber' if is_state('binary_sensor.storage_ext_person_occupancy', 'on')
+                     else 'blue' if is_state('binary_sensor.storage_ext_motion', 'on')
+                     else 'grey' }}
+              - type: template
+                icon: mdi:cctv
+                content: Förråd in
+                icon_color: >-
+                  {{ 'amber' if is_state('binary_sensor.storage_int_person_occupancy', 'on')
+                     else 'blue' if is_state('binary_sensor.storage_int_motion', 'on')
+                     else 'grey' }}
+
+      - title: SENASTE BILDER
+        cards:
+          - type: markdown
+            content: >-
+              Senaste Frigate-detektioner. Tomt = lugnt — inte fel.
+          - type: horizontal-stack
+            cards:
+              - type: conditional
+                conditions:
+                  - condition: state
+                    entity: image.front_person
+                    state_not: unknown
+                  - condition: state
+                    entity: image.front_person
+                    state_not: unavailable
+                card:
+                  type: custom:mushroom-template-card
+                  entity: image.front_person
+                  primary: Entrén · person
+                  secondary: >-
+                    {% set dt = as_local(as_datetime(states('image.front_person'))) %}
+                    {{ dt.strftime('%H:%M · %d %b') }} ({{ relative_time(dt) }})
+                  icon: mdi:account
+                  layout: vertical
+                  fill_container: true
+                  tap_action:
+                    action: more-info
+              - type: conditional
+                conditions:
+                  - condition: state
+                    entity: image.driveway_wide_person
+                    state_not: unknown
+                  - condition: state
+                    entity: image.driveway_wide_person
+                    state_not: unavailable
+                card:
+                  type: custom:mushroom-template-card
+                  entity: image.driveway_wide_person
+                  primary: Uppfart · person
+                  secondary: >-
+                    {% set dt = as_local(as_datetime(states('image.driveway_wide_person'))) %}
+                    {{ dt.strftime('%H:%M · %d %b') }} ({{ relative_time(dt) }})
+                  icon: mdi:account
+                  layout: vertical
+                  fill_container: true
+                  tap_action:
+                    action: more-info
+              - type: conditional
+                conditions:
+                  - condition: state
+                    entity: image.driveway_id_person
+                    state_not: unknown
+                  - condition: state
+                    entity: image.driveway_id_person
+                    state_not: unavailable
+                card:
+                  type: custom:mushroom-template-card
+                  entity: image.driveway_id_person
+                  primary: Uppfart ID · person
+                  secondary: >-
+                    {% set dt = as_local(as_datetime(states('image.driveway_id_person'))) %}
+                    {{ dt.strftime('%H:%M · %d %b') }} ({{ relative_time(dt) }})
+                  icon: mdi:motion-sensor
+                  layout: vertical
+                  fill_container: true
+                  tap_action:
+                    action: more-info
+          - type: custom:mushroom-template-card
+            primary: Inga Frigate-bilder senaste dygnet
+            secondary: Tomt betyder lugnt — inte fel
+            icon: mdi:image-off-outline
+            icon_color: grey
+            fill_container: true
+            visibility:
+              - condition: state
+                entity: image.front_person
+                state: unavailable
+              - condition: state
+                entity: image.driveway_wide_person
+                state: unavailable
+              - condition: state
+                entity: image.driveway_id_person
+                state: unavailable
+            tap_action:
+              action: none
+          - type: horizontal-stack
+            cards:
+              - type: conditional
+                conditions:
+                  - condition: state
+                    entity: image.front_car
+                    state_not: unknown
+                  - condition: state
+                    entity: image.front_car
+                    state_not: unavailable
+                card:
+                  type: custom:mushroom-template-card
+                  entity: image.front_car
+                  primary: Entrén · fordon
+                  secondary: >-
+                    {% set dt = as_local(as_datetime(states('image.front_car'))) %}
+                    {{ dt.strftime('%H:%M · %d %b') }} ({{ relative_time(dt) }})
+                  icon: mdi:car
+                  layout: vertical
+                  fill_container: true
+                  tap_action:
+                    action: more-info
+              - type: conditional
+                conditions:
+                  - condition: state
+                    entity: image.driveway_wide_car
+                    state_not: unknown
+                  - condition: state
+                    entity: image.driveway_wide_car
+                    state_not: unavailable
+                card:
+                  type: custom:mushroom-template-card
+                  entity: image.driveway_wide_car
+                  primary: Uppfart · fordon
+                  secondary: >-
+                    {% set dt = as_local(as_datetime(states('image.driveway_wide_car'))) %}
+                    {{ dt.strftime('%H:%M · %d %b') }} ({{ relative_time(dt) }})
+                  icon: mdi:car
+                  layout: vertical
+                  fill_container: true
+                  tap_action:
+                    action: more-info
+              - type: conditional
+                conditions:
+                  - condition: state
+                    entity: image.driveway_id_car
+                    state_not: unknown
+                  - condition: state
+                    entity: image.driveway_id_car
+                    state_not: unavailable
+                card:
+                  type: custom:mushroom-template-card
+                  entity: image.driveway_id_car
+                  primary: Uppfart ID · fordon
+                  secondary: >-
+                    {% set dt = as_local(as_datetime(states('image.driveway_id_car'))) %}
+                    {{ dt.strftime('%H:%M · %d %b') }} ({{ relative_time(dt) }})
+                  icon: mdi:car
+                  layout: vertical
+                  fill_container: true
+                  tap_action:
+                    action: more-info
+
+      - title: TEMPERATUR (7 DAGAR)
+        cards:
+          - type: markdown
+            content: >-
+              **Ute** = D6210 · **Inne** = brandvarnare. Avbrott i linje = sampling paus.
+          - type: horizontal-stack
+            cards:
+              - type: history-graph
+                title: Ute
+                hours_to_show: 168
+                entities:
+                  - entity: sensor.driveway_env_temperature
+                    name: Ute
+              - type: history-graph
+                title: Inne
+                hours_to_show: 168
+                entities:
+                  - entity: sensor.heiman_hs1sa_e_plus_temperatur
+                    name: Kök
+                  - entity: sensor.heiman_hs1sa_e_plus_temperatur_2
+                    name: Hall
+                  - entity: sensor.heiman_hs1sa_e_plus_temperatur_3
+                    name: Vardagsrum
+                  - entity: sensor.house_indoor_temperature
+                    name: Snitt
+
+      - title: UTE LUFT (7 DAGAR)
+        cards:
+          - type: markdown
+            content: >-
+              D6210 uppfart — recorder 90 dagar. Tom graf = bridge/add-on nere eller ingen historik än.
+          - type: history-graph
+            title: Temperatur
+            hours_to_show: 168
+            entities:
+              - entity: sensor.driveway_env_temperature
+          - type: history-graph
+            title: Luftfuktighet
+            hours_to_show: 168
+            entities:
+              - entity: sensor.driveway_env_humidity
+          - type: history-graph
+            title: CO₂
+            hours_to_show: 168
+            entities:
+              - entity: sensor.driveway_env_co2
+          - type: history-graph
+            title: AQI
+            hours_to_show: 168
+            entities:
+              - entity: sensor.driveway_env_aqi
+          - type: history-graph
+            title: PM2.5
+            hours_to_show: 168
+            entities:
+              - entity: sensor.driveway_env_pm2_5
+
+      - title: UTE LUFT (90 DAGAR)
+        cards:
+          - type: markdown
+            content: Dagliga medel — kräver ~24 h data innan statistics fylls i.
+          - type: statistics-graph
+            chart_type: line
+            title: Temperatur
+            entities:
+              - sensor.driveway_env_temperature
+            stat_types:
+              - mean
+            days_to_show: 90
+            period: day
+            hide_legend: true
+          - type: statistics-graph
+            chart_type: line
+            title: Luftfuktighet
+            entities:
+              - sensor.driveway_env_humidity
+            stat_types:
+              - mean
+            days_to_show: 90
+            period: day
+            hide_legend: true
+          - type: statistics-graph
+            chart_type: line
+            title: CO₂
+            entities:
+              - sensor.driveway_env_co2
+            stat_types:
+              - mean
+            days_to_show: 90
+            period: day
+            hide_legend: true
+          - type: statistics-graph
+            chart_type: line
+            title: AQI
+            entities:
+              - sensor.driveway_env_aqi
+            stat_types:
+              - mean
+            days_to_show: 90
+            period: day
+            hide_legend: true
+          - type: statistics-graph
+            chart_type: line
+            title: PM2.5
+            entities:
+              - sensor.driveway_env_pm2_5
+            stat_types:
+              - mean
+            days_to_show: 90
+            period: day
+            hide_legend: true
+
+      - title: LJUD (7 DAGAR)
+        cards:
+          - type: history-graph
+            title: SPL (dB)
+            hours_to_show: 168
+            entities:
+              - entity: sensor.front_audio_spl
+                name: Front
+              - entity: sensor.driveway_wide_audio_spl
+                name: Uppfart
+              - entity: sensor.backyard_audio_spl
+                name: Bakgård
+
+
+  # ═══════════════════════════════════════════════════════════════
+  # VIEW 6 — DRIFT (Thomas — admin)
+  # ═══════════════════════════════════════════════════════════════
+  - title: Drift
+    path: ops
+    icon: mdi:cog
+    type: sections
+    max_columns: 2
+    sections:
+
+      # ── Camera status ────────────────────────────────────────
+      - title: KAMEROR
+        column_span: 2
+        cards:
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: template
+                icon: mdi:cctv
+                content: Entré
+                icon_color: >-
+                  {{ 'green' if is_state('switch.front_recordings', 'on') else 'red' }}
+              - type: template
+                icon: mdi:cctv
+                content: Uppf. bred
+                icon_color: >-
+                  {{ 'green' if is_state('switch.driveway_wide_recordings', 'on') else 'red' }}
+              - type: template
+                icon: mdi:cctv
+                content: Uppf. ID
+                icon_color: >-
+                  {{ 'green' if is_state('switch.driveway_id_recordings', 'on') else 'red' }}
+              - type: template
+                icon: mdi:cctv
+                content: Bakgård
+                icon_color: >-
+                  {{ 'green' if is_state('switch.backyard_recordings', 'on') else 'red' }}
+              - type: template
+                icon: mdi:cctv
+                content: Förråd ut
+                icon_color: >-
+                  {{ 'green' if is_state('switch.storage_ext_recordings', 'on') else 'red' }}
+              - type: template
+                icon: mdi:cctv
+                content: Förråd in
+                icon_color: >-
+                  {{ 'green' if is_state('switch.storage_int_recordings', 'on') else 'red' }}
+
+      # ── AOA live occupancy ───────────────────────────────────
+      - title: NÄRVARO (AOA)
+        column_span: 2
+        cards:
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: template
+                icon: mdi:walk
+                content: >-
+                  Entry · {{ 'aktiv' if is_state('binary_sensor.house_outdoor_presence', 'on') else 'lugnt' }}
+                icon_color: >-
+                  {{ 'amber' if is_state('binary_sensor.house_outdoor_presence', 'on') else 'grey' }}
+              - type: template
+                icon: mdi:account
+                content: >-
+                  Entré · {{ 'På' if is_state('binary_sensor.front_aoa_person', 'on') else 'Av' }}
+                icon_color: >-
+                  {{ 'amber' if is_state('binary_sensor.front_aoa_person', 'on') else 'grey' }}
+              - type: template
+                icon: mdi:account
+                content: >-
+                  Uppf. bred · {{ 'På' if is_state('binary_sensor.driveway_wide_aoa_person', 'on') else 'Av' }}
+                icon_color: >-
+                  {{ 'amber' if is_state('binary_sensor.driveway_wide_aoa_person', 'on') else 'grey' }}
+              - type: template
+                icon: mdi:account
+                content: >-
+                  Uppf. ID · {{ 'På' if is_state('binary_sensor.driveway_id_aoa_person', 'on') else 'Av' }}
+                icon_color: >-
+                  {{ 'amber' if is_state('binary_sensor.driveway_id_aoa_person', 'on') else 'grey' }}
+              - type: template
+                icon: mdi:car
+                content: >-
+                  Fordon · {{ 'På' if is_state('binary_sensor.driveway_wide_aoa_vehicle', 'on')
+                     or is_state('binary_sensor.front_aoa_vehicle', 'on') else 'Av' }}
+                icon_color: >-
+                  {{ 'amber' if is_state('binary_sensor.driveway_wide_aoa_vehicle', 'on')
+                     or is_state('binary_sensor.front_aoa_vehicle', 'on') else 'grey' }}
+              - type: template
+                icon: mdi:account
+                content: >-
+                  Bakgård · {{ 'På' if is_state('binary_sensor.backyard_aoa_person', 'on') else 'Av' }}
+                icon_color: >-
+                  {{ 'amber' if is_state('binary_sensor.backyard_aoa_person', 'on') else 'grey' }}
+              - type: template
+                icon: mdi:account
+                content: >-
+                  Förr.ut · {{ 'På' if is_state('binary_sensor.storage_ext_aoa_person', 'on') else 'Av' }}
+                icon_color: >-
+                  {{ 'amber' if is_state('binary_sensor.storage_ext_aoa_person', 'on') else 'grey' }}
+              - type: template
+                icon: mdi:timer-sand
+                content: >-
+                  Loiter · {{ 'På' if is_state('binary_sensor.front_aoa_loitering', 'on') else 'Av' }}
+                icon_color: >-
+                  {{ 'amber' if is_state('binary_sensor.front_aoa_loitering', 'on') else 'grey' }}
+
+      # ── Data health ──────────────────────────────────────────
+      - title: DATA
+        column_span: 2
+        cards:
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: template
+                icon: mdi:thermometer-lines
+                content: "Δ {{ states('sensor.house_indoor_outdoor_delta') }}°C"
+                icon_color: blue
+              - type: template
+                icon: mdi:motion-sensor
+                content: >-
+                  Zoner {{ states('sensor.house_outdoor_activity_summary') }}
+                icon_color: >-
+                  {{ 'amber' if is_state('binary_sensor.house_outdoor_presence', 'on') else 'grey' }}
+              - type: template
+                icon: mdi:air-filter
+                content: >-
+                  {% set t = states('sensor.driveway_env_temperature') %}
+                  {% if t in ['unknown', 'unavailable', ''] %}D6210 offline
+                  {% else %}D6210 {{ t }}°C{% endif %}
+                icon_color: >-
+                  {% if states('sensor.driveway_env_temperature') in ['unknown', 'unavailable', ''] %}amber
+                  {% else %}green{% endif %}
+              - type: action
+                icon: mdi:chart-timeline-variant
+                content: Insights
+                tap_action:
+                  action: navigate
+                  navigation_path: /house-timeline
+
+      # ── Recording toggles ────────────────────────────────────
+      - title: INSPELNING
+        column_span: 2
+        cards:
+          - type: custom:mushroom-entity-card
+            entity: switch.front_recordings
+            name: Front
+            icon: mdi:record-rec
+            layout: horizontal
+            fill_container: true
+          - type: custom:mushroom-entity-card
+            entity: switch.driveway_wide_recordings
+            name: Driveway Wide
+            icon: mdi:record-rec
+            layout: horizontal
+            fill_container: true
+          - type: custom:mushroom-entity-card
+            entity: switch.driveway_id_recordings
+            name: Driveway ID
+            icon: mdi:record-rec
+            layout: horizontal
+            fill_container: true
+          - type: custom:mushroom-entity-card
+            entity: switch.backyard_recordings
+            name: Backyard
+            icon: mdi:record-rec
+            layout: horizontal
+            fill_container: true
+          - type: custom:mushroom-entity-card
+            entity: switch.storage_ext_recordings
+            name: Storage Ext
+            icon: mdi:record-rec
+            layout: horizontal
+            fill_container: true
+          - type: custom:mushroom-entity-card
+            entity: switch.storage_int_recordings
+            name: Storage Int
+            icon: mdi:record-rec
+            layout: horizontal
+            fill_container: true
+
+      # ── Insights platform ────────────────────────────────────
+      - title: INSIGHTS
+        column_span: 2
+        cards:
+          - type: custom:mushroom-template-card
+            primary: Danielsson Insights
+            secondary: Analytics · miljö · story — add-on v0.2.4 på :8765
+            icon: mdi:chart-timeline-variant
+            icon_color: blue
+            fill_container: true
+            tap_action:
+              action: navigate
+              navigation_path: /house-timeline
+
+      # ── System ───────────────────────────────────────────────
+      - title: SYSTEM
+        column_span: 2
+        cards:
+          - type: horizontal-stack
+            cards:
+              - type: custom:mushroom-entity-card
+                entity: update.home_assistant_core_update
+                name: Core
+                icon: mdi:home-assistant
+                layout: vertical
+                fill_container: true
+              - type: custom:mushroom-entity-card
+                entity: update.home_assistant_supervisor_update
+                name: Supervisor
+                icon: mdi:update
+                layout: vertical
+                fill_container: true
+              - type: custom:mushroom-entity-card
+                entity: update.home_assistant_operating_system_update
+                name: HAOS
+                icon: mdi:layers
+                layout: vertical
+                fill_container: true
+
+      # ── Add-ons ──────────────────────────────────────────────
+      - title: TILLÄGG
+        column_span: 2
+        cards:
+          - type: horizontal-stack
+            cards:
+              - type: custom:mushroom-entity-card
+                entity: update.frigate_full_access_uppdatering
+                name: Frigate
+                icon: mdi:cctv
+                layout: vertical
+              - type: custom:mushroom-entity-card
+                entity: update.danielsson_insights_uppdatering
+                name: Insights
+                icon: mdi:chart-timeline-variant
+                layout: vertical
+              - type: custom:mushroom-entity-card
+                entity: update.matter_server_uppdatering
+                name: Matter
+                icon: mdi:chip
+                layout: vertical
+              - type: custom:mushroom-entity-card
+                entity: update.advanced_ssh_web_terminal_uppdatering
+                name: SSH
+                icon: mdi:console
+                layout: vertical
+
+      # ── Network ──────────────────────────────────────────────
+      - title: NÄTVERK
+        cards:
+          - type: custom:mushroom-entity-card
+            entity: binary_sensor.m9plus_wan_status
+            name: WAN
+            icon: mdi:wan
+            layout: horizontal
+            fill_container: true
+          - type: custom:mushroom-entity-card
+            entity: sensor.m9plus_nedladdningshastighet
+            name: Down
+            icon: mdi:download
+            layout: horizontal
+            fill_container: true
+          - type: custom:mushroom-entity-card
+            entity: sensor.m9plus_uppladdningshastighet
+            name: Up
+            icon: mdi:upload
+            layout: horizontal
+            fill_container: true
+
+      # ── Backup ───────────────────────────────────────────────
+      - title: SÄKERHETSKOPIA
+        cards:
+          - type: custom:mushroom-entity-card
+            entity: sensor.backup_backup_manager_state
+            name: State
+            icon: mdi:backup-restore
+            layout: horizontal
+            fill_container: true
+          - type: custom:mushroom-entity-card
+            entity: sensor.backup_last_successful_automatic_backup
+            name: Last Backup
+            icon: mdi:clock-check
+            layout: horizontal
+            fill_container: true
+
+      # ── Quick Actions ────────────────────────────────────────
+      - title: SNABBA ÅTGÄRDER
+        column_span: 2
+        cards:
+          - type: custom:mushroom-template-card
+            primary: Restart HA
+            icon: mdi:restart
+            icon_color: amber
+            fill_container: true
+            tap_action:
+              action: call-service
+              service: homeassistant.restart
+              confirmation:
+                text: Restart Home Assistant?
+          - type: custom:mushroom-template-card
+            primary: Backup Now
+            icon: mdi:backup-restore
+            icon_color: blue
+            fill_container: true
+            tap_action:
+              action: call-service
+              service: backup.create
+              confirmation:
+                text: Create a full backup?

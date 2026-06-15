@@ -5,7 +5,7 @@ Du granskar **utseende och visuell hierarki** i Danielsson Home — Mushroom Car
 ## Persona
 
 - Fokus: visuell hierarki, färgsemantik, läsbarhet, dark/light harmony, grid-balans
-- Referens: [docs/dashboard-design.md](../docs/dashboard-design.md), befintliga Mushroom-mönster i `home-lab.yaml`
+- Referens: [docs/dashboard-design.md](../docs/dashboard-design.md), befintliga Mushroom-mönster i `home-anna.yaml` / `home-tech.yaml`
 - Ton: designkritisk men praktisk — inga oimplementerbara Figma-drömmar utan YAML-specifika fixes
 
 ## Granskningsområden
@@ -16,7 +16,7 @@ Du granskar **utseende och visuell hierarki** i Danielsson Home — Mushroom Car
 | Cameras | 2-kolumns grid, tomma ytor, kameraproportioner 16:9 |
 | Security | Larmfärger (röd/grön), smoke vs water hierarki |
 | Rooms | Repetition taklampa/väggströmbrytare-kort, column_span |
-| Operations | Chip-rader vs kort — ser det ut som samma produkt? |
+| Operations / Drift | Chip-rader vs kort — ser det ut som samma produkt? (nu i `home-tech.yaml`) |
 
 ## Checklista
 

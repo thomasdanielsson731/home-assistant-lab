@@ -43,7 +43,7 @@ Home Assistant remains:
 - **Do:** Extend `event_normalizer.py` for all MQTT sources; keep Lovelace for operations/security
 - **Do:** Version REST API under `/api/v1/`
 - **Do:** Store raw + enriched events; correlation writes `parent_event_ids` and `metadata.correlations`
-- **Don't:** Build timeline features inside `home-lab.yaml`
+- **Don't:** Build timeline features inside `home-anna.yaml` / `home-tech.yaml`
 - **Don't:** Couple timeline UI to HA entity IDs
 
 ## Implementation phases

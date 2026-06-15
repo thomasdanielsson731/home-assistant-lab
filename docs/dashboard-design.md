@@ -1,6 +1,10 @@
 # Dashboard Design
 
-Visual layout for the Home Assistant Sections dashboard using Mushroom Cards. Mobile-first. Five views.
+Visual layout for the Home Assistant Sections dashboard using Mushroom Cards. Mobile-first.
+
+**Anna dashboard** (`home-anna.yaml`, sidebar id `home-lab`): four views — Hem, Kameror, Säkerhet, Rum.
+
+**Teknik dashboard** (`home-tech.yaml`, admin only): Teknik + Drift — sensorer, grafer, systemstatus.
 
 **Stack:** Mushroom Cards + Sections layout + custom:mini-graph-card for history.
 

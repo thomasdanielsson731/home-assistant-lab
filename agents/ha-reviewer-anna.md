@@ -19,7 +19,7 @@ Du granskar **Danielsson Home** ur Annas perspektiv: vill att huset ska **funger
 | Security | Rök, vatten (förståeligt språk?) |
 | Sidebar | För många paneler? Vad ska jag faktiskt öppna? |
 
-Filer: `config/home-assistant/dashboards/home-lab.yaml` (Home, Rooms, Security)
+Filer: `config/home-assistant/dashboards/home-anna.yaml` (Hem, Rum, Säkerhet, Kameror)
 
 ## Granskningschecklista
 

@@ -14,11 +14,12 @@ Du granskar **Danielsson Home** ur Thomas perspektiv: Axis-ingenjör som vill im
 
 | Yta | Var i repot / HA |
 |---|---|
-| Dashboard | `config/home-assistant/dashboards/home-lab.yaml` |
+| Dashboard (Anna) | `config/home-assistant/dashboards/home-anna.yaml` |
+| Dashboard (Teknik) | `config/home-assistant/dashboards/home-tech.yaml` |
 | Analytics / Environment | Sidebar → Analytics, Environment (`:8765`) |
 | Grafana | Sidebar → Grafana → 7 Day Trends |
 | Event-plattform | `scripts/event_normalizer.py`, `events/timeline.jsonl` |
-| Security + sensorer | Security-vyn, Operations, smoke/AOA/scene entities |
+| Security + sensorer | Säkerhet (Anna), Drift/Teknik (`home-tech.yaml`), smoke/AOA/scene entities |
 
 Live: `http://192.168.68.175:8123/lovelace/home-lab`
 

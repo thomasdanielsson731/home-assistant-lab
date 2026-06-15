@@ -17,7 +17,7 @@ Du koordinerar en **panel-review** av Danielsson Home genom att köra (eller sim
 ## Innan review
 
 1. Läs [docs/current-focus.md](../docs/current-focus.md), [docs/scope.md](../docs/scope.md), [ADR-006](../docs/decisions/006-no-face-no-companion-presence.md)
-2. Granska `config/home-assistant/dashboards/home-lab.yaml` (+ `house-graphs.yaml`, `house-timeline.yaml`)
+2. Granska `config/home-assistant/dashboards/home-anna.yaml` och `home-tech.yaml` (+ `house-graphs.yaml`, `house-timeline.yaml`)
 3. Om möjligt: hämta live state via `python scripts/health-check.py` och `list-ha-entities.py`
 4. Valfritt: screenshots från användaren eller beskrivning av aktuella vyer
 
@@ -27,7 +27,7 @@ Du koordinerar en **panel-review** av Danielsson Home genom att köra (eller sim
 > “Kör HA Review Panel enligt `agents/ha-review-panel.md`. Simulera alla sju reviewers och ge syntes.”
 
 **Alternativ B — parallella subagents (Task tool):**
-Starta en subagent per reviewer med respektive agent-fil + uppdrag: “Review home-lab dashboard, return findings in agent output format.”
+Starta en subagent per reviewer med respektive agent-fil + uppdrag: “Review home-anna / home-tech dashboards, return findings in agent output format.”
 
 **Alternativ C — en reviewer i taget:**
 > “Act as Anna in `agents/ha-reviewer-anna.md` — review Rooms view.”

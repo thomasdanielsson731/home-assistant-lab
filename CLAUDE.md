@@ -326,7 +326,8 @@ config/
     themes/              → merged via !include_dir_merge_named themes
     lovelace/            # legacy dashboard YAML
     dashboards/
-      home-lab.yaml        # 5 views: Home, Cameras, Security, Rooms, Operations
+      home-anna.yaml       # Danielsson Home (id home-lab): Hem, Kameror, Säkerhet, Rum
+      home-tech.yaml       # Teknik (admin): Teknik + Drift
       house-timeline.yaml  # Analytics (full-screen iframe)
     secrets.yaml.example  # shape only — real secrets.yaml lives on host, never committed
   frigate/
@@ -399,7 +400,7 @@ All AOA payloads are JSON `{Data: {active: bool}}` — use `value_template: "{{ 
 |---|---|---|
 | 1 | Foundation — naming, areas, MQTT, backups | Done |
 | 2 | Cameras + Frigate — 6 cameras, recording, HA integration (99 entities) | Done |
-| 3 | Dashboard — 5 views live at `/lovelace/home-lab` | Done |
+| 3 | Dashboard — Anna (`/lovelace/home-lab`) + Teknik admin (`/lovelace/home-tech`) | Done |
 | 4 | ~~Face recognition~~ | **Removed** — [ADR-006](docs/decisions/006-no-face-no-companion-presence.md) |
 | 5 | Axis analytics (ACAP + MQTT) | Done — all 6 cameras verified |
 | 6 | AI integration / narratives | In progress — story ready; Kraftringen credentials pending |

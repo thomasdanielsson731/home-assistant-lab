@@ -1,9 +1,11 @@
 - id: "aoa_loitering_detected"
   alias: "AOA — loitering detected"
-  initial_state: false
+  initial_state: true
   description: >
-    Fires when a person lingers in a camera zone longer than the AOA loitering
-    threshold (configured per camera, recommended 10-15 seconds).
+    Push when AOA loitering scenario fires (person lingering past camera threshold).
+    15 min cooldown per automation run.
+  mode: single
+  max_exceeded: silent
   trigger:
     - platform: state
       entity_id:
@@ -17,7 +19,8 @@
   action:
     - service: notify.mobile_app_thomas_iphone_15
       data:
-        title: "Loitering alert"
-        message: >
-          Person lingering at
-          {{ trigger.to_state.name | replace(' aoa loitering', '') | title }}
+        title: "Kvarvarande person ute"
+        message: >-
+          {% set zone = trigger.entity_id.split('.')[1].replace('_aoa_loitering', '') %}
+          {{ zone | replace('_', ' ') | title }}
+    - delay: "00:15:00"

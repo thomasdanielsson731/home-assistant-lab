@@ -20,7 +20,8 @@ Du är UX-expert som granskar **Danielsson Home** och relaterade ytor (Analytics
 
 | Artefakt | UX-frågor |
 |---|---|
-| `home-lab.yaml` | Antal views, scroll-djup, sektionstitlar, tap targets |
+| `home-anna.yaml` | Antal views, scroll-djup, sektionstitlar, tap targets |
+| `home-tech.yaml` | Admin-only drift — separation från familje-UI |
 | `house-graphs.yaml` | Iframe vs mobil fallback, tydlig CTA |
 | `house-timeline.yaml` | Varför två analytics-vägar? |
 | Sidebar | Panelantal (`configure_ha_sidebar.py`) |

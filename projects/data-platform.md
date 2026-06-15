@@ -34,7 +34,7 @@ Time-series storage for trend analysis. Answer "what's normal?" and "what change
 - `scripts/set_insights_influx_options.sh` — configure add-on options on HAOS
 - `docs/runbooks/influxdb-setup.md` — setup runbook
 - `config/home-assistant/influxdb.yaml.example` — HA sensor integration sketch
-- `config/home-assistant/dashboards/home-lab.yaml` — trend cards (future)
+- `config/home-assistant/dashboards/home-tech.yaml` — trend cards (future)
 
 ## References
 

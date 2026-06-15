@@ -45,11 +45,18 @@ lovelace:
   dashboards:
     home-lab:
       mode: yaml
-      filename: dashboards/home-lab.yaml
+      filename: dashboards/home-anna.yaml
       title: Danielsson Home
       icon: mdi:home-assistant
       show_in_sidebar: true
       require_admin: false
+    home-tech:
+      mode: yaml
+      filename: dashboards/home-tech.yaml
+      title: Teknik
+      icon: mdi:chip
+      show_in_sidebar: true
+      require_admin: true
     house-timeline:
       mode: yaml
       filename: dashboards/house-timeline.yaml
