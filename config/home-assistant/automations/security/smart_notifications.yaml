@@ -1,17 +1,12 @@
-# Future notification policy — enable when ready
+# Notification policy — Thomas iPhone only (ADR-006).
 #
-# Notify ONLY for:
-#   1. Cats (neighbour cats, custom Frigate model)
-#   2. Unknown persons at entry (Frigate person — no household identity layer)
-#
-# Thomas iPhone push only (family does not use HA Companion for presence).
+# Entry person alerts require multisensor confirmation: Frigate + at least one
+# of AOA or scene at the same zone (2-of-3 layers).
 
 - id: notify_cat_detected
   alias: "Notify — cat detected"
   initial_state: false
-  description: >
-    Push when Frigate detects a cat. Enable after cat model is trained
-    or Frigate label 'cat' is reliable.
+  description: Push when Frigate detects a cat (enable after cat model is reliable).
   mode: single
   max_exceeded: silent
   trigger:
@@ -31,12 +26,12 @@
         data:
           image: /api/frigate/notifications/{{ trigger.payload_json.after.id }}/snapshot.jpg
 
-- id: notify_unknown_person_entry
-  alias: "Notify — person at entry"
-  initial_state: false
+- id: notify_person_entry_multisensor
+  alias: "Notify — person at entry (multisensor)"
+  initial_state: true
   description: >
-    Push when Frigate detects a person at an entry camera.
-    Enable when you want Thomas-only security alerts (no face filtering).
+    Push when Frigate sees a person at an entry camera AND AOA or scene confirms
+    at the same zone. 10 min cooldown per automation run.
   mode: single
   max_exceeded: silent
   trigger:
@@ -45,14 +40,36 @@
   condition:
     - condition: template
       value_template: >
-        {{ trigger.payload_json.type == 'new'
-           and trigger.payload_json.after.label == 'person'
-           and trigger.payload_json.after.camera in ['front', 'driveway_id', 'driveway_wide'] }}
+        {% set p = trigger.payload_json %}
+        {{ p.type == 'new'
+           and p.after.label == 'person'
+           and p.after.camera in ['front', 'driveway_id', 'driveway_wide'] }}
+    - condition: template
+      value_template: >
+        {% set cam = trigger.payload_json.after.camera %}
+        {% set layers = {
+          'front': [
+            'binary_sensor.front_aoa_person',
+            'binary_sensor.front_scene_object_present'
+          ],
+          'driveway_wide': [
+            'binary_sensor.driveway_wide_aoa_person',
+            'binary_sensor.driveway_wide_scene_object_present'
+          ],
+          'driveway_id': [
+            'binary_sensor.driveway_id_aoa_person',
+            'binary_sensor.driveway_id_scene_object_present'
+          ]
+        } %}
+        {% set extras = layers.get(cam, []) | select('is_state', 'on') | list | count %}
+        {{ extras >= 1 }}
   action:
     - service: notify.mobile_app_thomas_iphone_15
       data:
-        title: "Person at entry"
+        title: "Person vid entrén"
         message: >-
           {{ trigger.payload_json.after.camera | replace('_', ' ') | title }}
+          — bekräftad av kamera + sensor
         data:
           image: /api/frigate/notifications/{{ trigger.payload_json.after.id }}/snapshot.jpg
+    - delay: "00:10:00"

@@ -11,7 +11,7 @@ views:
     max_columns: 1
     sections:
 
-      # ── Overview — Anna: väder, närvaro, temperatur ───────────
+      # ── Overview — Anna: väder, utomhusaktivitet, temperatur ──
       - cards:
           - type: horizontal-stack
             cards:
@@ -46,19 +46,26 @@ views:
                 primary: >-
                   {% if is_state('binary_sensor.house_outdoor_presence', 'on') %}Aktivitet ute
                   {% else %}Ingen aktivitet ute{% endif %}
-                secondary: Utomhus · kameror & sensorer
+                secondary: Visar inte vem som är inne
                 icon: mdi:motion-sensor
                 icon_color: >-
                   {{ 'amber' if is_state('binary_sensor.house_outdoor_presence', 'on') else 'grey' }}
                 layout: vertical
                 fill_container: true
               - type: custom:mushroom-template-card
-                primary: "{{ states('sensor.house_indoor_temperature') }}°C"
-                secondary: Inne · brandvarnare
+                primary: >-
+                  {% set inn = states('sensor.house_indoor_temperature') %}
+                  {% if inn in ['unknown', 'unavailable', ''] %}—
+                  {% else %}{{ inn }}°C{% endif %}
+                secondary: Inne · vardagsrum
                 icon: mdi:home-thermometer
                 icon_color: >-
-                  {% set inn = states('sensor.house_indoor_temperature') | float(0) %}
-                  {{ 'blue' if inn < 18 else 'green' if inn < 24 else 'orange' if inn < 26 else 'red' }}
+                  {% set inn = states('sensor.house_indoor_temperature') | float(none) %}
+                  {% if inn is none %}grey
+                  {% elif inn < 18 %}blue
+                  {% elif inn < 24 %}green
+                  {% elif inn < 26 %}amber
+                  {% else %}red{% endif %}
                 layout: vertical
                 fill_container: true
               - type: custom:mushroom-template-card
@@ -96,11 +103,13 @@ views:
               - type: template
                 icon: mdi:smoke-detector
                 content: >-
-                  {% set dc = state_attr('binary_sensor.house_smoke_alarm', 'detector_count') | int(3) %}
-                  {% if is_state('binary_sensor.house_smoke_alarm', 'on') %}RÖK
-                  {% else %}Rök {{ dc }}/3{% endif %}
+                  {% set dc = state_attr('binary_sensor.house_smoke_alarm', 'detector_count') | int(0) %}
+                  {% if is_state('binary_sensor.house_smoke_alarm', 'on') %}RÖK!
+                  {% elif dc >= 3 %}Rök OK
+                  {% elif dc > 0 %}Rök {{ dc }}/3
+                  {% else %}Rök ?{% endif %}
                 icon_color: >-
-                  {% set dc = state_attr('binary_sensor.house_smoke_alarm', 'detector_count') | int(3) %}
+                  {% set dc = state_attr('binary_sensor.house_smoke_alarm', 'detector_count') | int(0) %}
                   {% if is_state('binary_sensor.house_smoke_alarm', 'on') %}red
                   {% elif dc < 3 %}amber
                   {% else %}green{% endif %}
@@ -125,16 +134,25 @@ views:
                 content: Släck allt
                 tap_action:
                   action: call-service
-                  service: light.turn_off
-                  target:
-                    entity_id:
-                      - light.living_room
-                      - light.fonsterlampor
-                      - light.anna_och_thomas_sovrum
-                      - light.hugos_rum
-                      - light.matplats
-                      - light.spottar
-                      - light.underskapsbelysning
+                  service: script.light_turn_off_common
+              - type: action
+                icon: mdi:chef-hat
+                content: Släck kök
+                tap_action:
+                  action: call-service
+                  service: script.light_turn_off_kitchen
+              - type: action
+                icon: mdi:sofa
+                content: Släck vardagsrum
+                tap_action:
+                  action: call-service
+                  service: script.light_turn_off_living_room
+              - type: action
+                icon: mdi:chart-timeline-variant
+                content: Idag ute
+                tap_action:
+                  action: navigate
+                  navigation_path: /house-timeline
               - type: action
                 icon: mdi:cctv
                 content: Kameror
@@ -194,6 +212,26 @@ views:
               fill_container: true
               tap_action:
                 action: none
+
+      - title: SENASTE VID ENTRÉN
+        cards:
+          - type: custom:mushroom-template-card
+            entity: image.front_person
+            primary: Senaste vid entrén
+            secondary: >-
+              {% if states('image.front_person') in ['unknown', 'unavailable', ''] %}
+              Inga detektioner — lugnt
+              {% else %}
+              {% set dt = as_local(as_datetime(states('image.front_person'))) %}
+              {{ dt.strftime('%H:%M idag') }} · {{ relative_time(dt) }}
+              {% endif %}
+            icon: mdi:cctv
+            icon_color: >-
+              {{ 'amber' if states('image.front_person') not in ['unknown', 'unavailable', ''] else 'grey' }}
+            fill_container: true
+            tap_action:
+              action: navigate
+              navigation_path: /house-timeline
 
       # ── Lights On Now — only lights that are actually on ────
       - title: LAMPOR TÄNDA
@@ -331,7 +369,7 @@ views:
                   {{ 'Person' if is_state('binary_sensor.driveway_id_aoa_person', 'on')
                      else 'Ingen person' }}
                 icon_color: >-
-                  {{ 'red' if is_state('binary_sensor.driveway_id_aoa_person', 'on') else 'grey' }}
+                  {{ 'amber' if is_state('binary_sensor.driveway_id_aoa_person', 'on') else 'grey' }}
 
       - title: BAKGÅRD
         cards:
@@ -383,7 +421,18 @@ views:
                 title: Förråd invändigt (Q1656)
             dimensions:
               aspect_ratio: 16/9
-
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: template
+                icon: mdi:account
+                content: >-
+                  {{ 'Person' if is_state('binary_sensor.storage_int_aoa_person', 'on')
+                     else 'Rörelse' if is_state('binary_sensor.storage_int_motion', 'on')
+                     else 'Lugnt' }}
+                icon_color: >-
+                  {{ 'amber' if is_state('binary_sensor.storage_int_aoa_person', 'on')
+                     else 'blue' if is_state('binary_sensor.storage_int_motion', 'on')
+                     else 'grey' }}
 
   # ═══════════════════════════════════════════════════════════════
   # VIEW 3 — SÄKERHET (Anna — enkel)
@@ -413,47 +462,84 @@ views:
               action: more-info
               entity: sensor.house_home_status
 
-      # ── Smoke detectors (ZHA) — unified house alarm sensor ──────
-      - title: BRANDVARNARE
-        visibility:
-          - condition: state
-            entity: binary_sensor.house_smoke_alarm
-            state_not: unavailable
+      - title: UTE
         cards:
           - type: custom:mushroom-template-card
             primary: >-
-              {% set ns = namespace(alarms=[]) %}
-              {% for s in states.binary_sensor | selectattr('entity_id', 'search', 'heiman') | list %}
-                {% if 'ias_zon' in s.entity_id or s.entity_id == 'binary_sensor.heiman_hs1sa_e_plus' %}
-                  {% set ns.alarms = ns.alarms + [s] %}
-                {% endif %}
-              {% endfor %}
-              {% if ns.alarms | selectattr('state', 'eq', 'on') | list | count > 0 %}RÖKALARM — {{ ns.alarms | selectattr('state', 'eq', 'on') | list | count }} aktiv
-              {% else %}{{ ns.alarms | count }} brandvarnare · OK{% endif %}
+              {% if is_state('binary_sensor.house_outdoor_presence', 'on') %}Aktivitet utomhus
+              {% else %}Ingen aktivitet utomhus{% endif %}
             secondary: >-
-              {% for s in states.binary_sensor | selectattr('entity_id', 'search', 'heiman') | list %}
-              {% if 'ias_zon' in s.entity_id or s.entity_id == 'binary_sensor.heiman_hs1sa_e_plus' %}
-              {{ state_attr(s.entity_id, 'friendly_name') | default(s.entity_id) }} · {{ 'RÖK' if s.state == 'on' else 'OK' }}
-              {% endif %}
-              {% endfor %}
-              {% set temps = states.sensor | selectattr('entity_id', 'search', 'heiman') | selectattr('entity_id', 'search', 'temperatur') | list %}
-              {% if temps | count > 0 %} · {% endif %}
-              {% for t in temps %}
-              {% if t.state not in ['unknown', 'unavailable', ''] %}{{ t.state }}°C{% if not loop.last %} · {% endif %}{% endif %}
-              {% endfor %}
-            icon: mdi:smoke-detector
+              {{ state_attr('sensor.house_outdoor_activity_summary', 'active_zones') | default('none') }}
+            icon: mdi:motion-sensor
             icon_color: >-
-              {% set ns = namespace(alarm=false) %}
-              {% for s in states.binary_sensor | selectattr('entity_id', 'search', 'heiman') | list %}
-                {% if ('ias_zon' in s.entity_id or s.entity_id == 'binary_sensor.heiman_hs1sa_e_plus') and s.state == 'on' %}
-                  {% set ns.alarm = true %}
-                {% endif %}
-              {% endfor %}
-              {{ 'red' if ns.alarm else 'green' }}
+              {{ 'amber' if is_state('binary_sensor.house_outdoor_presence', 'on') else 'green' }}
             fill_container: true
             tap_action:
-              action: more-info
-              entity: binary_sensor.house_smoke_alarm
+              action: navigate
+              navigation_path: /lovelace/home-lab/cameras
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: template
+                icon: mdi:door
+                content: >-
+                  {% if is_state('binary_sensor.front_aoa_person', 'on') %}Entré · person
+                  {% elif is_state('binary_sensor.front_motion', 'on') %}Entré · rörelse
+                  {% else %}Entré · lugnt{% endif %}
+                icon_color: >-
+                  {{ 'amber' if is_state('binary_sensor.front_aoa_person', 'on')
+                     else 'blue' if is_state('binary_sensor.front_motion', 'on')
+                     else 'green' }}
+              - type: action
+                icon: mdi:chart-timeline-variant
+                content: Vad hände idag?
+                tap_action:
+                  action: navigate
+                  navigation_path: /house-timeline
+
+      # ── Smoke detectors (ZHA) — unified house alarm sensor ──────
+      - title: BRANDVARNARE
+        cards:
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: binary_sensor.house_smoke_alarm
+                state_not: unavailable
+            card:
+              type: custom:mushroom-template-card
+              primary: >-
+                {% set dc = state_attr('binary_sensor.house_smoke_alarm', 'detector_count') | int(0) %}
+                {% if is_state('binary_sensor.house_smoke_alarm', 'on') %}RÖKALARM
+                {% elif dc >= 3 %}3 brandvarnare · inget rök
+                {% elif dc > 0 %}{{ dc }}/3 brandvarnare online
+                {% else %}Brandvarnare oklar{% endif %}
+              secondary: >-
+                {% if is_state('binary_sensor.house_smoke_alarm', 'on') %}
+                {{ state_attr('binary_sensor.house_smoke_alarm', 'active_sensors') | default('Kontrollera brandvarnare') }}
+                {% else %}Tryck för detaljer{% endif %}
+              icon: mdi:smoke-detector
+              icon_color: >-
+                {% set dc = state_attr('binary_sensor.house_smoke_alarm', 'detector_count') | int(0) %}
+                {% if is_state('binary_sensor.house_smoke_alarm', 'on') %}red
+                {% elif dc < 3 %}amber
+                {% else %}green{% endif %}
+              fill_container: true
+              tap_action:
+                action: more-info
+                entity: binary_sensor.house_smoke_alarm
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: binary_sensor.house_smoke_alarm
+                state: unavailable
+            card:
+              type: custom:mushroom-template-card
+              primary: Brandvarnare oklar
+              secondary: ZHA svarar inte — kontrollera brandvarnarna
+              icon: mdi:smoke-detector-off
+              icon_color: amber
+              fill_container: true
+              tap_action:
+                action: none
 
       # ── Water leak (ZHA — dishwasher) — alltid synlig ───────────
       - title: VATTENLÄCKAGE
@@ -464,16 +550,18 @@ views:
                 entity: binary_sensor.sonoff_snzb_05p
                 state_not: unavailable
             card:
-              type: custom:mushroom-entity-card
-              entity: binary_sensor.sonoff_snzb_05p
-              name: Kök · diskmaskin
+              type: custom:mushroom-template-card
+              primary: >-
+                {% if is_state('binary_sensor.sonoff_snzb_05p', 'on') %}VATTEN DETEKTERAT
+                {% else %}Torrt{% endif %}
+              secondary: Kök · diskmaskin
               icon: mdi:water-alert
-              layout: horizontal
-              fill_container: true
-              primary_info: name
-              secondary_info: state
               icon_color: >-
                 {{ 'red' if is_state('binary_sensor.sonoff_snzb_05p', 'on') else 'green' }}
+              fill_container: true
+              tap_action:
+                action: more-info
+                entity: binary_sensor.sonoff_snzb_05p
           - type: conditional
             conditions:
               - condition: state
@@ -513,17 +601,17 @@ views:
           - type: markdown
             content: Kommer snart
 
-      - title: MER TEKNIK
+      - title: HISTORIK
         cards:
           - type: custom:mushroom-template-card
-            primary: Detektioner & historik
-            secondary: Multisensor, Frigate-bilder, CO₂, Analytics
+            primary: Vad hände utomhus idag?
+            secondary: Öppna Analytics — händelser & bilder
             icon: mdi:chart-timeline-variant
             icon_color: blue
             fill_container: true
             tap_action:
               action: navigate
-              navigation_path: /lovelace/home-lab/tech
+              navigation_path: /house-timeline
 
   # ═══════════════════════════════════════════════════════════════
   # VIEW 4 — RUM (Anna — enkel)
@@ -566,29 +654,50 @@ views:
                 content: Släck allt
                 tap_action:
                   action: call-service
-                  service: light.turn_off
-                  target:
-                    entity_id:
-                      - light.living_room
-                      - light.fonsterlampor
-                      - light.anna_och_thomas_sovrum
-                      - light.hugos_rum
-                      - light.matplats
-                      - light.spottar
-                      - light.underskapsbelysning
+                  service: script.light_turn_off_common
+              - type: action
+                icon: mdi:chef-hat
+                content: Släck kök
+                tap_action:
+                  action: call-service
+                  service: script.light_turn_off_kitchen
+              - type: action
+                icon: mdi:sofa
+                content: Släck vardagsrum
+                tap_action:
+                  action: call-service
+                  service: script.light_turn_off_living_room
+              - type: action
+                icon: mdi:bed
+                content: Släck sovrum
+                tap_action:
+                  action: call-service
+                  service: script.light_turn_off_bedroom
 
       # ── Temperatur (enkel) ───────────────────────────────────
       - column_span: 2
         cards:
           - type: custom:mushroom-template-card
-            primary: "Inne {{ states('sensor.house_indoor_temperature') }}°C"
-            secondary: Brandvarnare · se grafer under Teknik
+            primary: >-
+              {% set inn = states('sensor.house_indoor_temperature') %}
+              {% if inn in ['unknown', 'unavailable', ''] %}Inne —
+              {% else %}Inne {{ inn }}°C{% endif %}
+            secondary: >-
+              {% set d = states('sensor.house_indoor_outdoor_delta') %}
+              {% if d in ['unknown', 'unavailable', ''] %}Vardagsrum & hall
+              {% else %}{{ state_attr('sensor.house_indoor_outdoor_delta', 'label') | default('Δ ' ~ d ~ '°C') }}{% endif %}
             icon: mdi:home-thermometer
-            icon_color: green
+            icon_color: >-
+              {% set inn = states('sensor.house_indoor_temperature') | float(none) %}
+              {% if inn is none %}grey
+              {% elif inn < 18 %}blue
+              {% elif inn < 24 %}green
+              {% elif inn < 26 %}amber
+              {% else %}red{% endif %}
             fill_container: true
             tap_action:
-              action: navigate
-              navigation_path: /lovelace/home-lab/tech
+              action: more-info
+              entity: sensor.house_indoor_temperature
 
       # ── Kök ──────────────────────────────────────────────────
       # Lamporna sitter bakom väggströmbrytare — "unavailable" betyder
@@ -872,19 +981,7 @@ views:
                       - light.hugos_rum
                       - light.hugos_taklampa
 
-      # ── Nils rum ─────────────────────────────────────────────
-      - title: NILS RUM
-        cards:
-          - type: custom:mushroom-template-card
-            primary: Nils rum
-            secondary: Lampor kommer snart
-            icon: mdi:lightbulb-off-outline
-            icon_color: disabled
-            fill_container: true
-            tap_action:
-              action: none
-
-      # ── Städrobot (Roborock) ─────────────────────────────────
+      # ── Hugo rum ─────────────────────────────────────────────
       - title: STÄDROBOT
         column_span: 2
         cards:
@@ -1017,28 +1114,51 @@ views:
             chips:
               - type: template
                 icon: mdi:thermometer
-                content: "Ute {{ states('sensor.driveway_env_temperature') }}°C"
+                content: >-
+                  {% set t = states('sensor.driveway_env_temperature') %}
+                  {% if t in ['unknown', 'unavailable', ''] %}Ute —
+                  {% else %}Ute {{ t }}°C{% endif %}
                 icon_color: blue
               - type: template
                 icon: mdi:water-percent
-                content: "Fukt {{ states('sensor.driveway_env_humidity') }}%"
+                content: >-
+                  {% set h = states('sensor.driveway_env_humidity') %}
+                  {% if h in ['unknown', 'unavailable', ''] %}Fukt —
+                  {% else %}Fukt {{ h }}%{% endif %}
                 icon_color: blue
               - type: template
                 icon: mdi:molecule-co2
-                content: "CO₂ {{ states('sensor.driveway_env_co2') | int(0) }}"
-                icon_color: >-
-                  {% set c = states('sensor.driveway_env_co2') | int(0) %}
-                  {{ 'green' if c < 800 else 'amber' if c < 1200 else 'red' }}
+                content: >-
+                  {% set c = states('sensor.driveway_env_co2') %}
+                  {% if c in ['unknown', 'unavailable', ''] %}CO₂ —
+                  {% elif c | int(0) == 0 %}CO₂ uppstart
+                  {% else %}CO₂ {{ c | int(0) }}{% endif %}
+                icon_color: grey
               - type: template
                 icon: mdi:air-filter
-                content: "AQI {{ states('sensor.driveway_env_aqi') }}"
+                content: >-
+                  {% set aqi = states('sensor.driveway_env_aqi') %}
+                  {% if aqi in ['unknown', 'unavailable', ''] %}AQI —
+                  {% elif aqi | int(0) == 0 %}AQI uppstart
+                  {% else %}AQI {{ aqi }}{% endif %}
                 icon_color: >-
                   {% set aqi = states('sensor.driveway_env_aqi') | int(0) %}
-                  {{ 'green' if aqi <= 50 else 'amber' if aqi <= 100 else 'red' }}
+                  {% if aqi == 0 %}grey
+                  {% elif aqi <= 50 %}green
+                  {% elif aqi <= 100 %}amber
+                  {% else %}red{% endif %}
               - type: template
                 icon: mdi:blur
-                content: "PM2.5 {{ states('sensor.driveway_env_pm2_5') }}"
+                content: >-
+                  {% set pm = states('sensor.driveway_env_pm2_5') %}
+                  {% if pm in ['unknown', 'unavailable', ''] %}PM2.5 —
+                  {% else %}PM2.5 {{ pm }}{% endif %}
                 icon_color: grey
+              - type: template
+                icon: mdi:delta
+                content: >-
+                  Δ {{ states('sensor.house_indoor_outdoor_delta') }}°C
+                icon_color: blue
 
       - title: SENSORFUSION
         cards:
@@ -1054,7 +1174,9 @@ views:
                   A{{ '✓' if is_state('binary_sensor.front_aoa_person', 'on') else '·' }}
                   S{{ '✓' if is_state('binary_sensor.front_scene_object_present', 'on') else '·' }}
                 icon_color: >-
-                  {{ 'amber' if is_state('binary_sensor.front_aoa_person', 'on') else 'grey' }}
+                  {{ 'amber' if is_state('binary_sensor.front_person_occupancy', 'on')
+                     or is_state('binary_sensor.front_aoa_person', 'on')
+                     or is_state('binary_sensor.front_scene_object_present', 'on') else 'grey' }}
               - type: template
                 icon: mdi:layers
                 content: >-
@@ -1062,7 +1184,9 @@ views:
                   A{{ '✓' if is_state('binary_sensor.driveway_wide_aoa_person', 'on') else '·' }}
                   S{{ '✓' if is_state('binary_sensor.driveway_wide_scene_object_present', 'on') else '·' }}
                 icon_color: >-
-                  {{ 'amber' if is_state('binary_sensor.driveway_wide_aoa_person', 'on') else 'grey' }}
+                  {{ 'amber' if is_state('binary_sensor.driveway_wide_person_occupancy', 'on')
+                     or is_state('binary_sensor.driveway_wide_aoa_person', 'on')
+                     or is_state('binary_sensor.driveway_wide_scene_object_present', 'on') else 'grey' }}
               - type: template
                 icon: mdi:layers
                 content: >-
@@ -1070,7 +1194,9 @@ views:
                   A{{ '✓' if is_state('binary_sensor.driveway_id_aoa_person', 'on') else '·' }}
                   S{{ '✓' if is_state('binary_sensor.driveway_id_scene_object_present', 'on') else '·' }}
                 icon_color: >-
-                  {{ 'amber' if is_state('binary_sensor.driveway_id_aoa_person', 'on') else 'grey' }}
+                  {{ 'amber' if is_state('binary_sensor.driveway_id_person_occupancy', 'on')
+                     or is_state('binary_sensor.driveway_id_aoa_person', 'on')
+                     or is_state('binary_sensor.driveway_id_scene_object_present', 'on') else 'grey' }}
               - type: template
                 icon: mdi:layers
                 content: >-
@@ -1078,7 +1204,9 @@ views:
                   A{{ '✓' if is_state('binary_sensor.backyard_aoa_person', 'on') else '·' }}
                   S{{ '✓' if is_state('binary_sensor.backyard_scene_object_present', 'on') else '·' }}
                 icon_color: >-
-                  {{ 'amber' if is_state('binary_sensor.backyard_aoa_person', 'on') else 'grey' }}
+                  {{ 'amber' if is_state('binary_sensor.backyard_person_occupancy', 'on')
+                     or is_state('binary_sensor.backyard_aoa_person', 'on')
+                     or is_state('binary_sensor.backyard_scene_object_present', 'on') else 'grey' }}
               - type: template
                 icon: mdi:layers
                 content: >-
@@ -1086,7 +1214,9 @@ views:
                   A{{ '✓' if is_state('binary_sensor.storage_ext_aoa_person', 'on') else '·' }}
                   S{{ '✓' if is_state('binary_sensor.storage_ext_scene_object_present', 'on') else '·' }}
                 icon_color: >-
-                  {{ 'amber' if is_state('binary_sensor.storage_ext_aoa_person', 'on') else 'grey' }}
+                  {{ 'amber' if is_state('binary_sensor.storage_ext_person_occupancy', 'on')
+                     or is_state('binary_sensor.storage_ext_aoa_person', 'on')
+                     or is_state('binary_sensor.storage_ext_scene_object_present', 'on') else 'grey' }}
               - type: template
                 icon: mdi:layers
                 content: >-
@@ -1094,7 +1224,15 @@ views:
                   A{{ '✓' if is_state('binary_sensor.storage_int_aoa_person', 'on') else '·' }}
                   S{{ '✓' if is_state('binary_sensor.storage_int_scene_object_present', 'on') else '·' }}
                 icon_color: >-
-                  {{ 'amber' if is_state('binary_sensor.storage_int_aoa_person', 'on') else 'grey' }}
+                  {{ 'amber' if is_state('binary_sensor.storage_int_person_occupancy', 'on')
+                     or is_state('binary_sensor.storage_int_aoa_person', 'on')
+                     or is_state('binary_sensor.storage_int_scene_object_present', 'on') else 'grey' }}
+              - type: template
+                icon: mdi:motion-sensor
+                content: >-
+                  Entry {{ states('sensor.house_outdoor_activity_summary') }} zoner
+                icon_color: >-
+                  {{ 'amber' if is_state('binary_sensor.house_outdoor_presence', 'on') else 'grey' }}
 
       - title: PERIMETER
         cards:
@@ -1125,8 +1263,8 @@ views:
               - type: template
                 icon: mdi:walk
                 content: >-
-                  {{ 'Utomhus · Någon' if is_state('binary_sensor.house_outdoor_presence', 'on')
-                     else 'Utomhus · Tomt' }}
+                  {{ 'Aktivitet entry' if is_state('binary_sensor.house_outdoor_presence', 'on')
+                     else 'Entry lugnt' }}
                 icon_color: >-
                   {{ 'amber' if is_state('binary_sensor.house_outdoor_presence', 'on') else 'grey' }}
 
@@ -1240,11 +1378,29 @@ views:
                   secondary: >-
                     {% set dt = as_local(as_datetime(states('image.driveway_id_person'))) %}
                     {{ dt.strftime('%H:%M · %d %b') }} ({{ relative_time(dt) }})
-                  icon: mdi:account
+                  icon: mdi:motion-sensor
                   layout: vertical
                   fill_container: true
                   tap_action:
                     action: more-info
+          - type: custom:mushroom-template-card
+            primary: Inga Frigate-bilder senaste dygnet
+            secondary: Tomt betyder lugnt — inte fel
+            icon: mdi:image-off-outline
+            icon_color: grey
+            fill_container: true
+            visibility:
+              - condition: state
+                entity: image.front_person
+                state: unavailable
+              - condition: state
+                entity: image.driveway_wide_person
+                state: unavailable
+              - condition: state
+                entity: image.driveway_id_person
+                state: unavailable
+            tap_action:
+              action: none
           - type: horizontal-stack
             cards:
               - type: conditional
@@ -1454,32 +1610,32 @@ views:
                 icon: mdi:cctv
                 content: Entré
                 icon_color: >-
-                  {{ 'green' if is_state('camera.front', 'recording') else 'red' }}
+                  {{ 'green' if is_state('switch.front_recordings', 'on') else 'red' }}
               - type: template
                 icon: mdi:cctv
                 content: Uppf. bred
                 icon_color: >-
-                  {{ 'green' if is_state('camera.driveway_wide', 'recording') else 'red' }}
+                  {{ 'green' if is_state('switch.driveway_wide_recordings', 'on') else 'red' }}
               - type: template
                 icon: mdi:cctv
                 content: Uppf. ID
                 icon_color: >-
-                  {{ 'green' if is_state('camera.driveway_id', 'recording') else 'red' }}
+                  {{ 'green' if is_state('switch.driveway_id_recordings', 'on') else 'red' }}
               - type: template
                 icon: mdi:cctv
                 content: Bakgård
                 icon_color: >-
-                  {{ 'green' if is_state('camera.backyard', 'recording') else 'red' }}
+                  {{ 'green' if is_state('switch.backyard_recordings', 'on') else 'red' }}
               - type: template
                 icon: mdi:cctv
                 content: Förråd ut
                 icon_color: >-
-                  {{ 'green' if is_state('camera.storage_ext', 'recording') else 'red' }}
+                  {{ 'green' if is_state('switch.storage_ext_recordings', 'on') else 'red' }}
               - type: template
                 icon: mdi:cctv
                 content: Förråd in
                 icon_color: >-
-                  {{ 'green' if is_state('camera.storage_int', 'recording') else 'red' }}
+                  {{ 'green' if is_state('switch.storage_int_recordings', 'on') else 'red' }}
 
       # ── AOA live occupancy ───────────────────────────────────
       - title: NÄRVARO (AOA)
@@ -1488,23 +1644,29 @@ views:
           - type: custom:mushroom-chips-card
             chips:
               - type: template
+                icon: mdi:walk
+                content: >-
+                  Entry · {{ 'aktiv' if is_state('binary_sensor.house_outdoor_presence', 'on') else 'lugnt' }}
+                icon_color: >-
+                  {{ 'amber' if is_state('binary_sensor.house_outdoor_presence', 'on') else 'grey' }}
+              - type: template
                 icon: mdi:account
                 content: >-
                   Entré · {{ 'På' if is_state('binary_sensor.front_aoa_person', 'on') else 'Av' }}
                 icon_color: >-
-                  {{ 'red' if is_state('binary_sensor.front_aoa_person', 'on') else 'grey' }}
+                  {{ 'amber' if is_state('binary_sensor.front_aoa_person', 'on') else 'grey' }}
               - type: template
                 icon: mdi:account
                 content: >-
                   Uppf. bred · {{ 'På' if is_state('binary_sensor.driveway_wide_aoa_person', 'on') else 'Av' }}
                 icon_color: >-
-                  {{ 'red' if is_state('binary_sensor.driveway_wide_aoa_person', 'on') else 'grey' }}
+                  {{ 'amber' if is_state('binary_sensor.driveway_wide_aoa_person', 'on') else 'grey' }}
               - type: template
                 icon: mdi:account
                 content: >-
                   Uppf. ID · {{ 'På' if is_state('binary_sensor.driveway_id_aoa_person', 'on') else 'Av' }}
                 icon_color: >-
-                  {{ 'red' if is_state('binary_sensor.driveway_id_aoa_person', 'on') else 'grey' }}
+                  {{ 'amber' if is_state('binary_sensor.driveway_id_aoa_person', 'on') else 'grey' }}
               - type: template
                 icon: mdi:car
                 content: >-
@@ -1518,7 +1680,51 @@ views:
                 content: >-
                   Bakgård · {{ 'På' if is_state('binary_sensor.backyard_aoa_person', 'on') else 'Av' }}
                 icon_color: >-
-                  {{ 'red' if is_state('binary_sensor.backyard_aoa_person', 'on') else 'grey' }}
+                  {{ 'amber' if is_state('binary_sensor.backyard_aoa_person', 'on') else 'grey' }}
+              - type: template
+                icon: mdi:account
+                content: >-
+                  Förr.ut · {{ 'På' if is_state('binary_sensor.storage_ext_aoa_person', 'on') else 'Av' }}
+                icon_color: >-
+                  {{ 'amber' if is_state('binary_sensor.storage_ext_aoa_person', 'on') else 'grey' }}
+              - type: template
+                icon: mdi:timer-sand
+                content: >-
+                  Loiter · {{ 'På' if is_state('binary_sensor.front_aoa_loitering', 'on') else 'Av' }}
+                icon_color: >-
+                  {{ 'amber' if is_state('binary_sensor.front_aoa_loitering', 'on') else 'grey' }}
+
+      # ── Data health ──────────────────────────────────────────
+      - title: DATA
+        column_span: 2
+        cards:
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: template
+                icon: mdi:thermometer-lines
+                content: "Δ {{ states('sensor.house_indoor_outdoor_delta') }}°C"
+                icon_color: blue
+              - type: template
+                icon: mdi:motion-sensor
+                content: >-
+                  Zoner {{ states('sensor.house_outdoor_activity_summary') }}
+                icon_color: >-
+                  {{ 'amber' if is_state('binary_sensor.house_outdoor_presence', 'on') else 'grey' }}
+              - type: template
+                icon: mdi:air-filter
+                content: >-
+                  {% set t = states('sensor.driveway_env_temperature') %}
+                  {% if t in ['unknown', 'unavailable', ''] %}D6210 offline
+                  {% else %}D6210 {{ t }}°C{% endif %}
+                icon_color: >-
+                  {% if states('sensor.driveway_env_temperature') in ['unknown', 'unavailable', ''] %}amber
+                  {% else %}green{% endif %}
+              - type: action
+                icon: mdi:chart-timeline-variant
+                content: Insights
+                tap_action:
+                  action: navigate
+                  navigation_path: /house-timeline
 
       # ── Recording toggles ────────────────────────────────────
       - title: INSPELNING

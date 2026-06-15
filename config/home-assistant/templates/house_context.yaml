@@ -38,7 +38,7 @@
         {% if is_state('binary_sensor.house_smoke_alarm', 'on') %}alarm
         {% elif is_state('binary_sensor.sonoff_snzb_05p', 'on') %}water
         {% elif is_state('binary_sensor.sonoff_snzb_05p', 'unavailable') %}warning
-        {% elif state_attr('binary_sensor.house_smoke_alarm', 'detector_count') | int(3) < 3 %}warning
+        {% elif state_attr('binary_sensor.house_smoke_alarm', 'detector_count') | int(0) < 3 %}warning
         {% elif is_state('binary_sensor.house_outdoor_presence', 'on') %}outdoor_activity
         {% else %}normal{% endif %}
       attributes:
@@ -61,16 +61,14 @@
       unique_id: house_outdoor_activity_summary
       icon: mdi:motion-sensor
       state: >-
-        {% set entry = [
-          'binary_sensor.front_aoa_person',
-          'binary_sensor.driveway_wide_aoa_person',
-          'binary_sensor.driveway_id_aoa_person',
-          'binary_sensor.front_person_occupancy',
-          'binary_sensor.driveway_wide_person_occupancy',
-          'binary_sensor.driveway_id_person_occupancy'
-        ] %}
-        {% set active = entry | select('is_state', 'on') | list %}
-        {{ active | count }}
+        {% set ns = namespace(z=[]) %}
+        {% if is_state('binary_sensor.front_aoa_person', 'on') %}{% set ns.z = ns.z + ['front'] %}{% endif %}
+        {% if is_state('binary_sensor.driveway_wide_aoa_person', 'on') %}{% set ns.z = ns.z + ['driveway_wide'] %}{% endif %}
+        {% if is_state('binary_sensor.driveway_id_aoa_person', 'on') %}{% set ns.z = ns.z + ['driveway_id'] %}{% endif %}
+        {% if is_state('binary_sensor.front_person_occupancy', 'on') and 'front' not in ns.z %}{% set ns.z = ns.z + ['front'] %}{% endif %}
+        {% if is_state('binary_sensor.driveway_wide_person_occupancy', 'on') and 'driveway_wide' not in ns.z %}{% set ns.z = ns.z + ['driveway_wide'] %}{% endif %}
+        {% if is_state('binary_sensor.driveway_id_person_occupancy', 'on') and 'driveway_id' not in ns.z %}{% set ns.z = ns.z + ['driveway_id'] %}{% endif %}
+        {{ ns.z | count }}
       unit_of_measurement: "zoner"
       attributes:
         presence: "{{ states('binary_sensor.house_outdoor_presence') }}"
@@ -88,23 +86,24 @@
       unique_id: house_home_status
       icon: mdi:shield-check
       state: >-
-        {% set dc = state_attr('binary_sensor.house_smoke_alarm', 'detector_count') | int(3) %}
+        {% set dc = state_attr('binary_sensor.house_smoke_alarm', 'detector_count') | int(0) %}
         {% if is_state('binary_sensor.house_smoke_alarm', 'on') %}alarm
         {% elif is_state('binary_sensor.sonoff_snzb_05p', 'on') %}alarm
         {% elif is_state('binary_sensor.sonoff_snzb_05p', 'unavailable') %}warning
-        {% elif dc < 3 %}warning
+        {% elif dc < 3 and dc > 0 %}warning
+        {% elif dc == 0 %}warning
         {% elif states('binary_sensor.house_smoke_alarm') in ['unavailable', 'unknown'] %}warning
         {% else %}ok{% endif %}
       attributes:
         label: >-
-          {% set dc = state_attr('binary_sensor.house_smoke_alarm', 'detector_count') | int(3) %}
+          {% set dc = state_attr('binary_sensor.house_smoke_alarm', 'detector_count') | int(0) %}
           {% if is_state('binary_sensor.house_smoke_alarm', 'on') %}RÖKALARM — kontrollera brandvarnare
           {% elif is_state('binary_sensor.sonoff_snzb_05p', 'on') %}VATTENLÄCKAGE — kök diskmaskin
           {% elif is_state('binary_sensor.sonoff_snzb_05p', 'unavailable') %}Vattensensor svarar inte
-          {% elif dc < 3 %}Brandvarnare {{ dc }}/3 — en sensor offline
+          {% elif dc < 3 and dc > 0 %}Brandvarnare {{ dc }}/3 — en sensor offline
+          {% elif dc == 0 %}Brandvarnare oklar — kontrollera ZHA
           {% elif states('binary_sensor.house_smoke_alarm') in ['unavailable', 'unknown'] %}Brandvarnare oklar
           {% else %}Allt OK{% endif %}
         smoke: "{{ states('binary_sensor.house_smoke_alarm') }}"
         smoke_count: "{{ state_attr('binary_sensor.house_smoke_alarm', 'detector_count') }}"
         water: "{{ states('binary_sensor.sonoff_snzb_05p') }}"
-        platform: ok

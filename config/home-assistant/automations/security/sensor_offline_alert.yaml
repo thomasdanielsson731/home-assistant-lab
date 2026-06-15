@@ -1,0 +1,39 @@
+# Push when critical sensors go offline (Thomas iPhone only).
+
+- id: sensor_offline_water_alert
+  alias: "Sensor offline — kitchen water leak"
+  description: Notify when dishwasher leak sensor stops responding.
+  mode: single
+  max_exceeded: silent
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.sonoff_snzb_05p
+      to: unavailable
+      for: "00:05:00"
+  action:
+    - service: notify.mobile_app_thomas_iphone_15
+      data:
+        title: "Vattensensor offline"
+        message: "Kök diskmaskin-sensor svarar inte — vattenlarm tyst tills den är tillbaka."
+
+- id: sensor_offline_smoke_alert
+  alias: "Sensor offline — smoke detector count"
+  description: Notify when fewer than 3 HEIMAN smoke detectors are online.
+  mode: single
+  max_exceeded: silent
+  trigger:
+    - platform: template
+      value_template: >-
+        {{ state_attr('binary_sensor.house_smoke_alarm', 'detector_count') | int(3) < 3 }}
+      for: "00:10:00"
+  condition:
+    - condition: template
+      value_template: >-
+        {{ state_attr('binary_sensor.house_smoke_alarm', 'detector_count') | int(0) > 0 }}
+  action:
+    - service: notify.mobile_app_thomas_iphone_15
+      data:
+        title: "Brandvarnare offline"
+        message: >-
+          Endast {{ state_attr('binary_sensor.house_smoke_alarm', 'detector_count') }}/3
+          brandvarnare online — kontrollera ZHA.

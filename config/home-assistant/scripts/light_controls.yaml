@@ -1,0 +1,54 @@
+# Shared light scenes — keep Släck allt lists in sync via scripts (not duplicated in YAML chips).
+
+light_turn_off_common:
+  alias: Släck allmänna lampor
+  description: All household lights except Hugo's room (gaming).
+  mode: parallel
+  sequence:
+    - service: light.turn_off
+      target:
+        entity_id:
+          - light.living_room
+          - light.fonsterlampor
+          - light.fonster_vanster
+          - light.fonster_hoger
+          - light.anna_och_thomas_sovrum
+          - light.sovrumstaklampa
+          - light.taklampa
+          - light.matplats
+          - light.spottar
+          - light.underskapsbelysning
+
+light_turn_off_kitchen:
+  alias: Släck kök
+  mode: parallel
+  sequence:
+    - service: light.turn_off
+      target:
+        entity_id:
+          - light.matplats
+          - light.spottar
+          - light.underskapsbelysning
+
+light_turn_off_living_room:
+  alias: Släck vardagsrum
+  mode: parallel
+  sequence:
+    - service: light.turn_off
+      target:
+        entity_id:
+          - light.living_room
+          - light.fonsterlampor
+          - light.fonster_vanster
+          - light.fonster_hoger
+          - light.taklampa
+
+light_turn_off_bedroom:
+  alias: Släck sovrum
+  mode: parallel
+  sequence:
+    - service: light.turn_off
+      target:
+        entity_id:
+          - light.anna_och_thomas_sovrum
+          - light.sovrumstaklampa
