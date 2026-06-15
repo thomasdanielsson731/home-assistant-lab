@@ -32,6 +32,8 @@ Complete the Axis analytics pipeline end-to-end.
 
 ---
 
+## Removed — Phase 4 Face Recognition (ADR-006)
+
 | # | Item | Status |
 |---|---|---|
 | — | Double Take, CodeProject.AI, CompreFace, `dt_*`, presence fusion | ❌ Removed 2026-06-14 |
