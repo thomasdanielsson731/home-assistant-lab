@@ -106,7 +106,7 @@ class TestTimelineHTTP:
         resp = conn.getresponse()
         body = resp.read().decode()
         assert resp.status == 200
-        assert "Danielsson Insights" in body
+        assert "Händelser" in body
         assert "Person detected at front" in body
 
     def test_html_type_filter(self, server):

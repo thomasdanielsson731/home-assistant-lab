@@ -45,6 +45,9 @@ views:
                   {% else %}Ingen aktivitet ute{% endif %}
                 secondary: Visar inte vem som är inne
                 icon: mdi:motion-sensor
+                tooltip: >-
+                  Sammanfattning från kameror vid entré och uppfart (AOA + Frigate).
+                  Visar om någon rör sig utomhus — inte vilka familjemedlemmar som är hemma.
                 icon_color: >-
                   {{ 'amber' if is_state('binary_sensor.house_outdoor_presence', 'on') else 'green' }}
                 layout: vertical
@@ -83,6 +86,9 @@ views:
             secondary: >-
               Brandvarnare {{ state_attr('binary_sensor.house_smoke_alarm', 'detector_count') | default('?') }}/3
               · Vatten {{ state_attr('sensor.house_safety_summary', 'water_label') | default('—') }}
+            tooltip: >-
+              Snabb säkerhetsstatus: rök (3 brandvarnare ZHA), vattensensor diskmaskin.
+              Tryck för detaljer under Säkerhet.
             icon: >-
               {% if is_state('sensor.house_home_status', 'alarm') %}mdi:shield-alert
               {% elif is_state('sensor.house_home_status', 'warning') %}mdi:shield-alert-outline
@@ -286,6 +292,9 @@ views:
           - type: custom:mushroom-template-card
             entity: image.front_person
             primary: Senaste vid entrén
+            tooltip: >-
+              Senaste Frigate-detektion vid entrén. Tryck för fullständig händelselista
+              med fler bilder och tider (Händelser).
             secondary: >-
               {% if states('image.front_person') in ['unknown', 'unavailable', ''] %}
               Inga detektioner — lugnt

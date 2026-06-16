@@ -108,7 +108,8 @@ views:
           - type: markdown
             content: >-
               **F** Frigate · **A** AOA · **S** Scene · **M** Rörelse —
-              grön = lugnt · amber = person · blå = rörelse/fordon
+              grön = lugnt · amber = person · blå = rörelse/fordon.
+              *Hovra över ett zonkort för förklaring.*
           - type: grid
             columns: 2
             square: false
@@ -120,6 +121,9 @@ views:
                      or is_state('binary_sensor.front_scene_object_present', 'on') %}Entré · Person
                   {% elif is_state('binary_sensor.front_motion', 'on') %}Entré · Rörelse
                   {% else %}Entré · Lugnt{% endif %}
+                tooltip: >-
+                  Entré (P3288): F=Frigate person, A=AOA, S=Scene, M=rörelse.
+                  Amber=bekräftad person, blå=endast rörelse, grön=ingen aktivitet.
                 secondary: >-
                   F{{ '✓' if is_state('binary_sensor.front_person_occupancy', 'on') else '·' }}
                   A{{ '✓' if is_state('binary_sensor.front_aoa_person', 'on') else '·' }}

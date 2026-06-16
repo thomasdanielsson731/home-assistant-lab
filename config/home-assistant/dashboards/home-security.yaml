@@ -33,6 +33,9 @@ views:
               {% else %}Ingen aktivitet utomhus{% endif %}
             secondary: >-
               {{ state_attr('sensor.house_outdoor_activity_summary', 'zones_label') | default('Inga aktiva zoner') }}
+            tooltip: >-
+              Utomhusaktivitet från entré och uppfart (AOA + Frigate).
+              Loitering och övriga zoner — se chips nedan eller Teknik Live.
             icon: mdi:motion-sensor
             icon_color: >-
               {{ 'amber' if is_state('binary_sensor.house_outdoor_presence', 'on') else 'green' }}

@@ -726,7 +726,7 @@ HTML = """<!DOCTYPE html>
   __INSIGHTS_BASE__
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Danielsson Insights — Analytics</title>
+  <title>Händelser — Danielsson Insights</title>
   <style>
     * {{ box-sizing: border-box; margin: 0; padding: 0; }}
     body {{ font-family: system-ui, sans-serif; background: #0f1117; color: #e8eaed; padding: 1rem; max-width: 640px; margin: 0 auto; }}
@@ -751,9 +751,9 @@ HTML = """<!DOCTYPE html>
   </style>
 </head>
 <body>
-  <h1>Danielsson Insights</h1>
-  <p class="sub">Event list · {period_label}</p>
-  <p class="nav"><a href="timeline">→ Analytics</a></p>
+  <h1>Händelser</h1>
+  <p class="sub">Detekteringar och händelser · {period_label}</p>
+  <p class="nav"><a href="timeline">→ Analytics (tidslinje)</a></p>
   <div class="stats">{stats}</div>
   <div class="filters">{filters}</div>
   {entries}
@@ -1082,7 +1082,7 @@ class Handler(BaseHTTPRequestHandler):
                 filters=filters,
                 entries=entries_html,
             )
-        ).encode("utf-8")
+        )
 
         self.send_response(200)
         self.send_header("Content-Type", "text/html; charset=utf-8")

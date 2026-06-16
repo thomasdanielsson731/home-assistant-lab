@@ -8,6 +8,25 @@ views:
     max_columns: 1
     sections:
       - cards:
+          - type: markdown
+            content: >-
+              **Händelser** = kronologisk lista från Danielsson Insights (person, fordon,
+              ankomster, miljö). Tryck på en rad eller miniatyr för att se bild.
+              Analytics (admin) visar samma data som tidslinje.
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: action
+                icon: mdi:refresh
+                content: Öppna / uppdatera
+                tap_action:
+                  action: url
+                  url_path: !secret events_url
+              - type: action
+                icon: mdi:chart-timeline-variant
+                content: Analytics
+                tap_action:
+                  action: navigate
+                  navigation_path: /house-timeline
           - type: conditional
             conditions:
               - condition: screen
@@ -15,7 +34,7 @@ views:
             card:
               type: iframe
               url: !secret events_url
-              aspect_ratio: 75%
+              aspect_ratio: 85%
 
           - type: conditional
             conditions:
@@ -27,7 +46,7 @@ views:
                 - type: markdown
                   content: |
                     ### Händelser på mobil
-                    Öppna eventlistan i webbläsaren om iframe är tom.
+                    Iframe kan vara tom — öppna listan i webbläsaren.
                 - type: button
                   name: Öppna händelselista
                   icon: mdi:format-list-bulleted
