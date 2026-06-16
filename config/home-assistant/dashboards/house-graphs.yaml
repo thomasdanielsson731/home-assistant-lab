@@ -12,7 +12,7 @@ views:
             card:
               type: iframe
               url: !secret environment_url
-              aspect_ratio: 50%
+              aspect_ratio: 75%
 
           - type: conditional
             conditions:

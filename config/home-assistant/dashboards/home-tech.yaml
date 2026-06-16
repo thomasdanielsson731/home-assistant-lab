@@ -58,8 +58,8 @@ views:
               {{ 'Aktivitet ute' if is_state('binary_sensor.house_outdoor_presence', 'on')
                  else 'Perimeter lugnt' }}
             secondary: >-
-              {{ states('sensor.house_outdoor_activity_summary') }} zoner ·
-              Δ {{ states('sensor.house_indoor_outdoor_delta') }}°C inne/ute
+              {{ state_attr('sensor.house_outdoor_activity_summary', 'zones_label') | default('Inga aktiva zoner') }}
+              · Δ {{ states('sensor.house_indoor_outdoor_delta') }}°C inne/ute
             icon: mdi:home-analytics
             icon_color: >-
               {{ 'amber' if is_state('binary_sensor.house_outdoor_presence', 'on') else 'green' }}
@@ -67,6 +67,41 @@ views:
             tap_action:
               action: navigate
               navigation_path: /lovelace/home-events/events
+
+      - title: HEMSTATUS
+        cards:
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: template
+                icon: mdi:shield-check
+                content: "{{ state_attr('sensor.house_home_status', 'label') | default('Allt OK') }}"
+                icon_color: >-
+                  {% if is_state('sensor.house_home_status', 'alarm') %}red
+                  {% elif is_state('sensor.house_home_status', 'warning') %}amber
+                  {% else %}green{% endif %}
+                tap_action:
+                  action: navigate
+                  navigation_path: /lovelace/home-security/security
+              - type: template
+                icon: mdi:smoke-detector
+                content: >-
+                  {% set dc = state_attr('binary_sensor.house_smoke_alarm', 'detector_count') | int(0) %}
+                  {% if is_state('binary_sensor.house_smoke_alarm', 'on') %}RÖK
+                  {% else %}Rök {{ dc }}/3{% endif %}
+                icon_color: >-
+                  {% if is_state('binary_sensor.house_smoke_alarm', 'on') %}red
+                  {% elif dc < 3 %}amber
+                  {% else %}green{% endif %}
+              - type: template
+                icon: mdi:water-alert
+                content: >-
+                  {% if is_state('binary_sensor.sonoff_snzb_05p', 'on') %}VATTEN
+                  {% elif is_state('binary_sensor.sonoff_snzb_05p', 'unavailable') %}Vatten offline
+                  {% else %}Torrt{% endif %}
+                icon_color: >-
+                  {% if is_state('binary_sensor.sonoff_snzb_05p', 'on') %}red
+                  {% elif is_state('binary_sensor.sonoff_snzb_05p', 'unavailable') %}amber
+                  {% else %}green{% endif %}
 
       - title: PERIMETER NU
         cards:
@@ -246,7 +281,7 @@ views:
                 icon_color: amber
                 tap_action:
                   action: navigate
-                  navigation_path: /house-timeline
+                  navigation_path: /lovelace/home-events/events
               - type: template
                 icon: mdi:counter
                 content: >-
@@ -254,7 +289,7 @@ views:
                 icon_color: grey
                 tap_action:
                   action: navigate
-                  navigation_path: /house-timeline
+                  navigation_path: /lovelace/home-events/events
 
       - title: UTE LUFT (D6210)
         cards:
@@ -306,6 +341,23 @@ views:
                 icon: mdi:delta
                 content: >-
                   Δ {{ states('sensor.house_indoor_outdoor_delta') }}°C
+                icon_color: blue
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: template
+                icon: mdi:volume-high
+                content: >-
+                  Front {{ states('sensor.front_audio_spl') | default('—', true) }} dB
+                icon_color: blue
+              - type: template
+                icon: mdi:volume-high
+                content: >-
+                  Uppf. {{ states('sensor.driveway_wide_audio_spl') | default('—', true) }} dB
+                icon_color: blue
+              - type: template
+                icon: mdi:volume-high
+                content: >-
+                  Bkg {{ states('sensor.backyard_audio_spl') | default('—', true) }} dB
                 icon_color: blue
           - type: grid
             columns: 3
@@ -430,8 +482,8 @@ views:
                   navigation_path: /house-graphs
           - type: markdown
             content: >-
-              **Environment**-sidopanelen har Chart.js med zoom och längre serier.
-              Graferna här använder HA recorder (90 dagar utomhus).
+              **Recorder-historik** (HA databas) — inte samma som Händelser/Analytics.
+              **Environment** (admin) har Chart.js med zoom och luckor markerade.
 
       - title: TEMPERATUR INNE (7 DAGAR)
         cards:
@@ -625,9 +677,21 @@ views:
               - type: template
                 icon: mdi:timer-sand
                 content: >-
-                  Loiter bkg · {{ 'På' if is_state('binary_sensor.backyard_aoa_loitering', 'on') else 'Av' }}
+                  Loiter uppf. ID · {{ 'På' if is_state('binary_sensor.driveway_id_aoa_loitering', 'on') else 'Av' }}
                 icon_color: >-
-                  {{ 'amber' if is_state('binary_sensor.backyard_aoa_loitering', 'on') else 'grey' }}
+                  {{ 'amber' if is_state('binary_sensor.driveway_id_aoa_loitering', 'on') else 'grey' }}
+              - type: template
+                icon: mdi:timer-sand
+                content: >-
+                  Loiter förr.ut · {{ 'På' if is_state('binary_sensor.storage_ext_aoa_loitering', 'on') else 'Av' }}
+                icon_color: >-
+                  {{ 'amber' if is_state('binary_sensor.storage_ext_aoa_loitering', 'on') else 'grey' }}
+              - type: template
+                icon: mdi:timer-sand
+                content: >-
+                  Loiter förr.in · {{ 'På' if is_state('binary_sensor.storage_int_aoa_loitering', 'on') else 'Av' }}
+                icon_color: >-
+                  {{ 'amber' if is_state('binary_sensor.storage_int_aoa_loitering', 'on') else 'grey' }}
 
       - title: DATA & INSIGHTS
         column_span: 2

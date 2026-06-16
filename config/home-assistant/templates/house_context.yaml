@@ -81,6 +81,12 @@
           {% if is_state('binary_sensor.driveway_wide_person_occupancy', 'on') %}{% set ns.z = ns.z + ['driveway_wide_frigate'] %}{% endif %}
           {% if is_state('binary_sensor.driveway_id_person_occupancy', 'on') %}{% set ns.z = ns.z + ['driveway_id_frigate'] %}{% endif %}
           {{ ns.z | join(', ') if ns.z else 'none' }}
+        zones_label: >-
+          {% set ns = namespace(labels=[]) %}
+          {% if is_state('binary_sensor.front_aoa_person', 'on') or is_state('binary_sensor.front_person_occupancy', 'on') %}{% set ns.labels = ns.labels + ['Entré'] %}{% endif %}
+          {% if is_state('binary_sensor.driveway_wide_aoa_person', 'on') or is_state('binary_sensor.driveway_wide_person_occupancy', 'on') %}{% set ns.labels = ns.labels + ['Uppfart'] %}{% endif %}
+          {% if is_state('binary_sensor.driveway_id_aoa_person', 'on') or is_state('binary_sensor.driveway_id_person_occupancy', 'on') %}{% set ns.labels = ns.labels + ['Uppf. ID'] %}{% endif %}
+          {{ ns.labels | join(' · ') if ns.labels else 'Inga aktiva zoner' }}
 
     - name: "House home status"
       unique_id: house_home_status

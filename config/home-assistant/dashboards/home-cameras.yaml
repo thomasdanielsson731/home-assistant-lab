@@ -4,18 +4,32 @@ views:
     path: cameras
     icon: mdi:cctv
     type: sections
-    max_columns: 2
+    max_columns: 1
     sections:
 
-      # One camera per section → even 2-column rows:
-      #   Front | Driveway Wide / Driveway ID | Backyard / Storage Ext | Storage Int
+      - title: SNABBLÄNKAR
+        cards:
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: action
+                icon: mdi:format-list-bulleted
+                content: Händelser
+                tap_action:
+                  action: navigate
+                  navigation_path: /lovelace/home-events/events
+              - type: action
+                icon: mdi:radar
+                content: Perimeter
+                tap_action:
+                  action: navigate
+                  navigation_path: /lovelace/home-tech/live
 
       - title: ENTRÉ
         cards:
           - type: custom:advanced-camera-card
             cameras:
               - camera_entity: camera.front
-                title: Entré (P3288)
+                title: Entré
             dimensions:
               aspect_ratio: 16/9
           - type: custom:mushroom-chips-card
@@ -24,19 +38,37 @@ views:
                 icon: mdi:account
                 content: >-
                   {{ 'Person' if is_state('binary_sensor.front_aoa_person', 'on')
+                     or is_state('binary_sensor.front_person_occupancy', 'on')
                      else 'Rörelse' if is_state('binary_sensor.front_motion', 'on')
                      else 'Lugnt' }}
                 icon_color: >-
                   {{ 'amber' if is_state('binary_sensor.front_aoa_person', 'on')
+                     or is_state('binary_sensor.front_person_occupancy', 'on')
                      else 'blue' if is_state('binary_sensor.front_motion', 'on')
-                     else 'grey' }}
+                     else 'green' }}
+              - type: template
+                icon: mdi:layers
+                content: >-
+                  F{{ '✓' if is_state('binary_sensor.front_person_occupancy', 'on') else '·' }}
+                  A{{ '✓' if is_state('binary_sensor.front_aoa_person', 'on') else '·' }}
+                  S{{ '✓' if is_state('binary_sensor.front_scene_object_present', 'on') else '·' }}
+                icon_color: >-
+                  {{ 'amber' if is_state('binary_sensor.front_person_occupancy', 'on')
+                     or is_state('binary_sensor.front_aoa_person', 'on')
+                     or is_state('binary_sensor.front_scene_object_present', 'on') else 'green' }}
+              - type: action
+                icon: mdi:format-list-bulleted
+                content: Senaste
+                tap_action:
+                  action: navigate
+                  navigation_path: /lovelace/home-events/events
 
       - title: UPPFART — BRETT
         cards:
           - type: custom:advanced-camera-card
             cameras:
               - camera_entity: camera.driveway_wide
-                title: Uppfart bred (Q3558)
+                title: Uppfart
             dimensions:
               aspect_ratio: 16/9
           - type: custom:mushroom-chips-card
@@ -45,23 +77,36 @@ views:
                 icon: mdi:car
                 content: >-
                   {{ 'Fordon' if is_state('binary_sensor.driveway_wide_aoa_vehicle', 'on')
-                     else 'Inget fordon' }}
+                     else 'Rörelse' if is_state('binary_sensor.driveway_wide_motion', 'on')
+                     else 'Lugnt' }}
                 icon_color: >-
-                  {{ 'amber' if is_state('binary_sensor.driveway_wide_aoa_vehicle', 'on') else 'grey' }}
+                  {{ 'blue' if is_state('binary_sensor.driveway_wide_aoa_vehicle', 'on')
+                     else 'blue' if is_state('binary_sensor.driveway_wide_motion', 'on')
+                     else 'green' }}
               - type: template
-                icon: mdi:motion-sensor
+                icon: mdi:layers
                 content: >-
-                  {{ 'Rörelse' if is_state('binary_sensor.driveway_wide_motion', 'on')
-                     else 'Ingen rörelse' }}
+                  F{{ '✓' if is_state('binary_sensor.driveway_wide_person_occupancy', 'on') else '·' }}
+                  A{{ '✓' if is_state('binary_sensor.driveway_wide_aoa_person', 'on') else '·' }}
+                  S{{ '✓' if is_state('binary_sensor.driveway_wide_scene_object_present', 'on') else '·' }}
                 icon_color: >-
-                  {{ 'blue' if is_state('binary_sensor.driveway_wide_motion', 'on') else 'grey' }}
+                  {{ 'amber' if is_state('binary_sensor.driveway_wide_person_occupancy', 'on')
+                     or is_state('binary_sensor.driveway_wide_aoa_person', 'on')
+                     or is_state('binary_sensor.driveway_wide_scene_object_present', 'on') else 'green' }}
+              - type: template
+                icon: mdi:molecule-co2
+                content: >-
+                  {% set c = states('sensor.driveway_env_co2') %}
+                  {% if c in ['unknown', 'unavailable', ''] %}CO₂ —
+                  {% else %}CO₂ {{ c | int(0) }}{% endif %}
+                icon_color: grey
 
       - title: UPPFART — ID
         cards:
           - type: custom:advanced-camera-card
             cameras:
               - camera_entity: camera.driveway_id
-                title: Uppfart ID (M2036)
+                title: Uppfart ID
             dimensions:
               aspect_ratio: 16/9
           - type: custom:mushroom-chips-card
@@ -70,16 +115,31 @@ views:
                 icon: mdi:account
                 content: >-
                   {{ 'Person' if is_state('binary_sensor.driveway_id_aoa_person', 'on')
-                     else 'Ingen person' }}
+                     or is_state('binary_sensor.driveway_id_person_occupancy', 'on')
+                     else 'Rörelse' if is_state('binary_sensor.driveway_id_motion', 'on')
+                     else 'Lugnt' }}
                 icon_color: >-
-                  {{ 'amber' if is_state('binary_sensor.driveway_id_aoa_person', 'on') else 'grey' }}
+                  {{ 'amber' if is_state('binary_sensor.driveway_id_aoa_person', 'on')
+                     or is_state('binary_sensor.driveway_id_person_occupancy', 'on')
+                     else 'blue' if is_state('binary_sensor.driveway_id_motion', 'on')
+                     else 'green' }}
+              - type: template
+                icon: mdi:layers
+                content: >-
+                  F{{ '✓' if is_state('binary_sensor.driveway_id_person_occupancy', 'on') else '·' }}
+                  A{{ '✓' if is_state('binary_sensor.driveway_id_aoa_person', 'on') else '·' }}
+                  S{{ '✓' if is_state('binary_sensor.driveway_id_scene_object_present', 'on') else '·' }}
+                icon_color: >-
+                  {{ 'amber' if is_state('binary_sensor.driveway_id_person_occupancy', 'on')
+                     or is_state('binary_sensor.driveway_id_aoa_person', 'on')
+                     or is_state('binary_sensor.driveway_id_scene_object_present', 'on') else 'green' }}
 
       - title: BAKGÅRD
         cards:
           - type: custom:advanced-camera-card
             cameras:
               - camera_entity: camera.backyard
-                title: Bakgård (Q1656)
+                title: Bakgård
             dimensions:
               aspect_ratio: 16/9
           - type: custom:mushroom-chips-card
@@ -93,14 +153,14 @@ views:
                 icon_color: >-
                   {{ 'amber' if is_state('binary_sensor.backyard_aoa_person', 'on')
                      else 'blue' if is_state('binary_sensor.backyard_motion', 'on')
-                     else 'grey' }}
+                     else 'green' }}
 
       - title: FÖRRÅD — UTE
         cards:
           - type: custom:advanced-camera-card
             cameras:
               - camera_entity: camera.storage_ext
-                title: Förråd utvändigt (M1055)
+                title: Förråd ut
             dimensions:
               aspect_ratio: 16/9
           - type: custom:mushroom-chips-card
@@ -114,14 +174,14 @@ views:
                 icon_color: >-
                   {{ 'amber' if is_state('binary_sensor.storage_ext_aoa_person', 'on')
                      else 'blue' if is_state('binary_sensor.storage_ext_motion', 'on')
-                     else 'grey' }}
+                     else 'green' }}
 
       - title: FÖRRÅD — INNE
         cards:
           - type: custom:advanced-camera-card
             cameras:
               - camera_entity: camera.storage_int
-                title: Förråd invändigt (Q1656)
+                title: Förråd in
             dimensions:
               aspect_ratio: 16/9
           - type: custom:mushroom-chips-card
@@ -135,4 +195,4 @@ views:
                 icon_color: >-
                   {{ 'amber' if is_state('binary_sensor.storage_int_aoa_person', 'on')
                      else 'blue' if is_state('binary_sensor.storage_int_motion', 'on')
-                     else 'grey' }}
+                     else 'green' }}

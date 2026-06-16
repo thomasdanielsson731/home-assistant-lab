@@ -32,7 +32,7 @@ views:
               {% if is_state('binary_sensor.house_outdoor_presence', 'on') %}Aktivitet utomhus
               {% else %}Ingen aktivitet utomhus{% endif %}
             secondary: >-
-              {{ state_attr('sensor.house_outdoor_activity_summary', 'active_zones') | default('none') }}
+              {{ state_attr('sensor.house_outdoor_activity_summary', 'zones_label') | default('Inga aktiva zoner') }}
             icon: mdi:motion-sensor
             icon_color: >-
               {{ 'amber' if is_state('binary_sensor.house_outdoor_presence', 'on') else 'green' }}
@@ -58,20 +58,42 @@ views:
                   {% set loiter = [
                     'binary_sensor.front_aoa_loitering',
                     'binary_sensor.driveway_wide_aoa_loitering',
-                    'binary_sensor.driveway_id_aoa_loitering'
+                    'binary_sensor.driveway_id_aoa_loitering',
+                    'binary_sensor.backyard_aoa_loitering',
+                    'binary_sensor.storage_ext_aoa_loitering',
+                    'binary_sensor.storage_int_aoa_loitering'
                   ] %}
-                  {% if loiter | select('is_state', 'on') | list | count > 0 %}Kvarvarande vid entré
-                  {% else %}Ingen loitering{% endif %}
+                  {% set n = loiter | select('is_state', 'on') | list | count %}
+                  {% if n > 0 %}Kvarvarande · {{ n }} zoner
+                  {% else %}Ingen kvarvarande{% endif %}
                 icon_color: >-
                   {% set loiter = [
                     'binary_sensor.front_aoa_loitering',
                     'binary_sensor.driveway_wide_aoa_loitering',
-                    'binary_sensor.driveway_id_aoa_loitering'
+                    'binary_sensor.driveway_id_aoa_loitering',
+                    'binary_sensor.backyard_aoa_loitering',
+                    'binary_sensor.storage_ext_aoa_loitering',
+                    'binary_sensor.storage_int_aoa_loitering'
                   ] %}
                   {{ 'amber' if loiter | select('is_state', 'on') | list | count > 0 else 'grey' }}
+              - type: template
+                icon: mdi:car
+                content: >-
+                  {% if is_state('binary_sensor.driveway_wide_aoa_vehicle', 'on')
+                     or is_state('binary_sensor.front_aoa_vehicle', 'on') %}Fordon ute
+                  {% else %}Inget fordon{% endif %}
+                icon_color: >-
+                  {{ 'blue' if is_state('binary_sensor.driveway_wide_aoa_vehicle', 'on')
+                     or is_state('binary_sensor.front_aoa_vehicle', 'on') else 'green' }}
+              - type: action
+                icon: mdi:format-list-bulleted
+                content: Händelser
+                tap_action:
+                  action: navigate
+                  navigation_path: /lovelace/home-events/events
               - type: action
                 icon: mdi:chart-timeline-variant
-                content: Vad hände idag?
+                content: Analytics
                 tap_action:
                   action: navigate
                   navigation_path: /house-timeline
@@ -114,7 +136,7 @@ views:
             card:
               type: custom:mushroom-template-card
               primary: Brandvarnare oklar
-              secondary: ZHA svarar inte — kontrollera brandvarnarna
+              secondary: En brandvarnare svarar inte — be Thomas kolla
               icon: mdi:smoke-detector-off
               icon_color: amber
               fill_container: true
@@ -185,10 +207,10 @@ views:
         cards:
           - type: custom:mushroom-template-card
             primary: Vad hände utomhus idag?
-            secondary: Öppna Analytics — händelser & bilder
-            icon: mdi:chart-timeline-variant
+            secondary: Händelser — lista med bilder
+            icon: mdi:format-list-bulleted
             icon_color: blue
             fill_container: true
             tap_action:
               action: navigate
-              navigation_path: /house-timeline
+              navigation_path: /lovelace/home-events/events
