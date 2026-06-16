@@ -50,24 +50,36 @@ Copies `scripts/` + `events/*.jsonl` to `/share/danielsson-insights/`.
 
 ## Step 4 — Dashboard URLs in secrets
 
-**Recommended:** direct port (avoids Ingress 401 in iframe):
+**Recommended (LAN + remote):** Cloudflare tunnel to Insights — avoids Ingress 401 in iframe:
 
 ```powershell
-.\scripts\deploy-insights-to-ha.ps1 -UseDirectSecrets
+# On HAOS (SSH) — once
+scp scripts/configure-cloudflared-insights.sh root@192.168.68.175:/tmp/
+ssh root@192.168.68.175 -p 22222 sh /tmp/configure-cloudflared-insights.sh
+
+.\scripts\set-ha-timeline-secret.ps1 -UseCloudflareUrls
+# or full deploy (default):
+.\scripts\deploy-insights-to-ha.ps1
 ```
 
 Writes:
 
 ```yaml
-timeline_url: "http://192.168.68.175:8765/timeline"
-environment_url: "http://192.168.68.175:8765/environment"
+timeline_url: "https://insights.danielsson.cloud/timeline"
+environment_url: "https://insights.danielsson.cloud/environment"
+events_url: "https://insights.danielsson.cloud/"
+story_url: "https://insights.danielsson.cloud/story"
 ```
 
-**Optional Ingress** (add-on sidebar panel only — not Lovelace iframe):
+**LAN-only fallback:**
 
 ```powershell
-.\scripts\deploy-insights-to-ha.ps1 -UseIngressSecrets
+.\scripts\set-ha-timeline-secret.ps1 -UseDirectUrls
 ```
+
+→ `http://192.168.68.175:8765/...` — breaks remote iframe access.
+
+See [remote-access-cloudflare.md](remote-access-cloudflare.md).
 
 ---
 
@@ -100,7 +112,7 @@ Or via Supervisor API: `{"watchdog": true}` on add-on options.
 |---|---|
 | Build fails: `lookup ghcr.io ... no such host` | `ha dns options --servers dns://1.1.1.1 --servers dns://8.8.8.8` |
 | `s6-overlay-suexec: fatal` | `init: false` in `config.yaml` (included since 0.2.1) |
-| Analytics/Environment **401** in dashboard | `-UseDirectSecrets` — not Ingress in iframe |
+| Analytics/Environment/Händelser **401** in dashboard | Cloudflare URLs (`-UseCloudflareUrls`) or LAN `-UseDirectUrls` — not Ingress |
 | Blank page, API errors | Redeploy scripts + restart add-on; check ingress regression tests |
 | No Influx data | Set `influx_url` option; check logs for `Wrote N metric rows` |
 | Ingress 404 | Re-run `-UseIngressSecrets` after add-on reinstall |

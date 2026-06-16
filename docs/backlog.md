@@ -4,7 +4,7 @@ Prioritized work items. Effort: S (< 2h), M (half-day), L (full day), XL (multip
 
 Vision: [vision.md](vision.md) · Active phase: **6 (Energy + narratives)**
 
-**Runtime (2026-06-14):** Analytics platform on **Danielsson Insights add-on v0.2.4** on HAOS (`192.168.68.175:8765`). Face recognition and family Companion presence **removed** — [ADR-006](decisions/006-no-face-no-companion-presence.md).
+**Runtime (2026-06-14):** Analytics platform on **Danielsson Insights add-on v0.2.4** on HAOS. Remote access via **Cloudflare** (`ha.danielsson.cloud`, `insights.danielsson.cloud`). Face recognition and family Companion presence **removed** — [ADR-006](decisions/006-no-face-no-companion-presence.md).
 
 ---
 
@@ -29,6 +29,11 @@ Complete the Axis analytics pipeline end-to-end.
 | P5-8 | Update stale docs (d6210 runbook ✅, backlog ✅, README ✅) | S | ✅ |
 
 | P7-panel | Dashboard panel review fixes (scripts, multisensor notify, Anna copy) | ✅ 2026-06-14 |
+| P7-17 | Sidebar split — Hem, Kameror, Säkerhet, Händelser, Rum (replace `home-lab`) | ✅ 2026-06-14 |
+| P7-18 | Cloudflare remote (`ha.danielsson.cloud`) + Insights tunnel (`insights.danielsson.cloud`) | ✅ 2026-06-14 |
+| P7-19 | Händelser panel — iframe event list with thumbnails (`home-events.yaml`) | ✅ 2026-06-14 |
+| P7-20 | Teknik UX — Live / Historik / Drift views, perimeter fusion, Insights REST counters | ✅ 2026-06-14 |
+| P7-21 | Notification deep links → Händelser / Säkerhet / Teknik Drift | ✅ 2026-06-14 |
 
 ---
 
@@ -60,7 +65,7 @@ Complete the Axis analytics pipeline end-to-end.
 | P7-12 | Bridge heartbeat metrics + `bridge_watchdog.py` | S | ✅ |
 | P7-13 | HAOS Insights add-on + deploy script | M | ✅ v0.2.4, watchdog, Ingress-safe URLs |
 | P7-14 | Outdoor presence template + house context sensors | M | ✅ |
-| P7-15 | Ingress 401 fix — direct URL secrets + regression tests | M | ✅ 2026-06-11 |
+| P7-15 | Ingress 401 fix — Cloudflare Insights URLs + regression tests | M | ✅ 2026-06-14 |
 | P7-16 | Dashboard polish — smoke section, panel warning, camera grid | S | ✅ 2026-06-11 |
 
 ---
@@ -115,7 +120,7 @@ Complete the Axis analytics pipeline end-to-end.
 |---|---|---|
 | — | HAOS, SSH, MQTT, backups, naming, areas | ✅ |
 | — | 6 cameras in Frigate, 99 HA entities | ✅ |
-| — | Anna dashboard (`/lovelace/home-lab`) + Teknik admin (`/lovelace/home-tech`) | ✅ |
+| — | Sidebar panels (Hem, Kameror, Säkerhet, Händelser, Rum) + Teknik admin (`/lovelace/home-tech/live`) | ✅ |
 | — | Person detection → push notification | ✅ |
 | F2 | Axis MQTT config via `configure_cameras.py` | ✅ |
 | F3 | HA sensors from Axis MQTT metadata | ✅ |
@@ -145,8 +150,9 @@ Complete the Axis analytics pipeline end-to-end.
 | Double Take / CodeProject.AI / CompreFace | Removed — ADR-006 |
 | Family Companion presence | Household declined HA app |
 | Nabu Casa remote access | Superseded by Cloudflare Tunnel — see [remote-access-cloudflare.md](runbooks/remote-access-cloudflare.md) |
+| Ingress URLs in Lovelace iframe | 401 unreliable — use `https://insights.danielsson.cloud/...` (or LAN `:8765` at home only) |
+| Legacy `home-lab` / `home-anna.yaml` | Replaced by sidebar panels 2026-06-14 |
 | ALPR | No current automation need |
-| HA REST sensors for D6210 | Replaced by MQTT bridge |
+| HA REST sensors for D6210 | Replaced by MQTT bridge (Insights event counters use REST — `rest/insights.yaml`) |
 | Meross MS100F + MSH300 hub | Hub suspected dead |
 | Dev PC bridges (`start-bridges.ps1`) | Replaced by HAOS add-on 2026-06-11 |
-| Ingress URLs in Lovelace iframe | 401 unreliable — use direct `:8765` URLs |

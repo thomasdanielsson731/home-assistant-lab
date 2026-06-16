@@ -21,7 +21,7 @@ Gemensamt: **mobil först**, ogillar dashboards som ser ut som adminpaneler.
 - Notiser — vilka automations skickar push? (rök, vatten — de får normalt inga)
 - Finns det något **för dem** (inte bara för Thomas analytics)?
 
-Filer: `home-anna.yaml`, `home-tech.yaml`, `automations/security/`
+Filer: `home-hem.yaml`, `home-rooms.yaml`, `home-tech.yaml`, `automations/security/`
 
 ## Granskningschecklista
 

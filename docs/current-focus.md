@@ -10,12 +10,14 @@ Quick-start context for AI assistants. Read this + [CLAUDE.md](../CLAUDE.md) + [
 
 | UX | Role |
 |---|---|
-| **Analytics** (HA sidebar) | Primary — events, occupancy, metrics (`http://192.168.68.175:8765/timeline`) |
-| **Environment** (HA sidebar) | Env + SPL charts (`http://192.168.68.175:8765/environment`) |
-| **Danielsson Home** (`home-lab` → `home-anna.yaml`) | Secondary — hem, kameror, säkerhet, rum |
-| **Teknik** (`home-tech`, admin) | Sensorer, drift, systemstatus |
+| **Analytics** (HA sidebar) | Primary — events, occupancy, metrics (`https://insights.danielsson.cloud/timeline`) |
+| **Environment** (HA sidebar) | Env + SPL charts (`https://insights.danielsson.cloud/environment`) |
+| **Händelser** (HA sidebar) | Event list with thumbnails (`https://insights.danielsson.cloud/`) |
+| **Hem / Kameror / Säkerhet / Rum** | Family panels — one sidebar item per view |
+| **Teknik** (`home-tech`, admin) | Live (nu-läge) · Historik (grafer) · Drift (system) |
 
-**HA:** `192.168.68.175` · **Dev PC:** `192.168.68.136` (Ollama experiments only — no face rec stack)
+**HA:** `https://ha.danielsson.cloud` (remote) · `http://192.168.68.175:8123` (LAN)  
+**Dev PC:** `192.168.68.136` (Ollama experiments only — no face rec stack)
 
 See [ADR-005](decisions/005-home-intelligence-timeline.md) · [ADR-006](decisions/006-no-face-no-companion-presence.md) · [event-model.md](analytics/event-model.md)
 
@@ -42,7 +44,7 @@ MQTT sources → Danielsson Insights add-on on HAOS
   event_normalizer → events/timeline.jsonl + metrics.jsonl
   correlation_engine (enriched events)
   influx_metrics_bridge → InfluxDB :8086
-  timeline_server :8765 → /timeline, /environment, /story
+  timeline_server :8765 → /timeline, /environment, /story, /
 ```
 
 Event files on HA: `/share/danielsson-insights/events/`
@@ -67,8 +69,9 @@ python scripts/health-check.py          # probes HA :8765 + entities + Influx
 python scripts/verify-influxdb.py       # Influx auth + write probe
 .\scripts\verify-insights-ha.ps1        # add-on smoke test
 .\scripts\deploy-insights-to-ha.ps1     # sync scripts to /share
-.\scripts\deploy-insights-to-ha.ps1 -UseDirectSecrets   # fix dashboard URLs
+.\scripts\set-ha-timeline-secret.ps1 -UseCloudflareUrls   # remote iframe URLs (default in deploy)
 .\scripts\stop-bridges.ps1              # ensure dev PC bridges are off
+python scripts/configure_ha_sidebar.py    # panel order + hide legacy Overview
 ```
 
 On HA (SSH):
@@ -78,8 +81,9 @@ ha apps info 25d01a20_danielsson_insights
 ha apps logs 25d01a20_danielsson_insights
 ```
 
-- Analytics: HA sidebar **Analytics** or `http://192.168.68.175:8765/timeline`
-- Environment: HA sidebar **Environment** or `http://192.168.68.175:8765/environment`
+- Analytics: HA sidebar **Analytics** or `https://insights.danielsson.cloud/timeline`
+- Environment: HA sidebar **Environment** or `https://insights.danielsson.cloud/environment`
+- Händelser: sidebar **Händelser** or `https://insights.danielsson.cloud/`
 - API: `/api/v1/events`, `/api/v1/metrics`, `/api/v1/occupancy`
 
 ---
@@ -91,7 +95,7 @@ ha apps logs 25d01a20_danielsson_insights
 | **Kök smoke detector** | Pairing button → `configure_smoke_detectors.py --reconfigure` |
 | Yale Doorman | Hardware + HA lock entity |
 | Kraftringen energy | API credentials for `energy_bridge.py` |
-| Stop Double Take add-on | ✅ Uninstalled 2026-06-15 |
+| Cloudflare Access on Insights | Optional — `insights.danielsson.cloud` is currently unauthenticated |
 
 ---
 
@@ -101,11 +105,13 @@ ha apps logs 25d01a20_danielsson_insights
 |---|---|
 | `danielsson_insights/` | HAOS add-on (v0.2.4) — runs all bridges + timeline |
 | `scripts/deploy-insights-to-ha.ps1` | Sync scripts/events to `/share/danielsson-insights/` |
-| `scripts/verify-insights-ha.ps1` | Smoke test add-on + secrets |
-| `scripts/timeline_server.py` | Analytics UI + REST API |
-| `scripts/influx_metrics_bridge.py` | metrics.jsonl → InfluxDB |
-| `config/home-assistant/dashboards/house-timeline.yaml` | HA Analytics iframe |
-| `config/home-assistant/secrets.yaml` (host) | `timeline_url` / `environment_url` → direct `:8765` |
+| `scripts/set-ha-timeline-secret.ps1` | Write Insights iframe URLs to host `secrets.yaml` |
+| `scripts/configure-cloudflared-insights.sh` | Add `insights.danielsson.cloud` → `:8765` in Cloudflared |
+| `scripts/timeline_server.py` | Analytics UI + REST API + event list HTML |
+| `config/home-assistant/dashboards/home-tech.yaml` | Teknik — Live / Historik / Drift |
+| `config/home-assistant/dashboards/home-events.yaml` | Händelser iframe |
+| `config/home-assistant/rest/insights.yaml` | REST counters → `sensor.insights_*_24h` |
+| `config/home-assistant/secrets.yaml` (host) | `timeline_url`, `environment_url`, `events_url`, `story_url` |
 
 ---
 
@@ -115,6 +121,7 @@ ha apps logs 25d01a20_danielsson_insights
 |---|---|
 | [backlog.md](backlog.md) | Work queue |
 | [roadmap.md](roadmap.md) | Phase tasks |
+| [runbooks/remote-access-cloudflare.md](runbooks/remote-access-cloudflare.md) | HA + Insights remote access |
 | [runbooks/timeline-addon.md](runbooks/timeline-addon.md) | HAOS add-on ops |
 | [decisions/006-no-face-no-companion-presence.md](decisions/006-no-face-no-companion-presence.md) | Why face rec + family Companion are out |
 | [runbooks/influxdb-setup.md](runbooks/influxdb-setup.md) | InfluxDB + add-on bridge |

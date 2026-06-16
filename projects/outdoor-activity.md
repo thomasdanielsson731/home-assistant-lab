@@ -24,7 +24,7 @@ Situational awareness for outdoor and entry activity — **not** named household
 ## Config
 
 - Templates: `config/home-assistant/templates/house_context.yaml`
-- Dashboard: Home chip in `config/home-assistant/dashboards/home-anna.yaml`
+- Dashboard: outdoor chip in `config/home-assistant/dashboards/home-hem.yaml`
 
 ## Done Criteria
 

@@ -9,7 +9,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | Host | Dell Latitude 3120 (x86-64) |
 | OS | Home Assistant OS (HAOS) — not Container mode |
 | Storage | External 1 TB SSD at `/media/frigate` (Frigate recordings) |
-| HA URL | `http://192.168.68.175:8123` |
+| HA URL | `https://ha.danielsson.cloud` (remote) · `http://192.168.68.175:8123` (LAN) |
 | SSH | `root@192.168.68.175 -p 22222` (SSH add-on) |
 
 ## Development Environment
@@ -209,10 +209,10 @@ Subscribes to SPL Summary events via VAPIX WebSocket on `front`, `driveway_wide`
 python scripts/health-check.py
 ```
 
-- HA sidebar: **Analytics** / **Environment** (`house-timeline`, `house-graphs`)
-- Direct: `http://192.168.68.175:8765/timeline` · `/environment`
+- HA sidebar: **Analytics** / **Environment** / **Händelser** + family panels (Hem, Kameror, Säkerhet, Rum)
+- Insights: `https://insights.danielsson.cloud/timeline` · `/environment` · `/` · `/story`
 - API: `/api/v1/events`, `/api/v1/metrics`, `/api/v1/occupancy`, `/api/v1/story/today`
-- Dashboard secrets: direct `:8765` URLs (`-UseDirectSecrets`) — not Ingress in iframe
+- Dashboard secrets: Cloudflare URLs (`-UseCloudflareUrls`) — not Ingress in iframe
 
 See `docs/runbooks/timeline-addon.md`. Legacy dev PC: `.\scripts\stop-bridges.ps1`.
 
@@ -294,7 +294,7 @@ Enriched events set `enriched=true` and `parent_event_ids` pointing to the raw e
 **Deploy / ops (HAOS):**
 ```powershell
 .\scripts\deploy-insights-to-ha.ps1
-.\scripts\deploy-insights-to-ha.ps1 -UseDirectSecrets
+.\scripts\deploy-insights-to-ha.ps1 -UseCloudflareUrls
 .\scripts\stop-bridges.ps1              # ensure dev PC bridges are off
 ```
 
@@ -326,9 +326,16 @@ config/
     themes/              → merged via !include_dir_merge_named themes
     lovelace/            # legacy dashboard YAML
     dashboards/
-      home-anna.yaml       # Danielsson Home (id home-lab): Hem, Kameror, Säkerhet, Rum
-      home-tech.yaml       # Teknik (admin): Teknik + Drift
-      house-timeline.yaml  # Analytics (full-screen iframe)
+      home-hem.yaml          # Hem (sidebar panel)
+      home-cameras.yaml      # Kameror
+      home-security.yaml     # Säkerhet
+      home-events.yaml       # Händelser (Insights event list iframe)
+      home-rooms.yaml        # Rum
+      home-tech.yaml         # Teknik (admin): Live, Historik, Drift
+      house-timeline.yaml    # Analytics (full-screen iframe)
+      house-graphs.yaml      # Environment (full-screen iframe)
+    rest/
+      insights.yaml          # REST counters → sensor.insights_*_24h
     secrets.yaml.example  # shape only — real secrets.yaml lives on host, never committed
   frigate/
     config.yml          → rsync'd to HAOS /config/frigate/config.yml
@@ -400,7 +407,7 @@ All AOA payloads are JSON `{Data: {active: bool}}` — use `value_template: "{{ 
 |---|---|---|
 | 1 | Foundation — naming, areas, MQTT, backups | Done |
 | 2 | Cameras + Frigate — 6 cameras, recording, HA integration (99 entities) | Done |
-| 3 | Dashboard — Anna (`/lovelace/home-lab`) + Teknik admin (`/lovelace/home-tech`) | Done |
+| 3 | Dashboard — sidebar panels + Teknik (Live/Historik/Drift) | Done |
 | 4 | ~~Face recognition~~ | **Removed** — [ADR-006](docs/decisions/006-no-face-no-companion-presence.md) |
 | 5 | Axis analytics (ACAP + MQTT) | Done — all 6 cameras verified |
 | 6 | AI integration / narratives | In progress — story ready; Kraftringen credentials pending |

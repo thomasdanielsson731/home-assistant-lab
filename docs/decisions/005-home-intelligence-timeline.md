@@ -6,7 +6,7 @@
 
 ## Decision
 
-The primary insights UX is **Analytics** — served by `timeline_server.py` on **HAOS** via the Danielsson Insights add-on (`http://192.168.68.175:8765/timeline`), embedded in HA via YAML dashboard **`house-timeline`** (iframe with direct URL — not Ingress). Lovelace `home-lab` remains secondary.
+The primary insights UX is **Analytics** — served by `timeline_server.py` on **HAOS** via the Danielsson Insights add-on, embedded in HA via YAML dashboards **`house-timeline`**, **`house-graphs`**, and **`home-events`** (iframe with Cloudflare or LAN URL — not Ingress). Family sidebar panels (Hem, Kameror, …) remain secondary.
 
 **Updated 2026-06-12:** Platform cut over from Windows dev PC bridges to HAOS add-on v0.2.4.
 
@@ -43,7 +43,7 @@ Home Assistant remains:
 - **Do:** Extend `event_normalizer.py` for all MQTT sources; keep Lovelace for operations/security
 - **Do:** Version REST API under `/api/v1/`
 - **Do:** Store raw + enriched events; correlation writes `parent_event_ids` and `metadata.correlations`
-- **Don't:** Build timeline features inside `home-anna.yaml` / `home-tech.yaml`
+- **Don't:** Build timeline features inside family panel YAML (`home-hem.yaml`, …) — link to Analytics/Händelser instead; Teknik may show summary chips only
 - **Don't:** Couple timeline UI to HA entity IDs
 
 ## Implementation phases

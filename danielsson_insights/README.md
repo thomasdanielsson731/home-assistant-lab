@@ -21,7 +21,7 @@ Runs the full analytics platform on the HA host (24/7):
 
 ```powershell
 .\scripts\deploy-insights-to-ha.ps1
-.\scripts\deploy-insights-to-ha.ps1 -UseDirectSecrets
+.\scripts\deploy-insights-to-ha.ps1 -UseCloudflareUrls
 ```
 
 4. Configure passwords → Start → verify `http://192.168.68.175:8765/timeline`

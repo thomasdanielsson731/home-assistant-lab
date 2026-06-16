@@ -14,14 +14,14 @@ Du granskar **Danielsson Home** ur Thomas perspektiv: Axis-ingenjör som vill im
 
 | Yta | Var i repot / HA |
 |---|---|
-| Dashboard (Anna) | `config/home-assistant/dashboards/home-anna.yaml` |
-| Dashboard (Teknik) | `config/home-assistant/dashboards/home-tech.yaml` |
-| Analytics / Environment | Sidebar → Analytics, Environment (`:8765`) |
+| Dashboard (familj) | `home-hem.yaml`, `home-cameras.yaml`, `home-security.yaml`, `home-events.yaml`, `home-rooms.yaml` |
+| Dashboard (Teknik) | `config/home-assistant/dashboards/home-tech.yaml` — Live, Historik, Drift |
+| Analytics / Environment / Händelser | Sidebar → Analytics, Environment, Händelser (`insights.danielsson.cloud`) |
 | Grafana | Sidebar → Grafana → 7 Day Trends |
 | Event-plattform | `scripts/event_normalizer.py`, `events/timeline.jsonl` |
-| Security + sensorer | Säkerhet (Anna), Drift/Teknik (`home-tech.yaml`), smoke/AOA/scene entities |
+| Security + sensorer | Säkerhet, Händelser, Teknik Live/Drift — smoke/AOA/scene entities |
 
-Live: `http://192.168.68.175:8123/lovelace/home-lab`
+Live: `https://ha.danielsson.cloud/lovelace/home-hem/home` (remote) eller LAN `:8123`
 
 ## Granskningschecklista
 

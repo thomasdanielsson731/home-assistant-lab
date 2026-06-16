@@ -45,9 +45,8 @@ Vision: [vision.md](vision.md) · Scope: [scope.md](scope.md) · Work queue: [ba
 
 | Task | Status |
 |---|---|
-| Anna + Teknik dashboards at `/lovelace/home-lab` and `/lovelace/home-tech` | ✅ |
-| Home, Cameras, Rooms, Security, Operations | ✅ |
-| Frigate Card + Mushroom Cards | ✅ |
+| Sidebar panels (Hem, Kameror, Säkerhet, Händelser, Rum) + Teknik admin | ✅ |
+| Mobile-first Mushroom + Frigate cards per panel | ✅ |
 
 ---
 

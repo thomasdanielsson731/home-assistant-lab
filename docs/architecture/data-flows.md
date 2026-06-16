@@ -52,7 +52,10 @@ timeline_server :8765 → /api/v1/* + /timeline + /environment UI
 
 | Consumer | Source |
 |---|---|
-| Danielsson Home (`home-anna.yaml`, id `home-lab`) | HA entities (MQTT, ZHA, Frigate, templates) |
-| Teknik (`home-tech.yaml`, admin) | Sensorer, grafer, systemstatus, Drift |
-| Analytics / Environment | Insights add-on `:8765` (Ingress or LAN) |
+| Hem / Kameror / Säkerhet / Rum | HA entities (MQTT, ZHA, Frigate, templates) |
+| Händelser (`home-events.yaml`) | Insights add-on `:8765/` (iframe, Cloudflare or LAN) |
+| Teknik Live | HA entities + `sensor.insights_*_24h` (REST → Insights API) |
+| Teknik Historik | HA recorder / statistics |
+| Teknik Drift | HA entities + add-on health |
+| Analytics / Environment | Insights add-on `:8765` (`insights.danielsson.cloud` or LAN) |
 | Grafana | InfluxDB |

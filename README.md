@@ -81,7 +81,7 @@ Axis Cameras (6)  ──RTSP──►  Frigate (NVR + detection)  ──MQTT─�
 |---|---|---|
 | 1 — Foundation | HAOS, MQTT, naming, backups | **Done** |
 | 2 — Cameras | 6 cameras in Frigate, detection, recording | **Done** |
-| 3 — Dashboard | 5 views, mobile-first | **Done** |
+| 3 — Dashboard | Sidebar panels + Teknik Live/Historik/Drift | **Done** |
 | 4 — ~~Face Recognition~~ | Removed — [ADR-006](docs/decisions/006-no-face-no-companion-presence.md) | **Removed** |
 | 5 — Axis Analytics | AOA, scene metadata, air quality | **Done** |
 | 6 — AI Integration | Ollama/Qwen, scene understanding | Planned |

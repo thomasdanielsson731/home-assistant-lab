@@ -2,11 +2,33 @@
 
 Visual layout for the Home Assistant Sections dashboard using Mushroom Cards. Mobile-first.
 
-**Anna dashboard** (`home-anna.yaml`, sidebar id `home-lab`): four views — Hem, Kameror, Säkerhet, Rum.
+## Current structure (2026-06-14)
 
-**Teknik dashboard** (`home-tech.yaml`, admin only): Teknik + Drift — sensorer, grafer, systemstatus.
+**Family panels** — one HA sidebar item per YAML dashboard (not a single tabbed `home-lab`):
 
-**Stack:** Mushroom Cards + Sections layout + custom:mini-graph-card for history.
+| Panel | File | View path |
+|---|---|---|
+| Hem | `home-hem.yaml` | `home` |
+| Kameror | `home-cameras.yaml` | `cameras` |
+| Säkerhet | `home-security.yaml` | `security` |
+| Händelser | `home-events.yaml` | `events` (iframe → Insights event list) |
+| Rum | `home-rooms.yaml` | `rooms` |
+
+**Teknik** (`home-tech.yaml`, admin only) — three views:
+
+| View | Path | Role |
+|---|---|---|
+| Live | `live` | Perimeter nu, D6210, korrelationer, senaste bilder |
+| Historik | `historik` | Recorder/statistics graphs (inne, ute, SPL) |
+| Drift | `ops` | Kameror, inspelning, system, backup |
+
+**Insights panels:** `house-timeline` (Analytics), `house-graphs` (Environment) — iframes via Cloudflare `insights.danielsson.cloud`.
+
+**Color language (Teknik Live):** green = lugnt · amber = person/aktivitet · blue = rörelse/fordon.
+
+**Stack:** Mushroom Cards + Sections layout + built-in `history-graph` / `statistics-graph` (mini-graph-card optional via HACS).
+
+Wireframes below describe the **family panel** content; Operations content lives in Teknik **Drift**.
 
 ---
 
@@ -198,9 +220,9 @@ All security-relevant information in one view. Events, alerts, arm/disarm.
 
 ---
 
-## View 5 — Operations
+## View 5 — Operations (Teknik Drift)
 
-System health, admin tasks, config info. Not for daily use.
+System health, admin tasks, config info. Lives in **`home-tech.yaml`** view **Drift** (`/lovelace/home-tech/ops`). Not for daily family use.
 
 ```
 ┌─────────────────────────────────┐

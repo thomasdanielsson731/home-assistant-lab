@@ -13,10 +13,11 @@ This runbook follows the standard HA + Cloudflare setup (Loopia registrar, Cloud
 |---|---|---|
 | 1. Cloudflare-konto + domän | ✅ | `danielsson.cloud` aktiv hos Cloudflare |
 | 2. Namnservrar Loopia → Cloudflare | ✅ | `carlos.ns.cloudflare.com`, `love.ns.cloudflare.com` |
-| 3. Cloudflared add-on installerat | ❌ | **Nästa steg** |
-| 4. Add-on konfigurerat + OAuth | ❌ | `external_hostname: ha.danielsson.cloud` |
+| 3. Cloudflared add-on installerat | ✅ | Tunnel `haos-danielsson` |
+| 4. Add-on konfigurerat + OAuth | ✅ | `external_hostname: ha.danielsson.cloud` |
 | 5. `trusted_proxies` i HA | ✅ | Synkat till HAOS (`172.30.33.0/24`) |
-| 6. Extern URL i HA + test mobildata | ❌ | Efter add-on kör |
+| 6. Extern URL i HA + test mobildata | ✅ | `https://ha.danielsson.cloud` |
+| 7. Insights tunnel (`insights.danielsson.cloud`) | ✅ | `configure-cloudflared-insights.sh` |
 
 Verify DNS anytime:
 
