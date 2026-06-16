@@ -37,7 +37,7 @@ views:
                 content: Story
                 tap_action:
                   action: url
-                  url_path: http://192.168.68.175:8765/story
+                  url_path: !secret story_url
 
       - title: UTE LUFT (D6210)
         cards:
@@ -252,174 +252,70 @@ views:
           - type: markdown
             content: >-
               Senaste Frigate-detektioner. Tomt = lugnt — inte fel.
-          - type: horizontal-stack
+          - type: grid
+            columns: 2
+            square: false
             cards:
-              - type: conditional
-                conditions:
-                  - condition: state
-                    entity: image.front_person
-                    state_not: unknown
-                  - condition: state
-                    entity: image.front_person
-                    state_not: unavailable
-                card:
-                  type: custom:mushroom-template-card
-                  entity: image.front_person
-                  primary: Entrén · person
-                  secondary: >-
-                    {% set dt = as_local(as_datetime(states('image.front_person'))) %}
-                    {{ dt.strftime('%H:%M · %d %b') }} ({{ relative_time(dt) }})
-                  icon: mdi:account
-                  layout: vertical
-                  fill_container: true
-                  tap_action:
-                    action: more-info
-              - type: conditional
-                conditions:
-                  - condition: state
-                    entity: image.driveway_wide_person
-                    state_not: unknown
-                  - condition: state
-                    entity: image.driveway_wide_person
-                    state_not: unavailable
-                card:
-                  type: custom:mushroom-template-card
-                  entity: image.driveway_wide_person
-                  primary: Uppfart · person
-                  secondary: >-
-                    {% set dt = as_local(as_datetime(states('image.driveway_wide_person'))) %}
-                    {{ dt.strftime('%H:%M · %d %b') }} ({{ relative_time(dt) }})
-                  icon: mdi:account
-                  layout: vertical
-                  fill_container: true
-                  tap_action:
-                    action: more-info
-              - type: conditional
-                conditions:
-                  - condition: state
-                    entity: image.driveway_id_person
-                    state_not: unknown
-                  - condition: state
-                    entity: image.driveway_id_person
-                    state_not: unavailable
-                card:
-                  type: custom:mushroom-template-card
-                  entity: image.driveway_id_person
-                  primary: Uppfart ID · person
-                  secondary: >-
-                    {% set dt = as_local(as_datetime(states('image.driveway_id_person'))) %}
-                    {{ dt.strftime('%H:%M · %d %b') }} ({{ relative_time(dt) }})
-                  icon: mdi:motion-sensor
-                  layout: vertical
-                  fill_container: true
-                  tap_action:
-                    action: more-info
-          - type: custom:mushroom-template-card
-            primary: Inga Frigate-bilder senaste dygnet
-            secondary: Tomt betyder lugnt — inte fel
-            icon: mdi:image-off-outline
-            icon_color: grey
-            fill_container: true
-            visibility:
-              - condition: state
+              - type: picture-entity
                 entity: image.front_person
-                state: unavailable
-              - condition: state
+                name: Entrén · person
+                show_state: true
+                tap_action:
+                  action: more-info
+              - type: picture-entity
                 entity: image.driveway_wide_person
-                state: unavailable
-              - condition: state
+                name: Uppfart · person
+                show_state: true
+                tap_action:
+                  action: more-info
+              - type: picture-entity
                 entity: image.driveway_id_person
-                state: unavailable
-            tap_action:
-              action: none
-          - type: horizontal-stack
-            cards:
-              - type: conditional
-                conditions:
-                  - condition: state
-                    entity: image.front_car
-                    state_not: unknown
-                  - condition: state
-                    entity: image.front_car
-                    state_not: unavailable
-                card:
-                  type: custom:mushroom-template-card
-                  entity: image.front_car
-                  primary: Entrén · fordon
-                  secondary: >-
-                    {% set dt = as_local(as_datetime(states('image.front_car'))) %}
-                    {{ dt.strftime('%H:%M · %d %b') }} ({{ relative_time(dt) }})
-                  icon: mdi:car
-                  layout: vertical
-                  fill_container: true
-                  tap_action:
-                    action: more-info
-              - type: conditional
-                conditions:
-                  - condition: state
-                    entity: image.driveway_wide_car
-                    state_not: unknown
-                  - condition: state
-                    entity: image.driveway_wide_car
-                    state_not: unavailable
-                card:
-                  type: custom:mushroom-template-card
-                  entity: image.driveway_wide_car
-                  primary: Uppfart · fordon
-                  secondary: >-
-                    {% set dt = as_local(as_datetime(states('image.driveway_wide_car'))) %}
-                    {{ dt.strftime('%H:%M · %d %b') }} ({{ relative_time(dt) }})
-                  icon: mdi:car
-                  layout: vertical
-                  fill_container: true
-                  tap_action:
-                    action: more-info
-              - type: conditional
-                conditions:
-                  - condition: state
-                    entity: image.driveway_id_car
-                    state_not: unknown
-                  - condition: state
-                    entity: image.driveway_id_car
-                    state_not: unavailable
-                card:
-                  type: custom:mushroom-template-card
-                  entity: image.driveway_id_car
-                  primary: Uppfart ID · fordon
-                  secondary: >-
-                    {% set dt = as_local(as_datetime(states('image.driveway_id_car'))) %}
-                    {{ dt.strftime('%H:%M · %d %b') }} ({{ relative_time(dt) }})
-                  icon: mdi:car
-                  layout: vertical
-                  fill_container: true
-                  tap_action:
-                    action: more-info
+                name: Uppfart ID · person
+                show_state: true
+                tap_action:
+                  action: more-info
+              - type: picture-entity
+                entity: image.front_car
+                name: Entrén · fordon
+                show_state: true
+                tap_action:
+                  action: more-info
+              - type: picture-entity
+                entity: image.driveway_wide_car
+                name: Uppfart · fordon
+                show_state: true
+                tap_action:
+                  action: more-info
+              - type: picture-entity
+                entity: image.driveway_id_car
+                name: Uppfart ID · fordon
+                show_state: true
+                tap_action:
+                  action: more-info
 
       - title: TEMPERATUR (7 DAGAR)
         cards:
           - type: markdown
             content: >-
               **Ute** = D6210 · **Inne** = brandvarnare. Avbrott i linje = sampling paus.
-          - type: horizontal-stack
-            cards:
-              - type: history-graph
-                title: Ute
-                hours_to_show: 168
-                entities:
-                  - entity: sensor.driveway_env_temperature
-                    name: Ute
-              - type: history-graph
-                title: Inne
-                hours_to_show: 168
-                entities:
-                  - entity: sensor.heiman_hs1sa_e_plus_temperatur
-                    name: Kök
-                  - entity: sensor.heiman_hs1sa_e_plus_temperatur_2
-                    name: Hall
-                  - entity: sensor.heiman_hs1sa_e_plus_temperatur_3
-                    name: Vardagsrum
-                  - entity: sensor.house_indoor_temperature
-                    name: Snitt
+          - type: history-graph
+            title: Ute
+            hours_to_show: 168
+            entities:
+              - entity: sensor.driveway_env_temperature
+                name: Ute
+          - type: history-graph
+            title: Inne
+            hours_to_show: 168
+            entities:
+              - entity: sensor.heiman_hs1sa_e_plus_temperatur
+                name: Kök
+              - entity: sensor.heiman_hs1sa_e_plus_temperatur_2
+                name: Hall
+              - entity: sensor.heiman_hs1sa_e_plus_temperatur_3
+                name: Vardagsrum
+              - entity: sensor.house_indoor_temperature
+                name: Snitt
 
       - title: UTE LUFT (7 DAGAR)
         cards:

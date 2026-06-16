@@ -1,0 +1,36 @@
+# Händelser — event list with clickable thumbnails (Danielsson Insights)
+title: Händelser
+views:
+  - title: Händelser
+    path: events
+    icon: mdi:format-list-bulleted
+    type: sections
+    max_columns: 1
+    sections:
+      - cards:
+          - type: conditional
+            conditions:
+              - condition: screen
+                media_query: "(min-width: 1025px)"
+            card:
+              type: iframe
+              url: !secret events_url
+              aspect_ratio: 75%
+
+          - type: conditional
+            conditions:
+              - condition: screen
+                media_query: "(max-width: 1024px)"
+            card:
+              type: vertical-stack
+              cards:
+                - type: markdown
+                  content: |
+                    ### Händelser på mobil
+                    Öppna eventlistan i webbläsaren om iframe är tom.
+                - type: button
+                  name: Öppna händelselista
+                  icon: mdi:format-list-bulleted
+                  tap_action:
+                    action: url
+                    url_path: !secret events_url

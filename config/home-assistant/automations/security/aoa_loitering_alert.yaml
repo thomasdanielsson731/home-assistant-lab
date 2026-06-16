@@ -23,4 +23,7 @@
         message: >-
           {% set zone = trigger.entity_id.split('.')[1].replace('_aoa_loitering', '') %}
           {{ zone | replace('_', ' ') | title }}
+        data:
+          url: /lovelace/home-security/security
+          clickAction: /lovelace/home-security/security
     - delay: "00:15:00"

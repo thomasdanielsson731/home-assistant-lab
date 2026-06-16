@@ -23,3 +23,6 @@
           {% set inn = states('sensor.house_indoor_temperature') %}
           {% if inn not in ['unknown', 'unavailable', ''] %} · inne {{ inn }}°C{% endif %}
           — kontrollera omedelbart.
+        data:
+          url: /lovelace/home-security/security
+          clickAction: /lovelace/home-security/security

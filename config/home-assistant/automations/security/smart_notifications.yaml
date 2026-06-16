@@ -25,6 +25,8 @@
           {{ trigger.payload_json.after.camera | replace('_', ' ') | title }}
         data:
           image: /api/frigate/notifications/{{ trigger.payload_json.after.id }}/snapshot.jpg
+          url: /lovelace/home-events/events
+          clickAction: /lovelace/home-events/events
 
 - id: notify_person_entry_multisensor
   alias: "Notify — person at entry (multisensor)"
@@ -72,4 +74,6 @@
           — bekräftad av kamera + sensor
         data:
           image: /api/frigate/notifications/{{ trigger.payload_json.after.id }}/snapshot.jpg
+          url: /lovelace/home-events/events
+          clickAction: /lovelace/home-events/events
     - delay: "00:10:00"

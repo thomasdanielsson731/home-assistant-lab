@@ -723,6 +723,7 @@ TIMELINE_V1_HTML = """<!DOCTYPE html>
 HTML = """<!DOCTYPE html>
 <html lang="sv">
 <head>
+  __INSIGHTS_BASE__
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Danielsson Insights — Analytics</title>
@@ -1057,7 +1058,10 @@ class Handler(BaseHTTPRequestHandler):
                 thumb_html = ""
                 snap = (e.get("snapshot") or {}).get("best_picture")
                 if snap:
-                    thumb_html = f'<img class="thumb" src="media/{snap}" alt="">'
+                    thumb_html = (
+                        f'<a href="media/{snap}" target="_blank" rel="noopener">'
+                        f'<img class="thumb" src="media/{snap}" alt=""></a>'
+                    )
                 is_anomaly = bool((e.get("metadata") or {}).get("anomaly"))
                 entries_html += ENTRY.format(
                     time=ts.strftime("%H:%M"),
@@ -1071,11 +1075,13 @@ class Handler(BaseHTTPRequestHandler):
                     thumb_html=thumb_html,
                 )
 
-        page = HTML.format(
-            period_label=period_label,
-            stats=stats,
-            filters=filters,
-            entries=entries_html,
+        page = _insights_page(
+            HTML.format(
+                period_label=period_label,
+                stats=stats,
+                filters=filters,
+                entries=entries_html,
+            )
         ).encode("utf-8")
 
         self.send_response(200)

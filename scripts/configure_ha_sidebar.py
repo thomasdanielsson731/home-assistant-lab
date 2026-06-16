@@ -22,6 +22,7 @@ DEFAULT_PANEL = "home-hem"
 HEM_PANEL = "home-hem"
 CAMERAS_PANEL = "home-cameras"
 SECURITY_PANEL = "home-security"
+EVENTS_PANEL = "home-events"
 ROOMS_PANEL = "home-rooms"
 TECH_PANEL = "home-tech"
 TIMELINE_PANEL = "house-timeline"
@@ -30,6 +31,7 @@ KEEP_VISIBLE = {
     HEM_PANEL,
     CAMERAS_PANEL,
     SECURITY_PANEL,
+    EVENTS_PANEL,
     ROOMS_PANEL,
     TECH_PANEL,
     TIMELINE_PANEL,
@@ -97,6 +99,7 @@ def main() -> int:
             HEM_PANEL,
             CAMERAS_PANEL,
             SECURITY_PANEL,
+            EVENTS_PANEL,
             ROOMS_PANEL,
             TIMELINE_PANEL,
             GRAPHS_PANEL,

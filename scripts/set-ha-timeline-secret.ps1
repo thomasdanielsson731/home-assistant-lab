@@ -1,8 +1,11 @@
-# set-ha-timeline-secret.ps1 — Safely set timeline_url in HA secrets.yaml
+# set-ha-timeline-secret.ps1 — Safely set Insights URLs in HA secrets.yaml
 param(
     [string]$TimelineUrl = "",
     [string]$EnvironmentUrl = "",
-    [switch]$UseDirectUrls
+    [string]$EventsUrl = "",
+    [string]$StoryUrl = "",
+    [switch]$UseDirectUrls,
+    [switch]$UseIngressUrls
 )
 
 $repoRoot = Split-Path $PSScriptRoot -Parent
@@ -21,36 +24,91 @@ $user  = if ($env:HA_USER) { $env:HA_USER } else { "root" }
 $target = "${user}@${host_}"
 $ssh = @("-p", $port, "-o", "StrictHostKeyChecking=no")
 
+function Get-InsightsIngressBase {
+    $line = ssh @ssh $target "ha apps info 25d01a20_danielsson_insights 2>/dev/null | grep '^ingress_entry:'"
+    if ($line -match 'ingress_entry:\s*(/api/hassio_ingress/\S+)') {
+        return $Matches[1].Trim()
+    }
+    return ""
+}
+
+if ($UseIngressUrls -and -not $TimelineUrl) {
+    $ingressBase = Get-InsightsIngressBase
+    if (-not $ingressBase) {
+        Write-Error "Danielsson Insights add-on not running - start it before -UseIngressUrls"
+        exit 1
+    }
+    $TimelineUrl = "${ingressBase}/timeline"
+    $EnvironmentUrl = "${ingressBase}/environment"
+    $EventsUrl = "${ingressBase}/"
+    $StoryUrl = "${ingressBase}/story"
+}
+
 if (-not $TimelineUrl) {
-    if ($UseDirectUrls -or $env:HA_HOST) {
-        $haHost = if ($env:HA_HOST) { $env:HA_HOST } else { "192.168.68.175" }
-        $TimelineUrl = "http://${haHost}:8765/timeline"
+    if ($UseDirectUrls) {
+        $TimelineUrl = "http://${host_}:8765/timeline"
     } else {
-        $detected = (
-            Get-NetIPAddress -AddressFamily IPv4 -ErrorAction SilentlyContinue |
-            Where-Object { $_.IPAddress -like '192.168.*' -and $_.PrefixOrigin -ne 'WellKnown' } |
-            Select-Object -First 1
-        ).IPAddress
-        if (-not $detected) { Write-Error "Set -TimelineUrl, -UseDirectUrls, or DEV_PC_HOST in .env"; exit 1 }
-        $TimelineUrl = "http://${detected}:8765/timeline"
+        Write-Error "Set -UseIngressUrls (remote-friendly) or -UseDirectUrls (LAN only), or pass -TimelineUrl"
+        exit 1
     }
 }
 if (-not $EnvironmentUrl) {
-    if ($TimelineUrl -match '^(https?://[^/]+)') {
+    if ($TimelineUrl -match '^(/api/hassio_ingress/\S+)/timeline$') {
+        $EnvironmentUrl = "$($Matches[1])/environment"
+    } elseif ($TimelineUrl -match '^(https?://[^/]+)/timeline$') {
         $EnvironmentUrl = "$($Matches[1])/environment"
     } else {
-        $EnvironmentUrl = "http://192.168.68.136:8765/environment"
+        $EnvironmentUrl = "http://${host_}:8765/environment"
     }
 }
+if (-not $EventsUrl) {
+    if ($TimelineUrl -match '^(/api/hassio_ingress/\S+)/timeline$') {
+        $EventsUrl = "$($Matches[1])/"
+    } elseif ($TimelineUrl -match '^(https?://[^/]+)/timeline$') {
+        $EventsUrl = "$($Matches[1])/"
+    } else {
+        $EventsUrl = "http://${host_}:8765/"
+    }
+}
+if (-not $StoryUrl) {
+    if ($TimelineUrl -match '^(/api/hassio_ingress/\S+)/timeline$') {
+        $StoryUrl = "$($Matches[1])/story"
+    } elseif ($TimelineUrl -match '^(https?://[^/]+)/timeline$') {
+        $StoryUrl = "$($Matches[1])/story"
+    } else {
+        $StoryUrl = "http://${host_}:8765/story"
+    }
+}
+
 Write-Host "Setting timeline_url on HA host: $TimelineUrl"
 Write-Host "Setting environment_url on HA host: $EnvironmentUrl"
+Write-Host "Setting events_url on HA host: $EventsUrl"
+Write-Host "Setting story_url on HA host: $StoryUrl"
 
-$cmd = @"
-grep -v 'House Intelligence' /config/secrets.yaml | grep -v '^timeline_url:' | grep -v '^environment_url:' | sed -e '\${'$'}/^\$/d' > /tmp/secrets_fix.yaml
-printf '\n# House Intelligence (Analytics / Environment iframe)\ntimeline_url: "%s"\nenvironment_url: "%s"\n' '$TimelineUrl' '$EnvironmentUrl' >> /tmp/secrets_fix.yaml
+$blockPath = Join-Path $env:TEMP "insights-secrets-block.yaml"
+@(
+    "",
+    "# House Intelligence (Analytics / Environment / Events iframe)",
+    ('timeline_url: "{0}"' -f $TimelineUrl),
+    ('environment_url: "{0}"' -f $EnvironmentUrl),
+    ('events_url: "{0}"' -f $EventsUrl),
+    ('story_url: "{0}"' -f $StoryUrl)
+) | Set-Content -Path $blockPath -Encoding utf8
+
+$remoteDest = "$target`:/tmp/insights-secrets-block.yaml"
+scp @("-P", $port, "-o", "StrictHostKeyChecking=no") $blockPath $remoteDest | Out-Null
+
+$remoteCmd = @'
+grep -v '# House Intelligence' /config/secrets.yaml \
+  | grep -v '^timeline_url:' \
+  | grep -v '^environment_url:' \
+  | grep -v '^events_url:' \
+  | grep -v '^story_url:' \
+  | sed '/^$/d' > /tmp/secrets_fix.yaml
+cat /tmp/insights-secrets-block.yaml >> /tmp/secrets_fix.yaml
 mv /tmp/secrets_fix.yaml /config/secrets.yaml
-tail -4 /config/secrets.yaml
+tail -6 /config/secrets.yaml
 ha core check
-"@
+'@
 
-ssh @ssh $target $cmd
+ssh @ssh $target $remoteCmd

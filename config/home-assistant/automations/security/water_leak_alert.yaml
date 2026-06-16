@@ -20,3 +20,6 @@
         message: >-
           Vattensensor diskmaskin har detekterat vatten.
           Batteri {{ states('sensor.sonoff_snzb_05p_batteri') }}%.
+        data:
+          url: /lovelace/home-security/security
+          clickAction: /lovelace/home-security/security

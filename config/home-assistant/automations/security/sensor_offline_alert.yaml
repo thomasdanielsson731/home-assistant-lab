@@ -15,6 +15,9 @@
       data:
         title: "Vattensensor offline"
         message: "Kök diskmaskin-sensor svarar inte — vattenlarm tyst tills den är tillbaka."
+        data:
+          url: /lovelace/home-security/security
+          clickAction: /lovelace/home-security/security
 
 - id: sensor_offline_smoke_alert
   alias: "Sensor offline — smoke detector count"
@@ -37,3 +40,6 @@
         message: >-
           Endast {{ state_attr('binary_sensor.house_smoke_alarm', 'detector_count') }}/3
           brandvarnare online — kontrollera ZHA.
+        data:
+          url: /lovelace/home-tech/tech
+          clickAction: /lovelace/home-tech/tech

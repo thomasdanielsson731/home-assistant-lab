@@ -81,12 +81,18 @@ if ($UseIngressSecrets) {
         Write-Host "Setting Ingress URLs: ${ingressBase}/timeline"
         & (Join-Path $PSScriptRoot "set-ha-timeline-secret.ps1") `
             -TimelineUrl "${ingressBase}/timeline" `
-            -EnvironmentUrl "${ingressBase}/environment"
+            -EnvironmentUrl "${ingressBase}/environment" `
+            -EventsUrl "${ingressBase}/" `
+            -StoryUrl "${ingressBase}/story"
     }
 } elseif ($UseDirectSecrets) {
-    # Direct :8765 avoids Ingress 401 in Lovelace iframe (host_network add-on).
+    # Direct :8765 — LAN only; breaks remote HTTPS (Cloudflare).
     Write-Host "Setting direct HA URLs: http://${HA_HOST}:8765/timeline"
     & (Join-Path $PSScriptRoot "set-ha-timeline-secret.ps1") -UseDirectUrls
+} else {
+    # Default: Ingress relative URLs — works locally and via ha.danielsson.cloud
+    Write-Host "Setting Ingress URLs (remote-friendly)"
+    & (Join-Path $PSScriptRoot "set-ha-timeline-secret.ps1") -UseIngressUrls
 }
 
 Write-Host "Done."

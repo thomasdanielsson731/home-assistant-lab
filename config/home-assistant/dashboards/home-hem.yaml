@@ -211,6 +211,13 @@ views:
 
       - title: SENASTE VID ENTRÉN
         cards:
+          - type: picture-entity
+            entity: image.front_person
+            name: Senaste vid entrén
+            show_state: true
+            tap_action:
+              action: navigate
+              navigation_path: /lovelace/home-events/events
           - type: custom:mushroom-template-card
             entity: image.front_person
             primary: Senaste vid entrén
@@ -227,7 +234,7 @@ views:
             fill_container: true
             tap_action:
               action: navigate
-              navigation_path: /house-timeline
+              navigation_path: /lovelace/home-events/events
 
       # ── Lights On Now — only lights that are actually on ────
       - title: LAMPOR TÄNDA

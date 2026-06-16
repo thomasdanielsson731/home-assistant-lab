@@ -68,6 +68,13 @@ lovelace:
       icon: mdi:shield-home
       show_in_sidebar: true
       require_admin: false
+    home-events:
+      mode: yaml
+      filename: dashboards/home-events.yaml
+      title: Händelser
+      icon: mdi:format-list-bulleted
+      show_in_sidebar: true
+      require_admin: false
     home-rooms:
       mode: yaml
       filename: dashboards/home-rooms.yaml

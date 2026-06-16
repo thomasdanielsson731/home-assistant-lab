@@ -4,16 +4,25 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import re
+
 import yaml
 
 REPO = Path(__file__).resolve().parents[1]
 HA = REPO / "config" / "home-assistant"
 DASHBOARDS = HA / "dashboards"
 
+
+def _load_dashboard_yaml(filename: str) -> dict:
+    text = (DASHBOARDS / filename).read_text(encoding="utf-8")
+    text = re.sub(r"!secret\s+\S+", '"/secret/placeholder"', text)
+    return yaml.safe_load(text)
+
 ANNA_DASHBOARDS = {
     "home-hem.yaml": "home",
     "home-cameras.yaml": "cameras",
     "home-security.yaml": "security",
+    "home-events.yaml": "events",
     "home-rooms.yaml": "rooms",
 }
 
@@ -28,13 +37,13 @@ def test_dashboard_split_files():
 
 def test_anna_dashboards_single_view_each():
     for filename, path in ANNA_DASHBOARDS.items():
-        data = yaml.safe_load((DASHBOARDS / filename).read_text(encoding="utf-8"))
+        data = _load_dashboard_yaml(filename)
         assert len(data["views"]) == 1
         assert data["views"][0]["path"] == path
 
 
 def test_tech_dashboard_views():
-    data = yaml.safe_load((DASHBOARDS / "home-tech.yaml").read_text(encoding="utf-8"))
+    data = _load_dashboard_yaml("home-tech.yaml")
     paths = {view["path"] for view in data["views"]}
     assert paths == {"tech", "ops"}
 
@@ -45,6 +54,7 @@ def test_configuration_registers_split_dashboards():
         ("home-hem", "home-hem.yaml"),
         ("home-cameras", "home-cameras.yaml"),
         ("home-security", "home-security.yaml"),
+        ("home-events", "home-events.yaml"),
         ("home-rooms", "home-rooms.yaml"),
     ):
         assert f"{panel_id}:" in text
