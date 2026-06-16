@@ -1,0 +1,32 @@
+# Poll Danielsson Insights timeline API (LAN — runs on HA host, not in iframe).
+- resource: http://192.168.68.175:8765/api/v1/events?hours=24
+  scan_interval: 300
+  timeout: 15
+  sensor:
+    - name: Insights events 24h
+      unique_id: insights_events_24h
+      icon: mdi:chart-timeline-variant
+      unit_of_measurement: events
+      value_template: "{{ value_json | length }}"
+      availability_template: "{{ value_json is defined }}"
+    - name: Insights arrivals 24h
+      unique_id: insights_arrivals_24h
+      icon: mdi:home-import-outline
+      unit_of_measurement: events
+      value_template: >-
+        {{ value_json | selectattr('type', 'eq', 'arrival') | list | count }}
+      availability_template: "{{ value_json is defined }}"
+    - name: Insights deliveries 24h
+      unique_id: insights_deliveries_24h
+      icon: mdi:package-variant-closed
+      unit_of_measurement: events
+      value_template: >-
+        {{ value_json | selectattr('type', 'eq', 'delivery') | list | count }}
+      availability_template: "{{ value_json is defined }}"
+    - name: Insights persons 24h
+      unique_id: insights_persons_24h
+      icon: mdi:account
+      unit_of_measurement: events
+      value_template: >-
+        {{ value_json | selectattr('type', 'eq', 'person') | list | count }}
+      availability_template: "{{ value_json is defined }}"

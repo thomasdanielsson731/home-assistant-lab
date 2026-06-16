@@ -6,6 +6,8 @@
 set -e
 SLUG="${CLOUDFLARED_SLUG:-396f0234_cloudflared}"
 HOSTNAME="${EXTERNAL_HOSTNAME:-ha.danielsson.cloud}"
+INSIGHTS_HOSTNAME="${INSIGHTS_HOSTNAME:-insights.danielsson.cloud}"
+INSIGHTS_SERVICE_HOST="${INSIGHTS_SERVICE_HOST:-192.168.68.175}"
 TUNNEL_NAME="${TUNNEL_NAME:-haos-danielsson}"
 
 if [ -z "$SUPERVISOR_TOKEN" ]; then
@@ -17,7 +19,7 @@ echo "Applying Cloudflared options for ${HOSTNAME}..."
 curl -sf -X POST \
   -H "Authorization: Bearer ${SUPERVISOR_TOKEN}" \
   -H "Content-Type: application/json" \
-  -d "{\"options\":{\"external_hostname\":\"${HOSTNAME}\",\"tunnel_name\":\"${TUNNEL_NAME}\",\"log_level\":\"info\",\"additional_hosts\":[]}}" \
+  -d "{\"options\":{\"external_hostname\":\"${HOSTNAME}\",\"tunnel_name\":\"${TUNNEL_NAME}\",\"log_level\":\"info\",\"additional_hosts\":[{\"hostname\":\"${INSIGHTS_HOSTNAME:-insights.danielsson.cloud}\",\"service\":\"http://${INSIGHTS_SERVICE_HOST:-192.168.68.175}:8765\"}]}}" \
   "http://supervisor/addons/${SLUG}/options"
 
 echo

@@ -111,6 +111,9 @@ script: !include_dir_merge_named scripts/
 # Template sensors (house context + presence fusion)
 template: !include_dir_merge_list templates/
 
+# Insights timeline counters (Teknik Live / Drift)
+rest: !include_dir_merge_list rest/
+
 # MQTT entities (broker configured via UI — stored in .storage/core.config_entries)
 mqtt:
   binary_sensor: !include_dir_merge_list mqtt_binary_sensors/

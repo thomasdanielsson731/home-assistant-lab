@@ -41,5 +41,5 @@
           Endast {{ state_attr('binary_sensor.house_smoke_alarm', 'detector_count') }}/3
           brandvarnare online — kontrollera ZHA.
         data:
-          url: /lovelace/home-tech/tech
-          clickAction: /lovelace/home-tech/tech
+          url: /lovelace/home-tech/ops
+          clickAction: /lovelace/home-tech/ops

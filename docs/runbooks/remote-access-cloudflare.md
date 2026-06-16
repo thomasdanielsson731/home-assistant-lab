@@ -149,7 +149,24 @@ Zero Trust → **Access → Applications → Add** → Self-hosted → `ha.danie
 
 ## Insights / Analytics utifrån
 
-Lovelace-iframes pekar på LAN `:8765` i `secrets.yaml` — fungerar **inte** remote förrän du exponerar t.ex. `insights.danielsson.cloud` **med Access** och uppdaterar secrets. HA-gränssnitt + notiser fungerar utan det.
+Lovelace-iframes **får 401** med Ingress-URL:er (`/api/hassio_ingress/...`) — använd **inte** det i iframe.
+
+**Rekommenderat (LAN + remote):** exponera Insights via Cloudflare Tunnel:
+
+```powershell
+# På HAOS (SSH) — lägger till insights.danielsson.cloud → :8765
+scp scripts/configure-cloudflared-insights.sh root@192.168.68.175:/tmp/
+ssh root@192.168.68.175 -p 22222 sh /tmp/configure-cloudflared-insights.sh
+
+# Sätt secrets till HTTPS (ingen Ingress-auth)
+.\scripts\set-ha-timeline-secret.ps1 -UseCloudflareUrls
+```
+
+`secrets.yaml` ska då innehålla t.ex. `https://insights.danielsson.cloud/timeline`.
+
+**Endast hemma-LAN:** `.\scripts\set-ha-timeline-secret.ps1 -UseDirectUrls` → `http://192.168.68.175:8765/...`
+
+Valfritt: Cloudflare Access på `insights.danielsson.cloud` (data innehåller händelser/bilder).
 
 ---
 

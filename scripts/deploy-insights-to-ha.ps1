@@ -90,9 +90,9 @@ if ($UseIngressSecrets) {
     Write-Host "Setting direct HA URLs: http://${HA_HOST}:8765/timeline"
     & (Join-Path $PSScriptRoot "set-ha-timeline-secret.ps1") -UseDirectUrls
 } else {
-    # Default: Ingress relative URLs — works locally and via ha.danielsson.cloud
-    Write-Host "Setting Ingress URLs (remote-friendly)"
-    & (Join-Path $PSScriptRoot "set-ha-timeline-secret.ps1") -UseIngressUrls
+    # Default: Cloudflare tunnel hostname — works in iframe locally + remotely (no Ingress 401).
+    Write-Host "Setting Cloudflare Insights URLs (insights.danielsson.cloud)"
+    & (Join-Path $PSScriptRoot "set-ha-timeline-secret.ps1") -UseCloudflareUrls
 }
 
 Write-Host "Done."

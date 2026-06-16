@@ -45,7 +45,7 @@ def test_anna_dashboards_single_view_each():
 def test_tech_dashboard_views():
     data = _load_dashboard_yaml("home-tech.yaml")
     paths = {view["path"] for view in data["views"]}
-    assert paths == {"tech", "ops"}
+    assert paths == {"live", "historik", "ops"}
 
 
 def test_configuration_registers_split_dashboards():

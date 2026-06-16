@@ -5,7 +5,9 @@ param(
     [string]$EventsUrl = "",
     [string]$StoryUrl = "",
     [switch]$UseDirectUrls,
-    [switch]$UseIngressUrls
+    [switch]$UseIngressUrls,
+    [switch]$UseCloudflareUrls,
+    [string]$InsightsHost = ""
 )
 
 $repoRoot = Split-Path $PSScriptRoot -Parent
@@ -32,6 +34,15 @@ function Get-InsightsIngressBase {
     return ""
 }
 
+if ($UseCloudflareUrls -and -not $TimelineUrl) {
+    $insightsHost = if ($InsightsHost) { $InsightsHost } elseif ($env:INSIGHTS_HOSTNAME) { $env:INSIGHTS_HOSTNAME } else { "insights.danielsson.cloud" }
+    $base = "https://${insightsHost}"
+    $TimelineUrl = "${base}/timeline"
+    $EnvironmentUrl = "${base}/environment"
+    $EventsUrl = "${base}/"
+    $StoryUrl = "${base}/story"
+}
+
 if ($UseIngressUrls -and -not $TimelineUrl) {
     $ingressBase = Get-InsightsIngressBase
     if (-not $ingressBase) {
@@ -48,7 +59,7 @@ if (-not $TimelineUrl) {
     if ($UseDirectUrls) {
         $TimelineUrl = "http://${host_}:8765/timeline"
     } else {
-        Write-Error "Set -UseIngressUrls (remote-friendly) or -UseDirectUrls (LAN only), or pass -TimelineUrl"
+        Write-Error "Set -UseCloudflareUrls, -UseDirectUrls (LAN only), -UseIngressUrls (401 in iframe), or pass -TimelineUrl"
         exit 1
     }
 }
