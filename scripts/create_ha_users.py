@@ -70,7 +70,21 @@ def main() -> int:
     for display_name, username in USERS:
         existing = by_name.get(display_name.lower())
         if existing and has_login(existing):
-            print(f"SKIP {username} — login already configured")
+            groups = existing.get("group_ids") or []
+            if "system-users" not in groups:
+                ws_call(
+                    ws,
+                    {
+                        "id": msg_id,
+                        "type": "config/auth/update",
+                        "user_id": existing["id"],
+                        "group_ids": ["system-users"],
+                    },
+                )
+                msg_id += 1
+                print(f"FIX  {username} — assigned system-users")
+            else:
+                print(f"SKIP {username} — login already configured")
             continue
 
         if existing:
@@ -100,7 +114,19 @@ def main() -> int:
             },
         )
         msg_id += 1
-        print(f"OK   {username} ({display_name})")
+        print(f"OK   {username} ({display_name}) — password set")
+
+        ws_call(
+            ws,
+            {
+                "id": msg_id,
+                "type": "config/auth/update",
+                "user_id": user_id,
+                "group_ids": ["system-users"],
+            },
+        )
+        msg_id += 1
+        print(f"OK   {username} — group system-users")
 
     ws.close()
     return 0

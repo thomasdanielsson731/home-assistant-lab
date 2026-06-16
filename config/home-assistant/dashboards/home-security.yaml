@@ -29,16 +29,35 @@ views:
         cards:
           - type: custom:mushroom-template-card
             primary: >-
-              {% if is_state('binary_sensor.house_outdoor_presence', 'on') %}Aktivitet utomhus
-              {% else %}Ingen aktivitet utomhus{% endif %}
+              {% set loiter = [
+                'binary_sensor.front_aoa_loitering',
+                'binary_sensor.driveway_wide_aoa_loitering',
+                'binary_sensor.driveway_id_aoa_loitering',
+                'binary_sensor.backyard_aoa_loitering',
+                'binary_sensor.storage_ext_aoa_loitering',
+                'binary_sensor.storage_int_aoa_loitering'
+              ] %}
+              {% if loiter | select('is_state', 'on') | list | count > 0 %}Någon stannar kvar ute
+              {% elif is_state('binary_sensor.house_outdoor_presence', 'on') %}Någon rör sig utomhus
+              {% else %}Inget utomhus just nu{% endif %}
             secondary: >-
               {{ state_attr('sensor.house_outdoor_activity_summary', 'zones_label') | default('Inga aktiva zoner') }}
             tooltip: >-
-              Utomhusaktivitet från entré och uppfart (AOA + Frigate).
-              Loitering och övriga zoner — se chips nedan eller Teknik Live.
+              Utomhusaktivitet från alla kameror (AOA + Frigate + Scene).
+              Loitering = någon stannar kvar länge i en zon.
             icon: mdi:motion-sensor
             icon_color: >-
-              {{ 'amber' if is_state('binary_sensor.house_outdoor_presence', 'on') else 'green' }}
+              {% set loiter = [
+                'binary_sensor.front_aoa_loitering',
+                'binary_sensor.driveway_wide_aoa_loitering',
+                'binary_sensor.driveway_id_aoa_loitering',
+                'binary_sensor.backyard_aoa_loitering',
+                'binary_sensor.storage_ext_aoa_loitering',
+                'binary_sensor.storage_int_aoa_loitering'
+              ] %}
+              {% if loiter | select('is_state', 'on') | list | count > 0 %}amber
+              {% elif is_state('binary_sensor.house_outdoor_presence', 'on') %}amber
+              {% else %}green{% endif %}
             fill_container: true
             tap_action:
               action: navigate
@@ -48,12 +67,74 @@ views:
               - type: template
                 icon: mdi:door
                 content: >-
-                  {% if is_state('binary_sensor.front_aoa_person', 'on') %}Entré · person
+                  {% if is_state('binary_sensor.front_aoa_person', 'on')
+                     or is_state('binary_sensor.front_person_occupancy', 'on')
+                     or is_state('binary_sensor.front_scene_object_present', 'on') %}Entré · person
                   {% elif is_state('binary_sensor.front_motion', 'on') %}Entré · rörelse
                   {% else %}Entré · lugnt{% endif %}
                 icon_color: >-
                   {{ 'amber' if is_state('binary_sensor.front_aoa_person', 'on')
+                     or is_state('binary_sensor.front_person_occupancy', 'on')
+                     or is_state('binary_sensor.front_scene_object_present', 'on')
                      else 'blue' if is_state('binary_sensor.front_motion', 'on')
+                     else 'green' }}
+              - type: template
+                icon: mdi:road-variant
+                content: >-
+                  {% if is_state('binary_sensor.driveway_wide_aoa_person', 'on')
+                     or is_state('binary_sensor.driveway_wide_person_occupancy', 'on')
+                     or is_state('binary_sensor.driveway_wide_scene_object_present', 'on') %}Uppf. · person
+                  {% elif is_state('binary_sensor.driveway_wide_aoa_vehicle', 'on') %}Uppf. · fordon
+                  {% elif is_state('binary_sensor.driveway_wide_motion', 'on') %}Uppf. · rörelse
+                  {% else %}Uppf. · lugnt{% endif %}
+                icon_color: >-
+                  {{ 'amber' if is_state('binary_sensor.driveway_wide_aoa_person', 'on')
+                     or is_state('binary_sensor.driveway_wide_person_occupancy', 'on')
+                     or is_state('binary_sensor.driveway_wide_scene_object_present', 'on')
+                     else 'blue' if is_state('binary_sensor.driveway_wide_aoa_vehicle', 'on')
+                        or is_state('binary_sensor.driveway_wide_motion', 'on')
+                     else 'green' }}
+              - type: template
+                icon: mdi:tree
+                content: >-
+                  {% if is_state('binary_sensor.backyard_aoa_person', 'on')
+                     or is_state('binary_sensor.backyard_person_occupancy', 'on')
+                     or is_state('binary_sensor.backyard_scene_object_present', 'on') %}Bakg. · person
+                  {% elif is_state('binary_sensor.backyard_motion', 'on') %}Bakg. · rörelse
+                  {% else %}Bakg. · lugnt{% endif %}
+                icon_color: >-
+                  {{ 'amber' if is_state('binary_sensor.backyard_aoa_person', 'on')
+                     or is_state('binary_sensor.backyard_person_occupancy', 'on')
+                     or is_state('binary_sensor.backyard_scene_object_present', 'on')
+                     else 'blue' if is_state('binary_sensor.backyard_motion', 'on')
+                     else 'green' }}
+              - type: template
+                icon: mdi:warehouse
+                content: >-
+                  {% if is_state('binary_sensor.storage_ext_aoa_person', 'on')
+                     or is_state('binary_sensor.storage_ext_person_occupancy', 'on')
+                     or is_state('binary_sensor.storage_ext_scene_object_present', 'on') %}Förr.ut · person
+                  {% elif is_state('binary_sensor.storage_ext_motion', 'on') %}Förr.ut · rörelse
+                  {% else %}Förr.ut · lugnt{% endif %}
+                icon_color: >-
+                  {{ 'amber' if is_state('binary_sensor.storage_ext_aoa_person', 'on')
+                     or is_state('binary_sensor.storage_ext_person_occupancy', 'on')
+                     or is_state('binary_sensor.storage_ext_scene_object_present', 'on')
+                     else 'blue' if is_state('binary_sensor.storage_ext_motion', 'on')
+                     else 'green' }}
+              - type: template
+                icon: mdi:garage
+                content: >-
+                  {% if is_state('binary_sensor.storage_int_aoa_person', 'on')
+                     or is_state('binary_sensor.storage_int_person_occupancy', 'on')
+                     or is_state('binary_sensor.storage_int_scene_object_present', 'on') %}Förr.in · person
+                  {% elif is_state('binary_sensor.storage_int_motion', 'on') %}Förr.in · rörelse
+                  {% else %}Förr.in · lugnt{% endif %}
+                icon_color: >-
+                  {{ 'amber' if is_state('binary_sensor.storage_int_aoa_person', 'on')
+                     or is_state('binary_sensor.storage_int_person_occupancy', 'on')
+                     or is_state('binary_sensor.storage_int_scene_object_present', 'on')
+                     else 'blue' if is_state('binary_sensor.storage_int_motion', 'on')
                      else 'green' }}
               - type: template
                 icon: mdi:timer-sand
@@ -67,7 +148,7 @@ views:
                     'binary_sensor.storage_int_aoa_loitering'
                   ] %}
                   {% set n = loiter | select('is_state', 'on') | list | count %}
-                  {% if n > 0 %}Kvarvarande · {{ n }} zoner
+                  {% if n > 0 %}Stannar kvar · {{ n }}
                   {% else %}Ingen kvarvarande{% endif %}
                 icon_color: >-
                   {% set loiter = [
@@ -94,12 +175,6 @@ views:
                 tap_action:
                   action: navigate
                   navigation_path: /lovelace/home-events/events
-              - type: action
-                icon: mdi:chart-timeline-variant
-                content: Analytics
-                tap_action:
-                  action: navigate
-                  navigation_path: /house-timeline
 
       # ── Smoke detectors (ZHA) — unified house alarm sensor ──────
       - title: BRANDVARNARE
@@ -139,7 +214,7 @@ views:
             card:
               type: custom:mushroom-template-card
               primary: Brandvarnare oklar
-              secondary: En brandvarnare svarar inte — be Thomas kolla
+              secondary: En brandvarnare svarar inte — kontrollera ZHA
               icon: mdi:smoke-detector-off
               icon_color: amber
               fill_container: true
@@ -176,7 +251,7 @@ views:
               type: custom:mushroom-template-card
               primary: Vattensensor offline
               secondary: >-
-                Sensorn svarar inte — be Thomas kolla diskmaskin-sensorn.
+                Sensorn svarar inte — kontrollera diskmaskin-sensorn.
                 Vattenlarm tyst tills den är tillbaka.
               icon: mdi:water-off-outline
               icon_color: amber

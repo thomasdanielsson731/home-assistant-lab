@@ -38,6 +38,7 @@ options:
   influx_password: ""
   influx_db: home_lab
   influx_v2: false
+  indoor_temp_entities: "heiman_hs1sa_e_plus_temperatur:kok,heiman_hs1sa_e_plus_temperatur_2:hall,heiman_hs1sa_e_plus_temperatur_3:vardagsrum"
 schema:
   mqtt_host: str
   mqtt_user: str
@@ -54,3 +55,4 @@ schema:
   influx_password: password
   influx_db: str
   influx_v2: bool
+  indoor_temp_entities: str

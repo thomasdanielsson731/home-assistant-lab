@@ -1039,7 +1039,7 @@ class Handler(BaseHTTPRequestHandler):
         period_label = "Senaste 7 dagarna" if hours <= 168 else f"Senaste {hours}h"
         stats = " · ".join(f"{k}: {v}" for k, v in sorted(event_summary_stats(events).items())) or "Inga events ännu"
 
-        types = ["", "arrival", "delivery", "person", "vehicle", "occupancy", "scene", "environment"]
+        types = ["", "arrival", "delivery", "bicycle", "person", "vehicle", "occupancy", "scene", "environment"]
         filters = ""
         for t in types:
             label = t or "Alla"

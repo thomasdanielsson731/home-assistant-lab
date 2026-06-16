@@ -11,6 +11,11 @@ default_config:
 
 # Keep 90 days of history for outdoor env quarter graphs.
 # Exclude high-churn entities to reduce DB size and I/O on 4 GB HA host.
+# Graph-critical entities (must NOT match entity_globs below):
+#   sensor.driveway_env_*, sensor.heiman_hs1sa_e_plus_temperatur*,
+#   sensor.house_indoor_temperature, sensor.house_indoor_outdoor_delta,
+#   sensor.driveway_env_co2_graph, sensor.driveway_env_aqi_graph,
+#   sensor.*_audio_spl — see tests/test_dashboard_graphs.py
 recorder:
   purge_keep_days: 90
   commit_interval: 60

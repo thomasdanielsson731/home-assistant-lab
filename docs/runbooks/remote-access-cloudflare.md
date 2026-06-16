@@ -180,6 +180,8 @@ Valfritt: Cloudflare Access på `insights.danielsson.cloud` (data innehåller h�
 | Ingen live-uppdatering | WebSockets på i Cloudflare |
 | Fungerar hemma, inte ute | Testa mobildata; vänta på DNS |
 | Login-loop | Sätt extern URL under Nätverk |
+| Familj kan inte logga in (anna/hugo/nils) | Kontrollera att användaren tillhör gruppen **Users** (`system-users`) — kör `python scripts/configure_ha_family_users.py`. Användarnamn är **gemener**: `anna`, `hugo`, `nils`. |
+| 403 / error 1010 på `ha.danielsson.cloud` | Cloudflare **Security** → stäng av Bot Fight Mode / Browser Integrity Check för tunneln, eller lägg till **Cloudflare Access**-policy med familjens e-post. Testa mobildata vs WiFi. |
 
 ---
 

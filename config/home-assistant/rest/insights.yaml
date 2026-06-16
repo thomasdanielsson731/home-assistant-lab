@@ -23,6 +23,13 @@
       value_template: >-
         {{ value_json | selectattr('type', 'eq', 'delivery') | list | count }}
       availability_template: "{{ value_json is defined }}"
+    - name: Insights bicycles 24h
+      unique_id: insights_bicycles_24h
+      icon: mdi:bike
+      unit_of_measurement: events
+      value_template: >-
+        {{ value_json | selectattr('type', 'eq', 'bicycle') | list | count }}
+      availability_template: "{{ value_json is defined }}"
     - name: Insights persons 24h
       unique_id: insights_persons_24h
       icon: mdi:account

@@ -115,3 +115,13 @@ def test_no_stale_home_lab_navigation_paths():
     for filename in (*ANNA_DASHBOARDS.keys(), "home-tech.yaml"):
         text = (DASHBOARDS / filename).read_text(encoding="utf-8")
         assert "/lovelace/home-lab" not in text
+
+
+def test_home_security_no_admin_analytics_link():
+    text = (DASHBOARDS / "home-security.yaml").read_text(encoding="utf-8")
+    assert "/house-timeline" not in text
+
+
+def test_home_cameras_no_admin_tech_link():
+    text = (DASHBOARDS / "home-cameras.yaml").read_text(encoding="utf-8")
+    assert "home-tech" not in text

@@ -10,23 +10,31 @@ views:
       - cards:
           - type: markdown
             content: >-
-              **Händelser** = kronologisk lista från Danielsson Insights (person, fordon,
-              ankomster, miljö). Tryck på en rad eller miniatyr för att se bild.
-              Analytics (admin) visar samma data som tidslinje.
+              **Vad hände?** Kronologisk lista med bilder — person, fordon, ankomster.
+              Tryck på en rad för detaljer.
           - type: custom:mushroom-chips-card
             chips:
+              - type: template
+                icon: mdi:account
+                content: >-
+                  Person {{ states('sensor.insights_persons_24h') | default('—', true) }} (24 h)
+                icon_color: amber
+              - type: template
+                icon: mdi:home-import-outline
+                content: >-
+                  Ankomster {{ states('sensor.insights_arrivals_24h') | default('—', true) }}
+                icon_color: blue
+              - type: template
+                icon: mdi:package-variant-closed
+                content: >-
+                  Leveranser {{ states('sensor.insights_deliveries_24h') | default('—', true) }}
+                icon_color: blue
               - type: action
                 icon: mdi:refresh
                 content: Öppna / uppdatera
                 tap_action:
                   action: url
                   url_path: !secret events_url
-              - type: action
-                icon: mdi:chart-timeline-variant
-                content: Analytics
-                tap_action:
-                  action: navigate
-                  navigation_path: /house-timeline
           - type: conditional
             conditions:
               - condition: screen
@@ -34,7 +42,7 @@ views:
             card:
               type: iframe
               url: !secret events_url
-              aspect_ratio: 85%
+              aspect_ratio: 75%
 
           - type: conditional
             conditions:
@@ -43,13 +51,19 @@ views:
             card:
               type: vertical-stack
               cards:
-                - type: markdown
-                  content: |
-                    ### Händelser på mobil
-                    Iframe kan vara tom — öppna listan i webbläsaren.
-                - type: button
-                  name: Öppna händelselista
+                - type: custom:mushroom-template-card
+                  primary: Öppna händelselista
+                  secondary: Full lista med bilder — öppnas i webbläsare
                   icon: mdi:format-list-bulleted
+                  icon_color: blue
+                  fill_container: true
+                  tap_action:
+                    action: url
+                    url_path: !secret events_url
+                - type: picture-entity
+                  entity: image.front_person
+                  name: Senaste vid entrén
+                  show_state: true
                   tap_action:
                     action: url
                     url_path: !secret events_url

@@ -108,6 +108,13 @@ class TestTimelineHTTP:
         assert resp.status == 200
         assert "Händelser" in body
         assert "Person detected at front" in body
+        assert "bicycle" in body
+
+    def test_html_bicycle_filter_link(self, server):
+        conn = HTTPConnection("127.0.0.1", server)
+        conn.request("GET", "/")
+        body = conn.getresponse().read().decode()
+        assert 'href="/?hours=24&amp;type=bicycle"' in body or 'type=bicycle' in body
 
     def test_html_type_filter(self, server):
         conn = HTTPConnection("127.0.0.1", server)

@@ -17,12 +17,10 @@ views:
                 tap_action:
                   action: navigate
                   navigation_path: /lovelace/home-events/events
-              - type: action
-                icon: mdi:radar
-                content: Perimeter
-                tap_action:
-                  action: navigate
-                  navigation_path: /lovelace/home-tech/live
+          - type: markdown
+            content: >-
+              **Person** = bekräftad · **Rörelse** = oklar · **Lugnt** = inget just nu.
+              Grön = lugnt · amber = person · blå = rörelse/fordon.
 
       - title: ENTRÉ
         cards:
@@ -42,23 +40,15 @@ views:
                 content: >-
                   {{ 'Person' if is_state('binary_sensor.front_aoa_person', 'on')
                      or is_state('binary_sensor.front_person_occupancy', 'on')
+                     or is_state('binary_sensor.front_scene_object_present', 'on')
                      else 'Rörelse' if is_state('binary_sensor.front_motion', 'on')
                      else 'Lugnt' }}
                 icon_color: >-
                   {{ 'amber' if is_state('binary_sensor.front_aoa_person', 'on')
                      or is_state('binary_sensor.front_person_occupancy', 'on')
+                     or is_state('binary_sensor.front_scene_object_present', 'on')
                      else 'blue' if is_state('binary_sensor.front_motion', 'on')
                      else 'green' }}
-              - type: template
-                icon: mdi:layers
-                content: >-
-                  F{{ '✓' if is_state('binary_sensor.front_person_occupancy', 'on') else '·' }}
-                  A{{ '✓' if is_state('binary_sensor.front_aoa_person', 'on') else '·' }}
-                  S{{ '✓' if is_state('binary_sensor.front_scene_object_present', 'on') else '·' }}
-                icon_color: >-
-                  {{ 'amber' if is_state('binary_sensor.front_person_occupancy', 'on')
-                     or is_state('binary_sensor.front_aoa_person', 'on')
-                     or is_state('binary_sensor.front_scene_object_present', 'on') else 'green' }}
               - type: action
                 icon: mdi:format-list-bulleted
                 content: Senaste
@@ -79,30 +69,19 @@ views:
               - type: template
                 icon: mdi:car
                 content: >-
-                  {{ 'Fordon' if is_state('binary_sensor.driveway_wide_aoa_vehicle', 'on')
+                  {{ 'Person' if is_state('binary_sensor.driveway_wide_aoa_person', 'on')
+                     or is_state('binary_sensor.driveway_wide_person_occupancy', 'on')
+                     or is_state('binary_sensor.driveway_wide_scene_object_present', 'on')
+                     else 'Fordon' if is_state('binary_sensor.driveway_wide_aoa_vehicle', 'on')
                      else 'Rörelse' if is_state('binary_sensor.driveway_wide_motion', 'on')
                      else 'Lugnt' }}
                 icon_color: >-
-                  {{ 'blue' if is_state('binary_sensor.driveway_wide_aoa_vehicle', 'on')
-                     else 'blue' if is_state('binary_sensor.driveway_wide_motion', 'on')
+                  {{ 'amber' if is_state('binary_sensor.driveway_wide_aoa_person', 'on')
+                     or is_state('binary_sensor.driveway_wide_person_occupancy', 'on')
+                     or is_state('binary_sensor.driveway_wide_scene_object_present', 'on')
+                     else 'blue' if is_state('binary_sensor.driveway_wide_aoa_vehicle', 'on')
+                        or is_state('binary_sensor.driveway_wide_motion', 'on')
                      else 'green' }}
-              - type: template
-                icon: mdi:layers
-                content: >-
-                  F{{ '✓' if is_state('binary_sensor.driveway_wide_person_occupancy', 'on') else '·' }}
-                  A{{ '✓' if is_state('binary_sensor.driveway_wide_aoa_person', 'on') else '·' }}
-                  S{{ '✓' if is_state('binary_sensor.driveway_wide_scene_object_present', 'on') else '·' }}
-                icon_color: >-
-                  {{ 'amber' if is_state('binary_sensor.driveway_wide_person_occupancy', 'on')
-                     or is_state('binary_sensor.driveway_wide_aoa_person', 'on')
-                     or is_state('binary_sensor.driveway_wide_scene_object_present', 'on') else 'green' }}
-              - type: template
-                icon: mdi:molecule-co2
-                content: >-
-                  {% set c = states('sensor.driveway_env_co2') %}
-                  {% if c in ['unknown', 'unavailable', ''] %}CO₂ —
-                  {% else %}CO₂ {{ c | int(0) }}{% endif %}
-                icon_color: grey
 
       - title: UPPFART — ID
         cards:
@@ -119,23 +98,15 @@ views:
                 content: >-
                   {{ 'Person' if is_state('binary_sensor.driveway_id_aoa_person', 'on')
                      or is_state('binary_sensor.driveway_id_person_occupancy', 'on')
+                     or is_state('binary_sensor.driveway_id_scene_object_present', 'on')
                      else 'Rörelse' if is_state('binary_sensor.driveway_id_motion', 'on')
                      else 'Lugnt' }}
                 icon_color: >-
                   {{ 'amber' if is_state('binary_sensor.driveway_id_aoa_person', 'on')
                      or is_state('binary_sensor.driveway_id_person_occupancy', 'on')
+                     or is_state('binary_sensor.driveway_id_scene_object_present', 'on')
                      else 'blue' if is_state('binary_sensor.driveway_id_motion', 'on')
                      else 'green' }}
-              - type: template
-                icon: mdi:layers
-                content: >-
-                  F{{ '✓' if is_state('binary_sensor.driveway_id_person_occupancy', 'on') else '·' }}
-                  A{{ '✓' if is_state('binary_sensor.driveway_id_aoa_person', 'on') else '·' }}
-                  S{{ '✓' if is_state('binary_sensor.driveway_id_scene_object_present', 'on') else '·' }}
-                icon_color: >-
-                  {{ 'amber' if is_state('binary_sensor.driveway_id_person_occupancy', 'on')
-                     or is_state('binary_sensor.driveway_id_aoa_person', 'on')
-                     or is_state('binary_sensor.driveway_id_scene_object_present', 'on') else 'green' }}
 
       - title: BAKGÅRD
         cards:
@@ -151,10 +122,14 @@ views:
                 icon: mdi:account
                 content: >-
                   {{ 'Person' if is_state('binary_sensor.backyard_aoa_person', 'on')
+                     or is_state('binary_sensor.backyard_person_occupancy', 'on')
+                     or is_state('binary_sensor.backyard_scene_object_present', 'on')
                      else 'Rörelse' if is_state('binary_sensor.backyard_motion', 'on')
                      else 'Lugnt' }}
                 icon_color: >-
                   {{ 'amber' if is_state('binary_sensor.backyard_aoa_person', 'on')
+                     or is_state('binary_sensor.backyard_person_occupancy', 'on')
+                     or is_state('binary_sensor.backyard_scene_object_present', 'on')
                      else 'blue' if is_state('binary_sensor.backyard_motion', 'on')
                      else 'green' }}
 
@@ -172,10 +147,14 @@ views:
                 icon: mdi:account
                 content: >-
                   {{ 'Person' if is_state('binary_sensor.storage_ext_aoa_person', 'on')
+                     or is_state('binary_sensor.storage_ext_person_occupancy', 'on')
+                     or is_state('binary_sensor.storage_ext_scene_object_present', 'on')
                      else 'Rörelse' if is_state('binary_sensor.storage_ext_motion', 'on')
                      else 'Lugnt' }}
                 icon_color: >-
                   {{ 'amber' if is_state('binary_sensor.storage_ext_aoa_person', 'on')
+                     or is_state('binary_sensor.storage_ext_person_occupancy', 'on')
+                     or is_state('binary_sensor.storage_ext_scene_object_present', 'on')
                      else 'blue' if is_state('binary_sensor.storage_ext_motion', 'on')
                      else 'green' }}
 
@@ -193,9 +172,13 @@ views:
                 icon: mdi:account
                 content: >-
                   {{ 'Person' if is_state('binary_sensor.storage_int_aoa_person', 'on')
+                     or is_state('binary_sensor.storage_int_person_occupancy', 'on')
+                     or is_state('binary_sensor.storage_int_scene_object_present', 'on')
                      else 'Rörelse' if is_state('binary_sensor.storage_int_motion', 'on')
                      else 'Lugnt' }}
                 icon_color: >-
                   {{ 'amber' if is_state('binary_sensor.storage_int_aoa_person', 'on')
+                     or is_state('binary_sensor.storage_int_person_occupancy', 'on')
+                     or is_state('binary_sensor.storage_int_scene_object_present', 'on')
                      else 'blue' if is_state('binary_sensor.storage_int_motion', 'on')
                      else 'green' }}

@@ -10,12 +10,20 @@
           'binary_sensor.driveway_wide_aoa_person',
           'binary_sensor.driveway_id_aoa_person',
           'binary_sensor.backyard_aoa_person',
+          'binary_sensor.storage_ext_aoa_person',
+          'binary_sensor.storage_int_aoa_person',
           'binary_sensor.front_scene_object_present',
           'binary_sensor.driveway_wide_scene_object_present',
           'binary_sensor.driveway_id_scene_object_present',
+          'binary_sensor.backyard_scene_object_present',
+          'binary_sensor.storage_ext_scene_object_present',
+          'binary_sensor.storage_int_scene_object_present',
           'binary_sensor.front_person_occupancy',
           'binary_sensor.driveway_wide_person_occupancy',
-          'binary_sensor.driveway_id_person_occupancy'
+          'binary_sensor.driveway_id_person_occupancy',
+          'binary_sensor.backyard_person_occupancy',
+          'binary_sensor.storage_ext_person_occupancy',
+          'binary_sensor.storage_int_person_occupancy'
         ] %}
         {{ zones | select('is_state', 'on') | list | count > 0 }}
 
@@ -62,12 +70,12 @@
       icon: mdi:motion-sensor
       state: >-
         {% set ns = namespace(z=[]) %}
-        {% if is_state('binary_sensor.front_aoa_person', 'on') %}{% set ns.z = ns.z + ['front'] %}{% endif %}
-        {% if is_state('binary_sensor.driveway_wide_aoa_person', 'on') %}{% set ns.z = ns.z + ['driveway_wide'] %}{% endif %}
-        {% if is_state('binary_sensor.driveway_id_aoa_person', 'on') %}{% set ns.z = ns.z + ['driveway_id'] %}{% endif %}
-        {% if is_state('binary_sensor.front_person_occupancy', 'on') and 'front' not in ns.z %}{% set ns.z = ns.z + ['front'] %}{% endif %}
-        {% if is_state('binary_sensor.driveway_wide_person_occupancy', 'on') and 'driveway_wide' not in ns.z %}{% set ns.z = ns.z + ['driveway_wide'] %}{% endif %}
-        {% if is_state('binary_sensor.driveway_id_person_occupancy', 'on') and 'driveway_id' not in ns.z %}{% set ns.z = ns.z + ['driveway_id'] %}{% endif %}
+        {% if is_state('binary_sensor.front_aoa_person', 'on') or is_state('binary_sensor.front_person_occupancy', 'on') or is_state('binary_sensor.front_scene_object_present', 'on') %}{% set ns.z = ns.z + ['front'] %}{% endif %}
+        {% if is_state('binary_sensor.driveway_wide_aoa_person', 'on') or is_state('binary_sensor.driveway_wide_person_occupancy', 'on') or is_state('binary_sensor.driveway_wide_scene_object_present', 'on') %}{% set ns.z = ns.z + ['driveway_wide'] %}{% endif %}
+        {% if is_state('binary_sensor.driveway_id_aoa_person', 'on') or is_state('binary_sensor.driveway_id_person_occupancy', 'on') or is_state('binary_sensor.driveway_id_scene_object_present', 'on') %}{% set ns.z = ns.z + ['driveway_id'] %}{% endif %}
+        {% if is_state('binary_sensor.backyard_aoa_person', 'on') or is_state('binary_sensor.backyard_person_occupancy', 'on') or is_state('binary_sensor.backyard_scene_object_present', 'on') %}{% set ns.z = ns.z + ['backyard'] %}{% endif %}
+        {% if is_state('binary_sensor.storage_ext_aoa_person', 'on') or is_state('binary_sensor.storage_ext_person_occupancy', 'on') or is_state('binary_sensor.storage_ext_scene_object_present', 'on') %}{% set ns.z = ns.z + ['storage_ext'] %}{% endif %}
+        {% if is_state('binary_sensor.storage_int_aoa_person', 'on') or is_state('binary_sensor.storage_int_person_occupancy', 'on') or is_state('binary_sensor.storage_int_scene_object_present', 'on') %}{% set ns.z = ns.z + ['storage_int'] %}{% endif %}
         {{ ns.z | count }}
       unit_of_measurement: "zoner"
       attributes:
@@ -83,9 +91,12 @@
           {{ ns.z | join(', ') if ns.z else 'none' }}
         zones_label: >-
           {% set ns = namespace(labels=[]) %}
-          {% if is_state('binary_sensor.front_aoa_person', 'on') or is_state('binary_sensor.front_person_occupancy', 'on') %}{% set ns.labels = ns.labels + ['Entré'] %}{% endif %}
-          {% if is_state('binary_sensor.driveway_wide_aoa_person', 'on') or is_state('binary_sensor.driveway_wide_person_occupancy', 'on') %}{% set ns.labels = ns.labels + ['Uppfart'] %}{% endif %}
-          {% if is_state('binary_sensor.driveway_id_aoa_person', 'on') or is_state('binary_sensor.driveway_id_person_occupancy', 'on') %}{% set ns.labels = ns.labels + ['Uppf. ID'] %}{% endif %}
+          {% if is_state('binary_sensor.front_aoa_person', 'on') or is_state('binary_sensor.front_person_occupancy', 'on') or is_state('binary_sensor.front_scene_object_present', 'on') %}{% set ns.labels = ns.labels + ['Entré'] %}{% endif %}
+          {% if is_state('binary_sensor.driveway_wide_aoa_person', 'on') or is_state('binary_sensor.driveway_wide_person_occupancy', 'on') or is_state('binary_sensor.driveway_wide_scene_object_present', 'on') %}{% set ns.labels = ns.labels + ['Uppfart'] %}{% endif %}
+          {% if is_state('binary_sensor.driveway_id_aoa_person', 'on') or is_state('binary_sensor.driveway_id_person_occupancy', 'on') or is_state('binary_sensor.driveway_id_scene_object_present', 'on') %}{% set ns.labels = ns.labels + ['Uppf. ID'] %}{% endif %}
+          {% if is_state('binary_sensor.backyard_aoa_person', 'on') or is_state('binary_sensor.backyard_person_occupancy', 'on') or is_state('binary_sensor.backyard_scene_object_present', 'on') %}{% set ns.labels = ns.labels + ['Bakgård'] %}{% endif %}
+          {% if is_state('binary_sensor.storage_ext_aoa_person', 'on') or is_state('binary_sensor.storage_ext_person_occupancy', 'on') or is_state('binary_sensor.storage_ext_scene_object_present', 'on') %}{% set ns.labels = ns.labels + ['Förråd ut'] %}{% endif %}
+          {% if is_state('binary_sensor.storage_int_aoa_person', 'on') or is_state('binary_sensor.storage_int_person_occupancy', 'on') or is_state('binary_sensor.storage_int_scene_object_present', 'on') %}{% set ns.labels = ns.labels + ['Förråd in'] %}{% endif %}
           {{ ns.labels | join(' · ') if ns.labels else 'Inga aktiva zoner' }}
 
     - name: "House home status"

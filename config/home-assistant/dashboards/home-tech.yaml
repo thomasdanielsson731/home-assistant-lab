@@ -87,9 +87,12 @@ views:
                 content: >-
                   {% set dc = state_attr('binary_sensor.house_smoke_alarm', 'detector_count') | int(0) %}
                   {% if is_state('binary_sensor.house_smoke_alarm', 'on') %}RÖK
+                  {% elif states('binary_sensor.house_smoke_alarm') in ['unavailable', 'unknown'] %}Rök offline
                   {% else %}Rök {{ dc }}/3{% endif %}
                 icon_color: >-
+                  {% set dc = state_attr('binary_sensor.house_smoke_alarm', 'detector_count') | int(0) %}
                   {% if is_state('binary_sensor.house_smoke_alarm', 'on') %}red
+                  {% elif states('binary_sensor.house_smoke_alarm') in ['unavailable', 'unknown'] %}amber
                   {% elif dc < 3 %}amber
                   {% else %}green{% endif %}
               - type: template
@@ -287,6 +290,14 @@ views:
                   action: navigate
                   navigation_path: /lovelace/home-events/events
               - type: template
+                icon: mdi:bike
+                content: >-
+                  Cyklar {{ states('sensor.insights_bicycles_24h') | default('—', true) }}
+                icon_color: green
+                tap_action:
+                  action: navigate
+                  navigation_path: /lovelace/home-events/events
+              - type: template
                 icon: mdi:counter
                 content: >-
                   Totalt {{ states('sensor.insights_events_24h') | default('—', true) }}
@@ -363,28 +374,36 @@ views:
                 content: >-
                   Bkg {{ states('sensor.backyard_audio_spl') | default('—', true) }} dB
                 icon_color: blue
-          - type: grid
-            columns: 3
-            square: false
-            cards:
-              - type: history-graph
-                title: Temp 24h
-                hours_to_show: 24
-                entities:
-                  - entity: sensor.driveway_env_temperature
-                    name: Ute
-              - type: history-graph
-                title: CO₂ 24h
-                hours_to_show: 24
-                entities:
-                  - entity: sensor.driveway_env_co2
-                    name: CO₂
-              - type: history-graph
-                title: AQI 24h
-                hours_to_show: 24
-                entities:
-                  - entity: sensor.driveway_env_aqi
-                    name: AQI
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: template
+                icon: mdi:clock-outline
+                content: >-
+                  {{ state_attr('sensor.driveway_env_data_age', 'label') | default('D6210 —') }}
+                icon_color: >-
+                  {% set age = states('sensor.driveway_env_data_age') | int(-1) %}
+                  {% if age < 0 %}amber
+                  {% elif age <= 5 %}green
+                  {% elif age <= 60 %}amber
+                  {% else %}red{% endif %}
+          - type: custom:mushroom-template-card
+            primary: Miljögrafer med zoom
+            secondary: Environment (Chart.js) — luckor markeras · bättre än mini-grafer här
+            icon: mdi:chart-areaspline
+            icon_color: blue
+            fill_container: true
+            tap_action:
+              action: navigate
+              navigation_path: /house-graphs
+          - type: custom:mushroom-template-card
+            primary: Historik 7–90 dagar
+            secondary: HA recorder — se vyn Historik
+            icon: mdi:history
+            icon_color: grey
+            fill_container: true
+            tap_action:
+              action: navigate
+              navigation_path: /lovelace/home-tech/historik
 
       - title: SENASTE BILDER
         cards:
@@ -486,8 +505,21 @@ views:
                   navigation_path: /house-graphs
           - type: markdown
             content: >-
+              **START HÄR:** **Environment** (sidebar) = zoom + luckor i grafer (Insights).
+              **Nedan** = HA recorder — kan vara tom om bridge/add-on var nere.
+          - type: custom:mushroom-template-card
+            primary: Öppna Environment
+            secondary: Chart.js — inne/ute, CO₂, SPL, zoom
+            icon: mdi:chart-areaspline
+            icon_color: blue
+            fill_container: true
+            tap_action:
+              action: navigate
+              navigation_path: /house-graphs
+          - type: markdown
+            content: >-
               **Recorder-historik** (HA databas) — inte samma som Händelser/Analytics.
-              **Environment** (admin) har Chart.js med zoom och luckor markerade.
+              Tom graf = sensor offline eller bridge nere. CO₂/AQI=0 (uppstart) döljs i graph-sensorer.
 
       - title: TEMPERATUR INNE (7 DAGAR)
         cards:
@@ -527,12 +559,14 @@ views:
             title: CO₂
             hours_to_show: 168
             entities:
-              - entity: sensor.driveway_env_co2
+              - entity: sensor.driveway_env_co2_graph
+                name: CO₂
           - type: history-graph
             title: AQI
             hours_to_show: 168
             entities:
-              - entity: sensor.driveway_env_aqi
+              - entity: sensor.driveway_env_aqi_graph
+                name: AQI
           - type: history-graph
             title: PM2.5
             hours_to_show: 168
@@ -567,7 +601,7 @@ views:
             chart_type: line
             title: CO₂
             entities:
-              - sensor.driveway_env_co2
+              - sensor.driveway_env_co2_graph
             stat_types:
               - mean
             days_to_show: 90
@@ -577,7 +611,7 @@ views:
             chart_type: line
             title: AQI
             entities:
-              - sensor.driveway_env_aqi
+              - sensor.driveway_env_aqi_graph
             stat_types:
               - mean
             days_to_show: 90
@@ -709,9 +743,19 @@ views:
               - type: template
                 icon: mdi:motion-sensor
                 content: >-
-                  Zoner {{ states('sensor.house_outdoor_activity_summary') }}
+                  {{ state_attr('sensor.house_outdoor_activity_summary', 'zones_label') | default('Inga zoner') }}
                 icon_color: >-
                   {{ 'amber' if is_state('binary_sensor.house_outdoor_presence', 'on') else 'grey' }}
+              - type: template
+                icon: mdi:clock-outline
+                content: >-
+                  {{ state_attr('sensor.driveway_env_data_age', 'label') | default('D6210 —') }}
+                icon_color: >-
+                  {% set age = states('sensor.driveway_env_data_age') | int(-1) %}
+                  {% if age < 0 %}amber
+                  {% elif age <= 5 %}green
+                  {% elif age <= 60 %}amber
+                  {% else %}red{% endif %}
               - type: template
                 icon: mdi:air-filter
                 content: >-

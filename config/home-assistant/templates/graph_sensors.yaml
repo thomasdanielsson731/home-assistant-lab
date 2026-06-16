@@ -1,0 +1,48 @@
+# Graph-friendly outdoor metrics — hide D6210 startup zeros (match Environment UI).
+
+- sensor:
+    - name: "Driveway env CO2 graph"
+      unique_id: driveway_env_co2_graph
+      icon: mdi:molecule-co2
+      unit_of_measurement: "ppm"
+      device_class: carbon_dioxide
+      state_class: measurement
+      state: >-
+        {% set v = states('sensor.driveway_env_co2') %}
+        {% if v in ['unknown', 'unavailable', ''] %}unknown
+        {% elif v | int(0) == 0 %}unknown
+        {% else %}{{ v | int(0) }}{% endif %}
+      attributes:
+        source: "{{ states('sensor.driveway_env_co2') }}"
+        note: "D6210 — 0 ppm = sensor uppstart, döljs i grafer"
+
+    - name: "Driveway env AQI graph"
+      unique_id: driveway_env_aqi_graph
+      icon: mdi:air-filter
+      device_class: aqi
+      state_class: measurement
+      state: >-
+        {% set v = states('sensor.driveway_env_aqi') %}
+        {% if v in ['unknown', 'unavailable', ''] %}unknown
+        {% elif v | int(0) == 0 %}unknown
+        {% else %}{{ v | int(0) }}{% endif %}
+      attributes:
+        source: "{{ states('sensor.driveway_env_aqi') }}"
+        note: "D6210 — AQI 0 = sensor uppstart, döljs i grafer"
+
+    - name: "Driveway env data age"
+      unique_id: driveway_env_data_age
+      icon: mdi:clock-outline
+      unit_of_measurement: "min"
+      state: >-
+        {% set t = states('sensor.driveway_env_temperature') %}
+        {% if t in ['unknown', 'unavailable', ''] %}unknown
+        {% else %}{{ ((as_timestamp(now()) - as_timestamp(states.sensor.driveway_env_temperature.last_changed)) / 60) | int(0) }}{% endif %}
+      attributes:
+        label: >-
+          {% set age = states('sensor.driveway_env_data_age') | int(-1) %}
+          {% if age < 0 %}D6210 offline
+          {% elif age <= 5 %}D6210 live
+          {% elif age <= 60 %}D6210 {{ age }} min sedan
+          {% else %}D6210 stale · {{ age }} min{% endif %}
+        temperature: "{{ states('sensor.driveway_env_temperature') }}"

@@ -27,7 +27,11 @@ INFLUX_USER=$(bashio::config 'influx_user')
 INFLUX_PASSWORD=$(bashio::config 'influx_password')
 INFLUX_DB=$(bashio::config 'influx_db')
 INFLUX_V2=$(bashio::config 'influx_v2')
+INDOOR_TEMP_ENTITIES=$(bashio::config 'indoor_temp_entities')
 EOF
+if [ -n "${INDOOR_TEMP_ENTITIES}" ]; then
+  echo "INDOOR_TEMP_ENTITIES=${INDOOR_TEMP_ENTITIES}" >> "${ENV_FILE}"
+fi
 chmod 600 "${ENV_FILE}"
 
 export PYTHONPATH="${SCRIPTS_PATH}${PYTHONPATH:+:${PYTHONPATH}}"
