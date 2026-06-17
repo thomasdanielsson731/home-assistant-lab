@@ -108,7 +108,8 @@ class TestTimelineHTTP:
         assert resp.status == 200
         assert "Händelser" in body
         assert "Person detected at front" in body
-        assert "bicycle" in body
+        assert 'class="entry' in body
+        assert 'href="timeline?event=' in body or 'href="timeline"' in body
 
     def test_html_bicycle_filter_link(self, server):
         conn = HTTPConnection("127.0.0.1", server)

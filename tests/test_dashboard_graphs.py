@@ -185,10 +185,12 @@ def test_statistics_graph_sources_have_state_class():
     assert audio.count("state_class: measurement") == 3
 
 
-def test_home_events_mobile_has_fallback_content():
+def test_home_events_embeds_clickable_list():
     text = (DASHBOARDS / "home-events.yaml").read_text(encoding="utf-8")
     assert "sensor.insights_persons_24h" in text
-    assert "custom:mushroom-template-card" in text
+    assert "panel: true" in text
+    assert "type: iframe" in text
+    assert "!secret events_url" in text
     assert "house-timeline" not in text
 
 

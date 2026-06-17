@@ -1,17 +1,17 @@
-# Händelser — event list with clickable thumbnails (Danielsson Insights)
+# Händelser — event list with clickable rows (Danielsson Insights)
 title: Händelser
 views:
   - title: Händelser
     path: events
     icon: mdi:format-list-bulleted
-    type: sections
-    max_columns: 1
-    sections:
-      - cards:
+    panel: true
+    cards:
+      - type: vertical-stack
+        cards:
           - type: markdown
             content: >-
               **Vad hände?** Kronologisk lista med bilder — person, fordon, ankomster.
-              Tryck på en rad för detaljer.
+              Tryck på en rad för detaljer i Analytics.
           - type: custom:mushroom-chips-card
             chips:
               - type: template
@@ -35,35 +35,6 @@ views:
                 tap_action:
                   action: url
                   url_path: !secret events_url
-          - type: conditional
-            conditions:
-              - condition: screen
-                media_query: "(min-width: 1025px)"
-            card:
-              type: iframe
-              url: !secret events_url
-              aspect_ratio: 75%
-
-          - type: conditional
-            conditions:
-              - condition: screen
-                media_query: "(max-width: 1024px)"
-            card:
-              type: vertical-stack
-              cards:
-                - type: custom:mushroom-template-card
-                  primary: Öppna händelselista
-                  secondary: Full lista med bilder — öppnas i webbläsare
-                  icon: mdi:format-list-bulleted
-                  icon_color: blue
-                  fill_container: true
-                  tap_action:
-                    action: url
-                    url_path: !secret events_url
-                - type: picture-entity
-                  entity: image.front_person
-                  name: Senaste vid entrén
-                  show_state: true
-                  tap_action:
-                    action: url
-                    url_path: !secret events_url
+          - type: iframe
+            url: !secret events_url
+            aspect_ratio: 100%

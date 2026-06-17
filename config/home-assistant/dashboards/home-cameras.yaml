@@ -28,11 +28,8 @@ views:
             cameras:
               - camera_entity: camera.front
                 title: Entré
-                dimensions:
-                  aspect_ratio: 9/16
-                  layout: contain
             dimensions:
-              aspect_ratio: 9/16
+              aspect_ratio: 16/9
           - type: custom:mushroom-chips-card
             chips:
               - type: template

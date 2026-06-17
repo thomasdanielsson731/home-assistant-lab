@@ -53,17 +53,16 @@ objects:
 cameras:
 
   front:
-    # Axis image rotation 90° — substream is portrait; match detect to stream geometry
     ffmpeg:
       inputs:
-        - path: rtsp://!secret front_camera_user:!secret front_camera_password@!secret front_camera_ip/axis-media/media.amp
+        - path: rtsp://!secret front_camera_user:!secret front_camera_password@!secret front_camera_ip/axis-media/media.amp?videocodec=h264
           roles: [record]
         - path: rtsp://!secret front_camera_user:!secret front_camera_password@!secret front_camera_ip/axis-media/media.amp?videocodec=h264&resolution=640x360
           roles: [detect]
     detect:
       enabled: true
-      width: 360
-      height: 640
+      width: 640
+      height: 360
       fps: 3
     live:
       stream_name: front

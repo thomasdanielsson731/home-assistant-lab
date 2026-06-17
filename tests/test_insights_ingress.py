@@ -37,9 +37,11 @@ class TestInsightsBaseScript:
         assert "document.head.insertBefore(b, document.head.firstChild)" in INSIGHTS_BASE_SCRIPT
 
     def test_uses_last_index_of_page_suffix(self):
-        # Ingress paths can contain nested segments; suffix match must use lastIndexOf.
         assert "lastIndexOf(needle)" in INSIGHTS_BASE_SCRIPT
-        assert "idx > 0" in INSIGHTS_BASE_SCRIPT
+
+    def test_root_timeline_path_uses_site_base(self):
+        assert "idx >= 0" in INSIGHTS_BASE_SCRIPT
+        assert "idx === 0 ? '/'" in INSIGHTS_BASE_SCRIPT
 
 
 class TestInsightsPageHelper:

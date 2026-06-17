@@ -417,6 +417,8 @@ views:
               - type: picture-entity
                 entity: image.front_person
                 name: Entré · Frigate
+                aspect_ratio: "16:9"
+                fit_mode: contain
                 show_state: true
                 tap_action:
                   action: navigate
@@ -424,6 +426,8 @@ views:
               - type: picture-entity
                 entity: image.front_latest_detection
                 name: Entré · Scene
+                aspect_ratio: "16:9"
+                fit_mode: contain
                 show_state: true
                 tap_action:
                   action: navigate
@@ -431,6 +435,8 @@ views:
               - type: picture-entity
                 entity: image.driveway_wide_person
                 name: Uppfart · Frigate
+                aspect_ratio: "16:9"
+                fit_mode: contain
                 show_state: true
                 tap_action:
                   action: navigate
@@ -438,6 +444,8 @@ views:
               - type: picture-entity
                 entity: image.driveway_wide_latest_detection
                 name: Uppfart · Scene
+                aspect_ratio: "16:9"
+                fit_mode: contain
                 show_state: true
                 tap_action:
                   action: navigate
@@ -445,6 +453,8 @@ views:
               - type: picture-entity
                 entity: image.driveway_id_person
                 name: Uppfart ID · Frigate
+                aspect_ratio: "16:9"
+                fit_mode: contain
                 show_state: true
                 tap_action:
                   action: navigate
@@ -452,6 +462,8 @@ views:
               - type: picture-entity
                 entity: image.front_car
                 name: Entré · fordon
+                aspect_ratio: "16:9"
+                fit_mode: contain
                 show_state: true
                 tap_action:
                   action: navigate
@@ -459,6 +471,8 @@ views:
               - type: picture-entity
                 entity: image.driveway_wide_car
                 name: Uppfart · fordon
+                aspect_ratio: "16:9"
+                fit_mode: contain
                 show_state: true
                 tap_action:
                   action: navigate
@@ -466,6 +480,8 @@ views:
               - type: picture-entity
                 entity: image.driveway_id_car
                 name: Uppfart ID · fordon
+                aspect_ratio: "16:9"
+                fit_mode: contain
                 show_state: true
                 tap_action:
                   action: navigate

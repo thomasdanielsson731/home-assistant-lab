@@ -101,7 +101,22 @@ TIMELINE_V1_HTML = """<!DOCTYPE html>
     .toolbar .range-label { color: #9aa0a6; font-size: 0.72rem; }
     .stats { color: #9aa0a6; font-size: 0.72rem; margin-left: auto; white-space: nowrap; }
     main { display: grid; grid-template-columns: 1fr 300px; flex: 1; min-height: 0; }
-    @media (max-width: 860px) { main { grid-template-columns: 1fr; } aside { display: none; } }
+    @media (max-width: 860px) {
+      main { grid-template-columns: 1fr; }
+      aside {
+        display: none;
+        position: fixed;
+        left: 0; right: 0; bottom: 0;
+        max-height: 55vh;
+        z-index: 200;
+        border-left: none;
+        border-top: 1px solid #2d2f36;
+        box-shadow: 0 -4px 24px #0008;
+      }
+      aside.aside-open { display: flex; }
+      .aside-close { display: block; }
+    }
+    .aside-close { display: none; margin-left: auto; padding: 0.5rem 0.75rem; background: none; border: none; color: #9aa0a6; cursor: pointer; font-size: 1rem; }
     #canvas-wrap { overflow: hidden; position: relative; cursor: grab; }
     #canvas-wrap.dragging { cursor: grabbing; }
     canvas { display: block; }
@@ -172,6 +187,7 @@ TIMELINE_V1_HTML = """<!DOCTYPE html>
       <div class="aside-tabs">
         <div class="aside-tab active" data-pane="detail">Details</div>
         <div class="aside-tab" data-pane="occupancy">Occupancy</div>
+        <button type="button" class="aside-close" id="aside-close" aria-label="Stäng">✕</button>
       </div>
       <div class="aside-pane active" id="pane-detail">
         <div id="detail-content" class="detail-empty">Click an event to inspect it</div>
@@ -338,7 +354,12 @@ TIMELINE_V1_HTML = """<!DOCTYPE html>
         const t = new Date(m.timestamp).getTime();
         return t >= viewStart && t <= viewEnd;
       });
-      if (pts.length < 2) return;
+      if (pts.length < 2) {
+        ctx.fillStyle = '#5f6368';
+        ctx.font = '9px system-ui';
+        ctx.fillText('Ingen data', LABEL_W + 8, laneInfo.top + laneInfo.lh / 2 + 3);
+        return;
+      }
       const vals = pts.map(m => m.value);
       const min = Math.min(...vals), max = Math.max(...vals);
       const range = max - min || 1;
@@ -536,6 +557,8 @@ TIMELINE_V1_HTML = """<!DOCTYPE html>
         ${snap ? `<img src="media/${snap}" alt="" style="margin-top:0.5rem;max-width:100%;border-radius:6px">` : ''}
       `;
       switchPane('detail');
+      const aside = document.querySelector('aside');
+      if (aside) aside.classList.add('aside-open');
     }
 
     function switchPane(name) {
@@ -714,7 +737,28 @@ TIMELINE_V1_HTML = """<!DOCTYPE html>
       tab.addEventListener('click', () => switchPane(tab.dataset.pane));
     });
 
-    load();
+    document.getElementById('aside-close').addEventListener('click', () => {
+      const aside = document.querySelector('aside');
+      if (aside) aside.classList.remove('aside-open');
+    });
+
+    function selectEventFromUrl() {
+      const id = new URLSearchParams(location.search).get('event');
+      if (!id) return;
+      const ev = events.find(e => e.event_id === id);
+      if (!ev) return;
+      const t = new Date(ev.timestamp).getTime();
+      if (t < viewStart || t > viewEnd) {
+        const span = viewEnd - viewStart;
+        viewEnd = Math.min(Date.now() + 3600000, t + span * 0.15);
+        viewStart = viewEnd - span;
+        clampView();
+      }
+      showEventDetail(ev);
+      draw();
+    }
+
+    load().then(selectEventFromUrl);
   })();
   </script>
 </body>
@@ -737,7 +781,8 @@ HTML = """<!DOCTYPE html>
     .filters {{ display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }}
     .filters a {{ padding: 0.35rem 0.75rem; border-radius: 1rem; background: #2d2f36; color: #bdc1c6; text-decoration: none; font-size: 0.8rem; }}
     .filters a.active {{ background: #8ab4f8; color: #0f1117; }}
-    .entry {{ display: flex; gap: 0.75rem; padding: 0.75rem 0; border-bottom: 1px solid #2d2f36; align-items: flex-start; }}
+    .entry {{ display: flex; gap: 0.75rem; padding: 0.75rem 0; border-bottom: 1px solid #2d2f36; align-items: flex-start; text-decoration: none; color: inherit; cursor: pointer; }}
+    .entry:hover {{ background: #2d2f3622; }}
     .entry-anomaly {{ background: #f9ab000f; border-left: 3px solid #f9ab00; padding-left: calc(0.75rem - 3px); }}
     .entry-anomaly .summary {{ color: #fdd663; }}
     .time {{ color: #9aa0a6; font-size: 0.8rem; min-width: 3.5rem; padding-top: 0.1rem; }}
@@ -761,7 +806,7 @@ HTML = """<!DOCTYPE html>
 </html>"""
 
 ENTRY = """
-<div class="entry{entry_class}">
+<a class="entry{entry_class}" href="{href}">
   <div class="time">{time}</div>
   <div class="icon">{icon}</div>
   <div class="body">
@@ -769,7 +814,7 @@ ENTRY = """
     <div class="meta">{zone} · {etype} · {source}{anomaly_tag}</div>
   </div>
   {thumb_html}
-</div>"""
+</a>"""
 
 
 STORY_HTML = """<!DOCTYPE html>
@@ -1058,10 +1103,9 @@ class Handler(BaseHTTPRequestHandler):
                 thumb_html = ""
                 snap = (e.get("snapshot") or {}).get("best_picture")
                 if snap:
-                    thumb_html = (
-                        f'<a href="media/{snap}" target="_blank" rel="noopener">'
-                        f'<img class="thumb" src="media/{snap}" alt=""></a>'
-                    )
+                    thumb_html = f'<img class="thumb" src="media/{snap}" alt="">'
+                event_id = e.get("event_id") or ""
+                href = f"timeline?event={event_id}" if event_id else "timeline"
                 is_anomaly = bool((e.get("metadata") or {}).get("anomaly"))
                 entries_html += ENTRY.format(
                     time=ts.strftime("%H:%M"),
@@ -1073,6 +1117,7 @@ class Handler(BaseHTTPRequestHandler):
                     entry_class=" entry-anomaly" if is_anomaly else "",
                     anomaly_tag=" · ⚠ anomali" if is_anomaly else "",
                     thumb_html=thumb_html,
+                    href=href,
                 )
 
         page = _insights_page(

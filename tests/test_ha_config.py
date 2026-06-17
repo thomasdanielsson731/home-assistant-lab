@@ -104,11 +104,22 @@ def test_anna_lampor_tanda_uses_mushroom_light_cards():
     assert "entity-filter" not in text
 
 
-def test_sidebar_script_keeps_tech_panel():
+def test_sidebar_script_hides_overview_and_applies_all_users():
     text = (REPO / "scripts/configure_ha_sidebar.py").read_text(encoding="utf-8")
     assert 'DEFAULT_PANEL = "home-hem"' in text
     assert 'TECH_PANEL = "home-tech"' in text
-    assert "home-cameras" in text
+    assert '"home"' in text  # built-in Overview panel id
+    assert "apply_sidebar_for_all_users" in text
+    assert "frontend.user_data_" in text
+
+
+def test_frigate_front_camera_landscape_detect():
+    text = (REPO / "config/frigate/config.yml").read_text(encoding="utf-8")
+    front = text.split("  front:", 1)[1].split("\n\n  driveway_wide:", 1)[0]
+    assert "width: 640" in front
+    assert "height: 360" in front
+    assert "videocodec=h264" in front
+    assert "width: 360" not in front
 
 
 def test_no_stale_home_lab_navigation_paths():
@@ -120,6 +131,12 @@ def test_no_stale_home_lab_navigation_paths():
 def test_home_security_no_admin_analytics_link():
     text = (DASHBOARDS / "home-security.yaml").read_text(encoding="utf-8")
     assert "/house-timeline" not in text
+
+
+def test_home_cameras_front_uses_landscape_ratio():
+    text = (DASHBOARDS / "home-cameras.yaml").read_text(encoding="utf-8")
+    assert "aspect_ratio: 16/9" in text
+    assert "9/16" not in text
 
 
 def test_home_cameras_no_admin_tech_link():

@@ -7,9 +7,10 @@ INSIGHTS_BASE_SCRIPT = """<script>
   for (var i = 0; i < pages.length; i++) {
     var needle = '/' + pages[i];
     var idx = p.lastIndexOf(needle);
-    if (idx > 0) {
+    if (idx >= 0) {
       var b = document.createElement('base');
-      b.href = p.slice(0, idx + 1);
+      // Direct routes (/timeline) need site root; ingress paths (/foo/timeline) keep prefix.
+      b.href = idx === 0 ? '/' : p.slice(0, idx + 1);
       document.head.insertBefore(b, document.head.firstChild);
       break;
     }
