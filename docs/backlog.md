@@ -34,6 +34,8 @@ Complete the Axis analytics pipeline end-to-end.
 | P7-19 | Händelser panel — iframe event list with thumbnails (`home-events.yaml`) | ✅ 2026-06-14 |
 | P7-20 | Teknik UX — Live / Historik / Drift views, perimeter fusion, Insights REST counters | ✅ 2026-06-14 |
 | P7-21 | Notification deep links → Händelser / Säkerhet / Teknik Drift | ✅ 2026-06-14 |
+| P7-22 | Panel review batch 1 — MQTT counters, loitering bridge, timeline UX | ✅ 2026-06-14 |
+| P7-23 | Panel review batches 2–8 — coalesce display sensors, nav chips, alerts | ✅ 2026-06-14 |
 
 ---
 

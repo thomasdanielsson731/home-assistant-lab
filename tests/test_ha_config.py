@@ -72,11 +72,13 @@ def test_loitering_automation_enabled():
     auto = automations[0]
     assert auto["id"] == "aoa_loitering_detected"
     assert auto["initial_state"] is True
+    assert auto["mode"] == "parallel"
     entity_ids = auto["trigger"][0]["entity_id"]
     assert len(entity_ids) == 6
     message = auto["action"][0]["data"]["message"]
     assert "trigger.entity_id" in message
     assert "_aoa_loitering" in message
+    assert auto["action"][0]["data"]["data"]["url"] == "/lovelace/home-events/events"
 
 
 def test_multisensor_entry_notification_enabled():
