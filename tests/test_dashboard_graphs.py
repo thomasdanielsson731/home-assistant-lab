@@ -173,7 +173,7 @@ def test_insights_rest_includes_bicycle_counter():
 
 def test_house_context_zones_label_covers_all_zones():
     text = (HA / "templates" / "house_context.yaml").read_text(encoding="utf-8")
-    for label in ("Bakgård", "Förråd ut", "Förråd in", "backyard_scene_object_present"):
+    for label in ("Bakgård", "Förråd ut", "Förråd in", "backyard_scene_object_present", "loiter"):
         assert label in text
 
 
@@ -187,9 +187,25 @@ def test_statistics_graph_sources_have_state_class():
     assert audio.count("state_class: measurement") == 3
 
 
+def test_insights_display_coalesce_templates():
+    text = (HA / "templates" / "insights_display.yaml").read_text(encoding="utf-8")
+    for key in (
+        "insights_events_24h_display",
+        "insights_persons_24h_display",
+        "insights_bicycles_24h_display",
+    ):
+        assert key in text
+    assert "insights_events_24h_2" in text
+
+
+def test_no_stale_rest_insights_yaml():
+    assert not (HA / "rest" / "insights.yaml").exists()
+
+
 def test_home_events_embeds_clickable_list():
     text = (DASHBOARDS / "home-events.yaml").read_text(encoding="utf-8")
-    assert "sensor.insights_persons_24h_2" in text or "sensor.insights_persons_24h" in text
+    assert "sensor.insights_persons_24h_display" in text
+    assert "insights_bicycles_24h_display" in text
     assert "panel: true" in text
     assert "type: iframe" in text
     assert "min-width: 1025px" in text

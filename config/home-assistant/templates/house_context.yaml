@@ -103,6 +103,12 @@
           {% if is_state('binary_sensor.backyard_aoa_person', 'on') or is_state('binary_sensor.backyard_person_occupancy', 'on') or is_state('binary_sensor.backyard_scene_object_present', 'on') %}{% set ns.labels = ns.labels + ['Bakgård'] %}{% endif %}
           {% if is_state('binary_sensor.storage_ext_aoa_person', 'on') or is_state('binary_sensor.storage_ext_person_occupancy', 'on') or is_state('binary_sensor.storage_ext_scene_object_present', 'on') %}{% set ns.labels = ns.labels + ['Förråd ut'] %}{% endif %}
           {% if is_state('binary_sensor.storage_int_aoa_person', 'on') or is_state('binary_sensor.storage_int_person_occupancy', 'on') or is_state('binary_sensor.storage_int_scene_object_present', 'on') %}{% set ns.labels = ns.labels + ['Förråd in'] %}{% endif %}
+          {% if is_state('binary_sensor.front_aoa_loitering', 'on') %}{% set ns.labels = ns.labels + ['Entré loiter'] %}{% endif %}
+          {% if is_state('binary_sensor.driveway_wide_aoa_loitering', 'on') %}{% set ns.labels = ns.labels + ['Uppf. loiter'] %}{% endif %}
+          {% if is_state('binary_sensor.driveway_id_aoa_loitering', 'on') %}{% set ns.labels = ns.labels + ['Uppf. ID loiter'] %}{% endif %}
+          {% if is_state('binary_sensor.backyard_aoa_loitering', 'on') %}{% set ns.labels = ns.labels + ['Bakg. loiter'] %}{% endif %}
+          {% if is_state('binary_sensor.storage_ext_aoa_loitering', 'on') %}{% set ns.labels = ns.labels + ['Förr.ut loiter'] %}{% endif %}
+          {% if is_state('binary_sensor.storage_int_aoa_loitering', 'on') %}{% set ns.labels = ns.labels + ['Förr.in loiter'] %}{% endif %}
           {{ ns.labels | join(' · ') if ns.labels else 'Inga aktiva zoner' }}
 
     - name: "House home status"

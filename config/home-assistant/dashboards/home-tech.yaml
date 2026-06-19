@@ -268,7 +268,7 @@ views:
               - type: template
                 icon: mdi:home-import-outline
                 content: >-
-                  Ankomster {{ states('sensor.insights_arrivals_24h_2') | default('—', true) }}
+                  Ankomster {{ states('sensor.insights_arrivals_24h_display') | default('—', true) }}
                 icon_color: amber
                 tap_action:
                   action: navigate
@@ -276,7 +276,7 @@ views:
               - type: template
                 icon: mdi:package-variant-closed
                 content: >-
-                  Leveranser {{ states('sensor.insights_deliveries_24h_2') | default('—', true) }}
+                  Leveranser {{ states('sensor.insights_deliveries_24h_display') | default('—', true) }}
                 icon_color: blue
                 tap_action:
                   action: navigate
@@ -284,7 +284,7 @@ views:
               - type: template
                 icon: mdi:account
                 content: >-
-                  Person {{ states('sensor.insights_persons_24h_2') | default('—', true) }}
+                  Person {{ states('sensor.insights_persons_24h_display') | default('—', true) }}
                 icon_color: amber
                 tap_action:
                   action: navigate
@@ -292,7 +292,7 @@ views:
               - type: template
                 icon: mdi:bike
                 content: >-
-                  Cyklar {{ states('sensor.insights_bicycles_24h_2') | default('—', true) }}
+                  Cyklar {{ states('sensor.insights_bicycles_24h_display') | default('—', true) }}
                 icon_color: green
                 tap_action:
                   action: navigate
@@ -300,7 +300,7 @@ views:
               - type: template
                 icon: mdi:counter
                 content: >-
-                  Totalt {{ states('sensor.insights_events_24h_2') | default('—', true) }}
+                  Totalt {{ states('sensor.insights_events_24h_display') | default('—', true) }}
                 icon_color: grey
                 tap_action:
                   action: navigate
@@ -784,9 +784,9 @@ views:
               - type: template
                 icon: mdi:chart-timeline-variant
                 content: >-
-                  Events {{ states('sensor.insights_events_24h_2') | default('—', true) }}
+                  Events {{ states('sensor.insights_events_24h_display') | default('—', true) }}
                 icon_color: >-
-                  {% if states('sensor.insights_events_24h_2') in ['unknown', 'unavailable', ''] %}red
+                  {% if states('sensor.insights_events_24h_display') in ['unknown', 'unavailable', '—', ''] %}red
                   {% else %}green{% endif %}
               - type: action
                 icon: mdi:format-list-bulleted

@@ -283,6 +283,16 @@ views:
 
       - title: HISTORIK
         cards:
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: template
+                icon: mdi:counter
+                content: >-
+                  {{ states('sensor.insights_events_24h_display') | default('—', true) }} händelser (24 h)
+                icon_color: grey
+                tap_action:
+                  action: navigate
+                  navigation_path: /lovelace/home-events/events
           - type: custom:mushroom-template-card
             primary: Vad hände utomhus idag?
             secondary: Händelser — lista med bilder

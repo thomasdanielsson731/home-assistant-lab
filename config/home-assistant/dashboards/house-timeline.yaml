@@ -5,6 +5,24 @@ views:
     cards:
       - type: vertical-stack
         cards:
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: action
+                icon: mdi:format-list-bulleted
+                content: Händelser
+                tap_action:
+                  action: navigate
+                  navigation_path: /lovelace/home-events/events
+              - type: template
+                icon: mdi:account
+                content: >-
+                  Person {{ states('sensor.insights_persons_24h_display') | default('—', true) }}
+                icon_color: amber
+              - type: template
+                icon: mdi:counter
+                content: >-
+                  Totalt {{ states('sensor.insights_events_24h_display') | default('—', true) }}
+                icon_color: grey
           - type: conditional
             conditions:
               - condition: screen

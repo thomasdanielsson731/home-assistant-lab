@@ -1,0 +1,41 @@
+# Coalesce MQTT insight counters with legacy _2 duplicates (removed REST sensors).
+- sensor:
+    - name: "Insights events 24h display"
+      unique_id: insights_events_24h_display
+      icon: mdi:chart-timeline-variant
+      unit_of_measurement: events
+      state: >-
+        {% set v = states('sensor.insights_events_24h') %}
+        {{ v if v not in ['unknown', 'unavailable', ''] else states('sensor.insights_events_24h_2') | default('—') }}
+
+    - name: "Insights persons 24h display"
+      unique_id: insights_persons_24h_display
+      icon: mdi:account
+      unit_of_measurement: events
+      state: >-
+        {% set v = states('sensor.insights_persons_24h') %}
+        {{ v if v not in ['unknown', 'unavailable', ''] else states('sensor.insights_persons_24h_2') | default('—') }}
+
+    - name: "Insights arrivals 24h display"
+      unique_id: insights_arrivals_24h_display
+      icon: mdi:home-import-outline
+      unit_of_measurement: events
+      state: >-
+        {% set v = states('sensor.insights_arrivals_24h') %}
+        {{ v if v not in ['unknown', 'unavailable', ''] else states('sensor.insights_arrivals_24h_2') | default('—') }}
+
+    - name: "Insights deliveries 24h display"
+      unique_id: insights_deliveries_24h_display
+      icon: mdi:package-variant-closed
+      unit_of_measurement: events
+      state: >-
+        {% set v = states('sensor.insights_deliveries_24h') %}
+        {{ v if v not in ['unknown', 'unavailable', ''] else states('sensor.insights_deliveries_24h_2') | default('—') }}
+
+    - name: "Insights bicycles 24h display"
+      unique_id: insights_bicycles_24h_display
+      icon: mdi:bike
+      unit_of_measurement: events
+      state: >-
+        {% set v = states('sensor.insights_bicycles_24h') %}
+        {{ v if v not in ['unknown', 'unavailable', ''] else states('sensor.insights_bicycles_24h_2') | default('—') }}

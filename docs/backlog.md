@@ -153,6 +153,7 @@ Complete the Axis analytics pipeline end-to-end.
 | Ingress URLs in Lovelace iframe | 401 unreliable — use `https://insights.danielsson.cloud/...` (or LAN `:8765` at home only) |
 | Legacy `home-lab` / `home-anna.yaml` | Replaced by sidebar panels 2026-06-14 |
 | ALPR | No current automation need |
-| HA REST sensors for D6210 | Replaced by MQTT bridge (Insights event counters use REST — `rest/insights.yaml`) |
+| HA REST sensors for D6210 | Replaced by MQTT bridge |
+| HA REST sensors for Insights counters | Replaced by MQTT (`mqtt_sensors/insights_counters.yaml` + bridge) |
 | Meross MS100F + MSH300 hub | Hub suspected dead |
 | Dev PC bridges (`start-bridges.ps1`) | Replaced by HAOS add-on 2026-06-11 |

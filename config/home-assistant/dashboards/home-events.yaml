@@ -17,18 +17,28 @@ views:
               - type: template
                 icon: mdi:account
                 content: >-
-                  Person {% set v = states('sensor.insights_persons_24h') %}{{ v if v not in ['unknown','unavailable',''] else states('sensor.insights_persons_24h_2') | default('—', true) }} (24 h)
+                  Person {{ states('sensor.insights_persons_24h_display') | default('—', true) }} (24 h)
                 icon_color: amber
               - type: template
                 icon: mdi:home-import-outline
                 content: >-
-                  Ankomster {% set v = states('sensor.insights_arrivals_24h') %}{{ v if v not in ['unknown','unavailable',''] else states('sensor.insights_arrivals_24h_2') | default('—', true) }}
+                  Ankomster {{ states('sensor.insights_arrivals_24h_display') | default('—', true) }}
                 icon_color: blue
               - type: template
                 icon: mdi:package-variant-closed
                 content: >-
-                  Leveranser {% set v = states('sensor.insights_deliveries_24h') %}{{ v if v not in ['unknown','unavailable',''] else states('sensor.insights_deliveries_24h_2') | default('—', true) }}
+                  Leveranser {{ states('sensor.insights_deliveries_24h_display') | default('—', true) }}
                 icon_color: blue
+              - type: template
+                icon: mdi:bike
+                content: >-
+                  Cyklar {{ states('sensor.insights_bicycles_24h_display') | default('—', true) }}
+                icon_color: green
+              - type: template
+                icon: mdi:counter
+                content: >-
+                  Totalt {{ states('sensor.insights_events_24h_display') | default('—', true) }}
+                icon_color: grey
               - type: action
                 icon: mdi:refresh
                 content: Öppna / uppdatera

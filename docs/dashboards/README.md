@@ -46,13 +46,14 @@ Set via `.\scripts\set-ha-timeline-secret.ps1 -UseCloudflareUrls` (default in `d
 
 Do **not** use Ingress URLs in iframes — returns 401 remotely.
 
-## Insights REST sensors (Teknik)
+## Insights counters (Teknik + Händelser)
 
-`config/home-assistant/rest/insights.yaml` polls `:8765/api/v1/events?hours=24` every 5 min:
+MQTT via `insights_counters_bridge.py` in Danielsson Insights add-on (`danielsson/insights/*_24h`):
 
-- `sensor.insights_events_24h`
+- `sensor.insights_events_24h` (+ `sensor.insights_*_24h_display` template coalesce)
 - `sensor.insights_arrivals_24h`
 - `sensor.insights_deliveries_24h`
 - `sensor.insights_persons_24h`
+- `sensor.insights_bicycles_24h`
 
-Used on Teknik **Live** (korrelerade händelser) and **Drift** (data health).
+Used on Teknik **Live**, **Händelser** chips, and **Drift** (data health).

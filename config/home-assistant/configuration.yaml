@@ -30,7 +30,7 @@ recorder:
       - image.*
       - binary_sensor.*_motion
       - binary_sensor.*_scene_object_present
-      - sensor.insights_*_24h
+      - sensor.insights_*_24h*
       - sensor.*_scene_persons
       - sensor.*_scene_vehicles
 

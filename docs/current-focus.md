@@ -110,7 +110,8 @@ ha apps logs 25d01a20_danielsson_insights
 | `scripts/timeline_server.py` | Analytics UI + REST API + event list HTML |
 | `config/home-assistant/dashboards/home-tech.yaml` | Teknik — Live / Historik / Drift |
 | `config/home-assistant/dashboards/home-events.yaml` | Händelser iframe |
-| `config/home-assistant/rest/insights.yaml` | REST counters → `sensor.insights_*_24h` |
+| `config/home-assistant/mqtt_sensors/insights_counters.yaml` | MQTT counters → `sensor.insights_*_24h` (bridge in add-on) |
+| `config/home-assistant/templates/insights_display.yaml` | Coalesce MQTT + legacy `_2` entity IDs for dashboards |
 | `config/home-assistant/secrets.yaml` (host) | `timeline_url`, `environment_url`, `events_url`, `story_url` |
 
 ---
