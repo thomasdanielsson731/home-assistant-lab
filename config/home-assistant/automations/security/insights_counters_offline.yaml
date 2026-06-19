@@ -2,6 +2,7 @@
 
 - id: insights_counters_offline_alert
   alias: "Insights counters offline"
+  initial_state: true
   description: Notify when insights_counters_bridge stops publishing (expire_after on MQTT sensors).
   mode: single
   max_exceeded: silent
