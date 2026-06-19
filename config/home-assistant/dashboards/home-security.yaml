@@ -286,6 +286,14 @@ views:
           - type: custom:mushroom-chips-card
             chips:
               - type: template
+                icon: mdi:home-import-outline
+                content: >-
+                  Ankomster {{ states('sensor.insights_arrivals_24h_display') | default('—', true) }}
+                icon_color: amber
+                tap_action:
+                  action: navigate
+                  navigation_path: /lovelace/home-events/events
+              - type: template
                 icon: mdi:counter
                 content: >-
                   {{ states('sensor.insights_events_24h_display') | default('—', true) }} händelser (24 h)

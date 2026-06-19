@@ -7,6 +7,10 @@
       state: >-
         {% set v = states('sensor.insights_events_24h') %}
         {{ v if v not in ['unknown', 'unavailable', ''] else states('sensor.insights_events_24h_2') | default('—') }}
+      attributes:
+        source: >-
+          {% set v = states('sensor.insights_events_24h') %}
+          {{ 'mqtt' if v not in ['unknown', 'unavailable', ''] else 'legacy' if states('sensor.insights_events_24h_2') not in ['unknown', 'unavailable', ''] else 'none' }}
 
     - name: "Insights persons 24h display"
       unique_id: insights_persons_24h_display
