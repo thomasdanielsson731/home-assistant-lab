@@ -3,7 +3,6 @@
   initial_state: true
   description: >
     Push when AOA loitering scenario fires (person lingering past camera threshold).
-    15 min cooldown per automation run.
   mode: parallel
   max_exceeded: silent
   trigger:
@@ -24,5 +23,5 @@
           {% set zone = trigger.entity_id.split('.')[1].replace('_aoa_loitering', '') %}
           {{ zone | replace('_', ' ') | title }}
         data:
-          url: /lovelace/home-security/security
-          clickAction: /lovelace/home-security/security
+          url: /lovelace/home-events/events
+          clickAction: /lovelace/home-events/events

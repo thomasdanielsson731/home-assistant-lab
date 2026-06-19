@@ -61,7 +61,7 @@ views:
             fill_container: true
             tap_action:
               action: navigate
-              navigation_path: /lovelace/home-cameras/cameras
+              navigation_path: /lovelace/home-events/events
           - type: custom:mushroom-chips-card
             chips:
               - type: template

@@ -56,6 +56,7 @@ def counts() -> dict[str, int]:
             events = resp.json()
             if not isinstance(events, list):
                 continue
+            log.info("Counters from %s", url)
             stats = event_summary_stats(events)
             return {
                 "events": len(events),

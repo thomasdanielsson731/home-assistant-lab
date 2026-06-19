@@ -34,6 +34,15 @@ views:
               - condition: screen
                 media_query: "(min-width: 1025px)"
             card:
+              type: markdown
+              content: >-
+                **Analytics** — tidslinje med korrelationer (ankomst, leverans, cykel).
+                Tomma spår = inga händelser av den typen i valt tidsintervall.
+          - type: conditional
+            conditions:
+              - condition: screen
+                media_query: "(min-width: 1025px)"
+            card:
               type: iframe
               url: !secret timeline_url
               aspect_ratio: 125%

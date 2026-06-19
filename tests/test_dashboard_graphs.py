@@ -200,6 +200,23 @@ def test_statistics_graph_sources_have_state_class():
     assert audio.count("state_class: measurement") == 3
 
 
+def test_home_hem_shows_outdoor_aqi():
+    text = (DASHBOARDS / "home-hem.yaml").read_text(encoding="utf-8")
+    assert "driveway_env_aqi" in text
+    assert "Ute luft" in text
+
+
+def test_graph_sensors_data_age_includes_humidity():
+    text = (HA / "templates" / "graph_sensors.yaml").read_text(encoding="utf-8")
+    assert "driveway_env_humidity" in text
+
+
+def test_loitering_alert_links_to_events():
+    text = (HA / "automations/security/aoa_loitering_alert.yaml").read_text(encoding="utf-8")
+    assert "/lovelace/home-events/events" in text
+    assert "15 min cooldown" not in text
+
+
 def test_insights_display_coalesce_templates():
     text = (HA / "templates" / "insights_display.yaml").read_text(encoding="utf-8")
     for key in (

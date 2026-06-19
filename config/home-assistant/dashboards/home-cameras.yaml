@@ -23,6 +23,13 @@ views:
                 tap_action:
                   action: navigate
                   navigation_path: /lovelace/home-security/security
+              - type: template
+                icon: mdi:motion-sensor
+                content: >-
+                  {% if is_state('binary_sensor.house_outdoor_presence', 'on') %}Aktivitet ute
+                  {% else %}Ute lugnt{% endif %}
+                icon_color: >-
+                  {{ 'amber' if is_state('binary_sensor.house_outdoor_presence', 'on') else 'green' }}
               - type: action
                 icon: mdi:format-list-bulleted
                 content: Händelser
