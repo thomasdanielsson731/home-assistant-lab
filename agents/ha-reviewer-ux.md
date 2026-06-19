@@ -25,6 +25,7 @@ Du är UX-expert som granskar **Danielsson Home** och relaterade ytor (Analytics
 | `house-graphs.yaml` | Iframe vs mobil fallback, tydlig CTA |
 | `house-timeline.yaml` | Varför två analytics-vägar? |
 | Sidebar | Panelantal (`configure_ha_sidebar.py`) |
+| Händelser chips | `sensor.insights_*_24h_display` — ska visa siffror, inte `—` |
 
 Referens: [docs/dashboard-design.md](../docs/dashboard-design.md)
 
