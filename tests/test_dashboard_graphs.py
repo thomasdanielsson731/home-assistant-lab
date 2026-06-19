@@ -205,6 +205,7 @@ def test_home_hem_shows_outdoor_aqi():
     text = (DASHBOARDS / "home-hem.yaml").read_text(encoding="utf-8")
     assert "driveway_env_aqi" in text
     assert "Ute luft" in text
+    assert "house_indoor_outdoor_delta" in text
 
 
 def test_graph_sensors_data_age_includes_humidity():
