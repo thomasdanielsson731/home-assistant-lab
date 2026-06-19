@@ -148,8 +148,9 @@ def test_home_tech_historik_points_to_environment():
     assert "Öppna Environment" in historik
 
 
-def test_home_rooms_has_indoor_history_graph():
+def test_home_rooms_has_climate_chips_and_history():
     text = (DASHBOARDS / "home-rooms.yaml").read_text(encoding="utf-8")
+    assert "house_indoor_outdoor_delta" in text
     assert "type: history-graph" in text
     assert "hours_to_show: 168" in text
     assert "sensor.heiman_hs1sa_e_plus_temperatur" in text

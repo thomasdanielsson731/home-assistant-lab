@@ -17,6 +17,11 @@ views:
                 content: >-
                   Inne {{ states('sensor.house_indoor_temperature') | default('—', true) }}°C
                 icon_color: green
+              - type: template
+                icon: mdi:thermometer-lines
+                content: >-
+                  Δ {{ states('sensor.house_indoor_outdoor_delta') | default('—', true) }}°C
+                icon_color: blue
               - type: action
                 icon: mdi:format-list-bulleted
                 content: Händelser
