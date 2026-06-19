@@ -169,6 +169,13 @@ def test_insights_rest_includes_bicycle_counter():
     bridge = (REPO / "scripts" / "insights_counters_bridge.py").read_text(encoding="utf-8")
     assert "bicycles" in bridge
     assert "danielsson/insights/" in bridge
+    assert "counters_bridge_ok" in bridge
+
+
+def test_insights_mqtt_bridge_heartbeat_sensor():
+    text = (HA / "mqtt_sensors" / "insights_counters.yaml").read_text(encoding="utf-8")
+    assert "insights_counters_bridge_ok" in text
+    assert "counters_bridge_ok" in text
 
 
 def test_house_context_zones_label_covers_all_zones():

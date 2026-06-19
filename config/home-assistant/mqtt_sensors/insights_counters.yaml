@@ -34,3 +34,10 @@
   icon: mdi:bike
   unit_of_measurement: events
   expire_after: 120
+
+- name: "Insights counters bridge ok"
+  unique_id: insights_counters_bridge_ok
+  state_topic: "danielsson/insights/counters_bridge_ok"
+  icon: mdi:check-network
+  device_class: timestamp
+  expire_after: 180

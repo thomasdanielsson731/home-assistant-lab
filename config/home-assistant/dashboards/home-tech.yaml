@@ -782,6 +782,14 @@ views:
                   {% if states('sensor.driveway_env_temperature') in ['unknown', 'unavailable', ''] %}amber
                   {% else %}green{% endif %}
               - type: template
+                icon: mdi:check-network
+                content: >-
+                  {% if states('sensor.insights_counters_bridge_ok') in ['unknown', 'unavailable', ''] %}Counters offline
+                  {% else %}Counters OK{% endif %}
+                icon_color: >-
+                  {% if states('sensor.insights_counters_bridge_ok') in ['unknown', 'unavailable', ''] %}red
+                  {% else %}green{% endif %}
+              - type: template
                 icon: mdi:chart-timeline-variant
                 content: >-
                   Events {{ states('sensor.insights_events_24h_display') | default('—', true) }}

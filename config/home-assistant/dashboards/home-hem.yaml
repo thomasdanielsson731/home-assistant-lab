@@ -183,6 +183,16 @@ views:
                   action: navigate
                   navigation_path: /lovelace/home-rooms/rooms
               - type: template
+                icon: mdi:clock-outline
+                content: >-
+                  {{ state_attr('sensor.driveway_env_data_age', 'label') | default('D6210 —') }}
+                icon_color: >-
+                  {% set age = states('sensor.driveway_env_data_age') | int(-1) %}
+                  {% if age < 0 %}amber
+                  {% elif age <= 5 %}green
+                  {% elif age <= 60 %}amber
+                  {% else %}red{% endif %}
+              - type: template
                 icon: mdi:counter
                 content: >-
                   {{ states('sensor.insights_events_24h_display') | default('—', true) }} händelser (24 h)

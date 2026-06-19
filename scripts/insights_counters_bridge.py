@@ -83,6 +83,12 @@ def publish(client: mqtt.Client, values: dict[str, int]) -> None:
         payload = str(values[key])
         client.publish(topic, payload, qos=0, retain=True)
         log.info("MQTT %s = %s", topic, payload)
+    client.publish(
+        "danielsson/insights/counters_bridge_ok",
+        str(int(time.time())),
+        qos=0,
+        retain=True,
+    )
 
 
 def main() -> None:
