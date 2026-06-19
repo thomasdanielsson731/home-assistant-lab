@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Reload HA core config and REST/template/MQTT integrations."""
+"""Reload HA template/MQTT integrations after insights counter changes."""
 import os
 import sys
 from pathlib import Path

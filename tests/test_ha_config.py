@@ -106,6 +106,12 @@ def test_anna_lampor_tanda_uses_mushroom_light_cards():
     assert "entity-filter" not in text
 
 
+def test_recorder_excludes_insights_counters():
+    text = (HA / "configuration.yaml").read_text(encoding="utf-8")
+    assert "sensor.insights_*_24h*" in text
+    assert "sensor.insights_counters_bridge_ok" in text
+
+
 def test_sidebar_script_hides_overview_and_applies_all_users():
     text = (REPO / "scripts/configure_ha_sidebar.py").read_text(encoding="utf-8")
     assert 'DEFAULT_PANEL = "home-hem"' in text
