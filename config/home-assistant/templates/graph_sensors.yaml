@@ -40,7 +40,7 @@
       unit_of_measurement: "min"
       state: >-
         {% set ns = namespace(best=0) %}
-        {% for m in ['sensor.driveway_env_temperature','sensor.driveway_env_co2','sensor.driveway_env_aqi'] %}
+        {% for m in ['sensor.driveway_env_temperature','sensor.driveway_env_humidity','sensor.driveway_env_co2','sensor.driveway_env_aqi'] %}
           {% if states(m) not in ['unknown','unavailable',''] %}
             {% set ts = as_timestamp(states[m].last_changed) %}
             {% if ts > ns.best %}{% set ns.best = ts %}{% endif %}

@@ -11,7 +11,7 @@ views:
           - type: markdown
             content: >-
               **Vad hände?** Kronologisk lista med bilder — person, fordon, ankomster.
-              Tryck på en rad för mer info och bild.
+              Chippen ovan visar 24 h-räknare från Insights. Tryck på en rad för mer info.
           - type: custom:mushroom-chips-card
             chips:
               - type: template

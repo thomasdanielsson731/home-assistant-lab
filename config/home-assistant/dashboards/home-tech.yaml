@@ -519,6 +519,11 @@ views:
                 tap_action:
                   action: navigate
                   navigation_path: /house-graphs
+              - type: template
+                icon: mdi:counter
+                content: >-
+                  {{ states('sensor.insights_events_24h_display') | default('—', true) }} (24 h)
+                icon_color: grey
           - type: markdown
             content: >-
               **START HÄR:** **Environment** (sidebar) = zoom + luckor i grafer (Insights).
