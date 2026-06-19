@@ -36,6 +36,7 @@ Complete the Axis analytics pipeline end-to-end.
 | P7-21 | Notification deep links → Händelser / Säkerhet / Teknik Drift | ✅ 2026-06-14 |
 | P7-22 | Panel review batch 1 — MQTT counters, loitering bridge, timeline UX | ✅ 2026-06-14 |
 | P7-23 | Panel review batches 2–8 — coalesce display sensors, nav chips, alerts | ✅ 2026-06-14 |
+| P7-24 | Panel review batches 9–20 — delta chips, recorder, tests, docs | ✅ 2026-06-14 |
 
 ---
 
