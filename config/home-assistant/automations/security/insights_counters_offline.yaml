@@ -1,0 +1,21 @@
+# Push when Insights MQTT counters stop updating (dashboard chips show stale data).
+
+- id: insights_counters_offline_alert
+  alias: "Insights counters offline"
+  description: Notify when insights_counters_bridge stops publishing (expire_after on MQTT sensors).
+  mode: single
+  max_exceeded: silent
+  trigger:
+    - platform: state
+      entity_id: sensor.insights_counters_bridge_ok
+      to: unavailable
+      for: "00:03:00"
+  action:
+    - service: notify.mobile_app_thomas_iphone_15
+      data:
+        title: "Insights-räknare offline"
+        message: >-
+          Händelsechips (24 h) uppdateras inte — kontrollera Danielsson Insights add-on.
+        data:
+          url: /lovelace/home-tech/ops
+          clickAction: /lovelace/home-tech/ops

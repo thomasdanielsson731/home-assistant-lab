@@ -12,6 +12,18 @@ views:
           - type: custom:mushroom-chips-card
             chips:
               - type: action
+                icon: mdi:home
+                content: Hem
+                tap_action:
+                  action: navigate
+                  navigation_path: /lovelace/home-hem/home
+              - type: action
+                icon: mdi:shield-home
+                content: Säkerhet
+                tap_action:
+                  action: navigate
+                  navigation_path: /lovelace/home-security/security
+              - type: action
                 icon: mdi:format-list-bulleted
                 content: Händelser
                 tap_action:

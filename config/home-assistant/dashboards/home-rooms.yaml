@@ -10,6 +10,19 @@ views:
       # ── Master light control ──────────────────────────────────
       - column_span: 1
         cards:
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: template
+                icon: mdi:home-thermometer
+                content: >-
+                  Inne {{ states('sensor.house_indoor_temperature') | default('—', true) }}°C
+                icon_color: green
+              - type: action
+                icon: mdi:format-list-bulleted
+                content: Händelser
+                tap_action:
+                  action: navigate
+                  navigation_path: /lovelace/home-events/events
           - type: custom:mushroom-template-card
             primary: Belysning
             secondary: >-

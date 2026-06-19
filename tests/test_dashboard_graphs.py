@@ -178,6 +178,12 @@ def test_insights_mqtt_bridge_heartbeat_sensor():
     assert "counters_bridge_ok" in text
 
 
+def test_insights_counters_offline_automation():
+    text = (HA / "automations/security/insights_counters_offline.yaml").read_text(encoding="utf-8")
+    assert "insights_counters_offline_alert" in text
+    assert "sensor.insights_counters_bridge_ok" in text
+
+
 def test_house_context_zones_label_covers_all_zones():
     text = (HA / "templates" / "house_context.yaml").read_text(encoding="utf-8")
     for label in ("Bakgård", "Förråd ut", "Förråd in", "backyard_scene_object_present", "loiter"):
