@@ -26,6 +26,7 @@ Du granskar **utseende och visuell hierarki** i Danielsson Home — Mushroom Car
 4. **Ikonval** — mdi-ikoner matchar innehåll (vatten, rök, termometer)?
 5. **Brand** — känns det som “Danielsson Home” eller generisk HA?
 6. **Analytics/Environment** — mörkt tema i iframe vs ljust HA — jarring?
+7. **Counter chips** — `insights_*_24h_display` ska visa siffror, inte `—` (MQTT bridge)
 
 ## Output-format
 
