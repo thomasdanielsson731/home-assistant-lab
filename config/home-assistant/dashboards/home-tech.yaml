@@ -397,7 +397,7 @@ views:
               navigation_path: /house-graphs
           - type: custom:mushroom-template-card
             primary: Historik 7–90 dagar
-            secondary: HA recorder — se vyn Historik
+            secondary: Historik 7–90 dagar → vyn **Historik** · Environment → sidopanel
             icon: mdi:history
             icon_color: grey
             fill_container: true
