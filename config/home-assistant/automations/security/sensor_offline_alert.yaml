@@ -29,17 +29,22 @@
       value_template: >-
         {{ state_attr('binary_sensor.house_smoke_alarm', 'detector_count') | int(3) < 3 }}
       for: "00:10:00"
-  condition:
-    - condition: template
-      value_template: >-
-        {{ state_attr('binary_sensor.house_smoke_alarm', 'detector_count') | int(0) > 0 }}
   action:
     - service: notify.mobile_app_thomas_iphone_15
       data:
-        title: "Brandvarnare offline"
+        title: >-
+          {% if state_attr('binary_sensor.house_smoke_alarm', 'detector_count') | int(0) == 0 %}
+          Alla brandvarnare offline
+          {% else %}
+          Brandvarnare offline
+          {% endif %}
         message: >-
-          Endast {{ state_attr('binary_sensor.house_smoke_alarm', 'detector_count') }}/3
-          brandvarnare online — kontrollera ZHA.
+          {% set dc = state_attr('binary_sensor.house_smoke_alarm', 'detector_count') | int(0) %}
+          {% if dc == 0 %}
+          Inga brandvarnare svarar — kontrollera ZHA och batteri.
+          {% else %}
+          Endast {{ dc }}/3 brandvarnare online — kontrollera ZHA.
+          {% endif %}
         data:
           url: /lovelace/home-tech/ops
           clickAction: /lovelace/home-tech/ops

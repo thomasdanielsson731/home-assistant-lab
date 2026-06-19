@@ -1,0 +1,36 @@
+# Insights 24h counters — MQTT from insights_counters_bridge.py (Danielsson Insights add-on)
+
+- name: "Insights events 24h"
+  unique_id: insights_events_24h
+  state_topic: "danielsson/insights/events_24h"
+  icon: mdi:chart-timeline-variant
+  unit_of_measurement: events
+  expire_after: 120
+
+- name: "Insights persons 24h"
+  unique_id: insights_persons_24h
+  state_topic: "danielsson/insights/persons_24h"
+  icon: mdi:account
+  unit_of_measurement: events
+  expire_after: 120
+
+- name: "Insights arrivals 24h"
+  unique_id: insights_arrivals_24h
+  state_topic: "danielsson/insights/arrivals_24h"
+  icon: mdi:home-import-outline
+  unit_of_measurement: events
+  expire_after: 120
+
+- name: "Insights deliveries 24h"
+  unique_id: insights_deliveries_24h
+  state_topic: "danielsson/insights/deliveries_24h"
+  icon: mdi:package-variant-closed
+  unit_of_measurement: events
+  expire_after: 120
+
+- name: "Insights bicycles 24h"
+  unique_id: insights_bicycles_24h
+  state_topic: "danielsson/insights/bicycles_24h"
+  icon: mdi:bike
+  unit_of_measurement: events
+  expire_after: 120

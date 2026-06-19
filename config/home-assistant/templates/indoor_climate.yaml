@@ -68,25 +68,29 @@
       device_class: smoke
       icon: mdi:smoke-detector-alert
       state: >-
-        {{ states('binary_sensor.heiman_hs1sa_e_plus_ias_zon') == 'on'
-           or states('binary_sensor.heiman_hs1sa_e_plus_ias_zon_2') == 'on'
-           or states('binary_sensor.heiman_hs1sa_e_plus') == 'on' }}
+        {% set ns = namespace(on=false, n=0) %}
+        {% for s in states.binary_sensor | selectattr('entity_id', 'search', 'heiman') | list %}
+          {% if 'ias' in s.entity_id or s.entity_id == 'binary_sensor.heiman_hs1sa_e_plus' %}
+            {% if s.state not in ['unknown', 'unavailable'] %}{% set ns.n = ns.n + 1 %}{% endif %}
+            {% if s.state == 'on' %}{% set ns.on = true %}{% endif %}
+          {% endif %}
+        {% endfor %}
+        {% if ns.n == 0 %}unavailable{% elif ns.on %}true{% else %}false{% endif %}
       attributes:
         active_sensors: >-
           {% set ns = namespace(list=[]) %}
-          {% if states('binary_sensor.heiman_hs1sa_e_plus_ias_zon') == 'on' %}
-            {% set ns.list = ns.list + [state_attr('binary_sensor.heiman_hs1sa_e_plus_ias_zon', 'friendly_name')] %}
-          {% endif %}
-          {% if states('binary_sensor.heiman_hs1sa_e_plus_ias_zon_2') == 'on' %}
-            {% set ns.list = ns.list + [state_attr('binary_sensor.heiman_hs1sa_e_plus_ias_zon_2', 'friendly_name')] %}
-          {% endif %}
-          {% if states('binary_sensor.heiman_hs1sa_e_plus') == 'on' %}
-            {% set ns.list = ns.list + [state_attr('binary_sensor.heiman_hs1sa_e_plus', 'friendly_name')] %}
-          {% endif %}
+          {% for s in states.binary_sensor | selectattr('entity_id', 'search', 'heiman') | list %}
+            {% if ('ias' in s.entity_id or s.entity_id == 'binary_sensor.heiman_hs1sa_e_plus') and s.state == 'on' %}
+              {% set ns.list = ns.list + [state_attr(s.entity_id, 'friendly_name') | default(s.entity_id)] %}
+            {% endif %}
+          {% endfor %}
           {{ ns.list | join(', ') if ns.list else 'none' }}
         detector_count: >-
-          {{ [
-            states('binary_sensor.heiman_hs1sa_e_plus_ias_zon'),
-            states('binary_sensor.heiman_hs1sa_e_plus_ias_zon_2'),
-            states('binary_sensor.heiman_hs1sa_e_plus')
-          ] | reject('in', ['unknown', 'unavailable']) | list | count }}
+          {% set ns = namespace(n=0) %}
+          {% for s in states.binary_sensor | selectattr('entity_id', 'search', 'heiman') | list %}
+            {% if ('ias' in s.entity_id or s.entity_id == 'binary_sensor.heiman_hs1sa_e_plus')
+                  and s.state not in ['unknown', 'unavailable'] %}
+              {% set ns.n = ns.n + 1 %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.n }}

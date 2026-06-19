@@ -185,7 +185,7 @@ views:
               - type: template
                 icon: mdi:counter
                 content: >-
-                  {{ states('sensor.insights_events_24h') | default('—', true) }} händelser (24 h)
+                  {{ states('sensor.insights_events_24h_2') | default('—', true) }} händelser (24 h)
                 icon_color: grey
                 tap_action:
                   action: navigate
@@ -314,6 +314,8 @@ views:
               type: picture-entity
               entity: image.front_person
               name: Senaste vid entrén
+              aspect_ratio: "16:9"
+              fit_mode: contain
               show_state: true
               tap_action:
                 action: navigate

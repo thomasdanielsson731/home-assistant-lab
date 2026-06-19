@@ -30,14 +30,24 @@
         source: "{{ states('sensor.driveway_env_aqi') }}"
         note: "D6210 — AQI 0 = sensor uppstart, döljs i grafer"
 
+- trigger:
+    - platform: time_pattern
+      minutes: "/1"
+  sensor:
     - name: "Driveway env data age"
       unique_id: driveway_env_data_age
       icon: mdi:clock-outline
       unit_of_measurement: "min"
       state: >-
-        {% set t = states('sensor.driveway_env_temperature') %}
-        {% if t in ['unknown', 'unavailable', ''] %}unknown
-        {% else %}{{ ((as_timestamp(now()) - as_timestamp(states.sensor.driveway_env_temperature.last_changed)) / 60) | int(0) }}{% endif %}
+        {% set ns = namespace(best=0) %}
+        {% for m in ['sensor.driveway_env_temperature','sensor.driveway_env_co2','sensor.driveway_env_aqi'] %}
+          {% if states(m) not in ['unknown','unavailable',''] %}
+            {% set ts = as_timestamp(states[m].last_changed) %}
+            {% if ts > ns.best %}{% set ns.best = ts %}{% endif %}
+          {% endif %}
+        {% endfor %}
+        {% if ns.best == 0 %}unknown
+        {% else %}{{ ((as_timestamp(now()) - ns.best) / 60) | int(0) }}{% endif %}
       attributes:
         label: >-
           {% set age = states('sensor.driveway_env_data_age') | int(-1) %}

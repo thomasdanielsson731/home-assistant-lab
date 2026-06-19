@@ -146,7 +146,7 @@ TIMELINE_V1_HTML = """<!DOCTYPE html>
 <body>
   <header>
     <h1>Analytics</h1>
-    <span class="sub">What happened — not just current state</span>
+    <span class="sub">Vad som hände — inte bara nu-läge</span>
     <a href="story" style="margin-left:auto;color:#8ab4f8;font-size:0.78rem;text-decoration:none;padding:0.3rem 0.7rem;border-radius:1rem;background:#2d2f36">📖 Story</a>
   </header>
   <div class="toolbar" id="toolbar">
@@ -160,10 +160,10 @@ TIMELINE_V1_HTML = """<!DOCTYPE html>
     <input type="datetime-local" id="from-input">
     <span class="range-label">Till</span>
     <input type="datetime-local" id="to-input">
-    <button type="button" id="apply-range">Apply</button>
+    <button type="button" id="apply-range">Verkställ</button>
     <div class="sep"></div>
     <button type="button" id="goto-now">→ Nu</button>
-    <button type="button" id="zoom-reset">Reset</button>
+    <button type="button" id="zoom-reset">Återställ</button>
     <span class="stats" id="stats"></span>
   </div>
   <div class="legend">
@@ -185,12 +185,12 @@ TIMELINE_V1_HTML = """<!DOCTYPE html>
     <div id="canvas-wrap"><canvas id="timeline"></canvas></div>
     <aside>
       <div class="aside-tabs">
-        <div class="aside-tab active" data-pane="detail">Details</div>
-        <div class="aside-tab" data-pane="occupancy">Occupancy</div>
+        <div class="aside-tab active" data-pane="detail">Detaljer</div>
+        <div class="aside-tab" data-pane="occupancy">Närvaro</div>
         <button type="button" class="aside-close" id="aside-close" aria-label="Stäng">✕</button>
       </div>
       <div class="aside-pane active" id="pane-detail">
-        <div id="detail-content" class="detail-empty">Click an event to inspect it</div>
+        <div id="detail-content" class="detail-empty">Tryck på en händelse i tidslinjen</div>
       </div>
       <div class="aside-pane" id="pane-occupancy">
         <div id="occupancy-list"><p class="detail-empty">Loading…</p></div>
@@ -256,14 +256,22 @@ TIMELINE_V1_HTML = """<!DOCTYPE html>
     // Lanes hidden when the loaded period has no events of that type —
     // core lanes (person, vehicle, occupancy, scene, metrics) always show.
     const HIDEABLE = ['arrival', 'delivery', 'bicycle', 'door', 'behavior', 'environment'];
+    const CORE_EVENT_LANES = ['person', 'vehicle', 'scene'];
     const ANOMALY_COLOR = '#f9ab00';
+
+    function laneHasData(l) {
+      if (l.type === 'block') return blocks.length > 0;
+      if (l.type === 'metric') return true;
+      if (CORE_EVENT_LANES.includes(l.name)) return events.some(e => e.type === l.name);
+      if (HIDEABLE.includes(l.name)) return events.some(e => e.type === l.name);
+      return true;
+    }
 
     function activeGroups() {
       return GROUPS
         .map(g => ({
           label: g.label,
-          lanes: g.lanes.filter(l =>
-            !HIDEABLE.includes(l.name) || events.some(e => e.type === l.name)),
+          lanes: g.lanes.filter(laneHasData),
         }))
         .filter(g => g.lanes.length);
     }
@@ -536,6 +544,7 @@ TIMELINE_V1_HTML = """<!DOCTYPE html>
       const zone = ev.location?.zone || '?';
       const typeColor = COLORS[ev.type] || '#fff';
       el.innerHTML = `
+        ${new URLSearchParams(location.search).get('event') ? '<p style="margin-bottom:0.5rem"><a href="/" style="color:#8ab4f8;font-size:0.78rem">← Tillbaka till listan</a></p>' : ''}
         <div class="detail-title">${ev.summary || ev.type}</div>
         <div style="margin-bottom:0.4rem">
           <span class="detail-badge" style="background:${typeColor}22;color:${typeColor}">${ev.type}</span>
@@ -543,9 +552,9 @@ TIMELINE_V1_HTML = """<!DOCTYPE html>
           ${ev.metadata?.anomaly ? '<span class="detail-badge" style="background:#f9ab0022;color:#f9ab00">anomali</span>' : ''}
         </div>
         <div class="detail-meta">
-          <b>Time:</b> ${timeStr}<br>
-          <b>Zone:</b> ${zone}<br>
-          <b>Source:</b> ${ev.source || '?'}<br>
+          <b>Tid:</b> ${timeStr}<br>
+          <b>Zon:</b> ${zone}<br>
+          <b>Källa:</b> ${ev.source || '?'}<br>
           ${identity ? `<b>Identity:</b> ${identity} ${conf ? '(' + conf + ')' : ''}<br>` : ''}
           ${ev.metadata?.metric ? `<b>Metric:</b> ${ev.metadata.metric} = ${ev.metadata.value}<br>` : ''}
           ${ev.metadata?.baseline_mean != null ? `<b>Baseline:</b> ${ev.metadata.baseline_mean}±${ev.metadata.baseline_std}<br>` : ''}
@@ -692,8 +701,50 @@ TIMELINE_V1_HTML = """<!DOCTYPE html>
       const hit = hitEvent(cx, cy);
       if (hit) { showEventDetail(hit); return; }
       const blk = hitBlock(cx, cy);
-      if (blk) switchPane('occupancy');
+      if (blk) {
+        switchPane('occupancy');
+        const aside = document.querySelector('aside');
+        if (aside) aside.classList.add('aside-open');
+      }
     });
+
+    function bindTouch() {
+      let touchDrag = false, touchStartX = 0, touchViewStart = 0;
+      canvas.addEventListener('touchstart', ev => {
+        if (ev.touches.length !== 1) return;
+        const { cx, cy } = canvasXY(ev);
+        const hit = hitEvent(cx, cy);
+        if (hit) return;
+        touchDrag = true;
+        touchStartX = ev.touches[0].clientX;
+        touchViewStart = viewStart;
+        wrap.classList.add('dragging');
+      }, { passive: true });
+      canvas.addEventListener('touchmove', ev => {
+        if (!touchDrag || ev.touches.length !== 1) return;
+        const dx = ev.touches[0].clientX - touchStartX;
+        const span = viewEnd - viewStart;
+        const shift = (dx / (canvas.width - LABEL_W - PAD_RIGHT)) * span;
+        viewStart = touchViewStart - shift;
+        viewEnd = viewStart + span;
+        clampView();
+        draw();
+      }, { passive: true });
+      canvas.addEventListener('touchend', ev => {
+        if (touchDrag) { touchDrag = false; wrap.classList.remove('dragging'); return; }
+        const touch = ev.changedTouches[0];
+        const rect = canvas.getBoundingClientRect();
+        const cx = touch.clientX - rect.left, cy = touch.clientY - rect.top;
+        const hit = hitEvent(cx, cy);
+        if (hit) showEventDetail(hit);
+      }, { passive: true });
+    }
+    function canvasXY(ev) {
+      const rect = canvas.getBoundingClientRect();
+      const pt = ev.touches ? ev.touches[0] : ev;
+      return { cx: pt.clientX - rect.left, cy: pt.clientY - rect.top };
+    }
+    bindTouch();
 
     canvas.addEventListener('wheel', ev => {
       ev.preventDefault();

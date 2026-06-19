@@ -12,7 +12,7 @@ views:
             card:
               type: iframe
               url: !secret timeline_url
-              aspect_ratio: 75%
+              aspect_ratio: 125%
 
           - type: conditional
             conditions:

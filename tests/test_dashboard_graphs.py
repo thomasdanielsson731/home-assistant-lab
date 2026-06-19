@@ -163,10 +163,12 @@ def test_graph_sensors_template_exists():
 
 
 def test_insights_rest_includes_bicycle_counter():
-    text = (HA / "rest" / "insights.yaml").read_text(encoding="utf-8")
+    text = (HA / "mqtt_sensors" / "insights_counters.yaml").read_text(encoding="utf-8")
     assert "insights_bicycles_24h" in text
-    assert "insights_persons_24h" in text
-    assert "'bicycle'" in text or '"bicycle"' in text or "eq', 'bicycle'" in text
+    assert "danielsson/insights/bicycles_24h" in text
+    bridge = (REPO / "scripts" / "insights_counters_bridge.py").read_text(encoding="utf-8")
+    assert "bicycles" in bridge
+    assert "danielsson/insights/" in bridge
 
 
 def test_house_context_zones_label_covers_all_zones():
@@ -187,10 +189,10 @@ def test_statistics_graph_sources_have_state_class():
 
 def test_home_events_embeds_clickable_list():
     text = (DASHBOARDS / "home-events.yaml").read_text(encoding="utf-8")
-    assert "sensor.insights_persons_24h" in text
+    assert "sensor.insights_persons_24h_2" in text or "sensor.insights_persons_24h" in text
     assert "panel: true" in text
     assert "type: iframe" in text
-    assert "!secret events_url" in text
+    assert "min-width: 1025px" in text
     assert "house-timeline" not in text
 
 

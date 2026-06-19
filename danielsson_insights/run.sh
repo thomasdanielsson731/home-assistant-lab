@@ -50,6 +50,7 @@ if bashio::config 'enable_bridges'; then
   start_bg "air_quality_bridge" "air_quality_bridge.py"
   start_bg "audio_bridge" "audio_bridge.py"
   start_bg "aoa_bridge" "aoa_bridge.py"
+  start_bg "insights_counters_bridge" "insights_counters_bridge.py"
   if bashio::config.has_value 'influx_url'; then
     start_bg "influx_metrics_bridge" "influx_metrics_bridge.py"
   fi

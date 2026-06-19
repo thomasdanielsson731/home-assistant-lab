@@ -30,6 +30,7 @@ recorder:
       - image.*
       - binary_sensor.*_motion
       - binary_sensor.*_scene_object_present
+      - sensor.insights_*_24h
       - sensor.*_scene_persons
       - sensor.*_scene_vehicles
 
@@ -116,8 +117,7 @@ script: !include_dir_merge_named scripts/
 # Template sensors (house context + presence fusion)
 template: !include_dir_merge_list templates/
 
-# Insights timeline counters (Teknik Live / Drift)
-rest: !include_dir_merge_list rest/
+# Insights 24h counters — MQTT via insights_counters_bridge.py in Danielsson Insights add-on
 
 # MQTT entities (broker configured via UI — stored in .storage/core.config_entries)
 mqtt:

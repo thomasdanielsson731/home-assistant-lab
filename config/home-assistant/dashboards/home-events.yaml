@@ -11,23 +11,23 @@ views:
           - type: markdown
             content: >-
               **Vad hände?** Kronologisk lista med bilder — person, fordon, ankomster.
-              Tryck på en rad för detaljer i Analytics.
+              Tryck på en rad för mer info och bild.
           - type: custom:mushroom-chips-card
             chips:
               - type: template
                 icon: mdi:account
                 content: >-
-                  Person {{ states('sensor.insights_persons_24h') | default('—', true) }} (24 h)
+                  Person {% set v = states('sensor.insights_persons_24h') %}{{ v if v not in ['unknown','unavailable',''] else states('sensor.insights_persons_24h_2') | default('—', true) }} (24 h)
                 icon_color: amber
               - type: template
                 icon: mdi:home-import-outline
                 content: >-
-                  Ankomster {{ states('sensor.insights_arrivals_24h') | default('—', true) }}
+                  Ankomster {% set v = states('sensor.insights_arrivals_24h') %}{{ v if v not in ['unknown','unavailable',''] else states('sensor.insights_arrivals_24h_2') | default('—', true) }}
                 icon_color: blue
               - type: template
                 icon: mdi:package-variant-closed
                 content: >-
-                  Leveranser {{ states('sensor.insights_deliveries_24h') | default('—', true) }}
+                  Leveranser {% set v = states('sensor.insights_deliveries_24h') %}{{ v if v not in ['unknown','unavailable',''] else states('sensor.insights_deliveries_24h_2') | default('—', true) }}
                 icon_color: blue
               - type: action
                 icon: mdi:refresh
@@ -35,6 +35,29 @@ views:
                 tap_action:
                   action: url
                   url_path: !secret events_url
-          - type: iframe
-            url: !secret events_url
-            aspect_ratio: 100%
+          - type: conditional
+            conditions:
+              - condition: screen
+                media_query: "(min-width: 1025px)"
+            card:
+              type: iframe
+              url: !secret events_url
+              aspect_ratio: 150%
+
+          - type: conditional
+            conditions:
+              - condition: screen
+                media_query: "(max-width: 1024px)"
+            card:
+              type: vertical-stack
+              cards:
+                - type: markdown
+                  content: |
+                    ### Händelser på mobil
+                    Iframe kan blockeras via HTTPS — öppna i Safari/Chrome.
+                - type: button
+                  name: Öppna händelselista
+                  icon: mdi:format-list-bulleted
+                  tap_action:
+                    action: url
+                    url_path: !secret events_url

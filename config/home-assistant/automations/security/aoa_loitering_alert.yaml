@@ -4,7 +4,7 @@
   description: >
     Push when AOA loitering scenario fires (person lingering past camera threshold).
     15 min cooldown per automation run.
-  mode: single
+  mode: parallel
   max_exceeded: silent
   trigger:
     - platform: state
@@ -26,4 +26,3 @@
         data:
           url: /lovelace/home-security/security
           clickAction: /lovelace/home-security/security
-    - delay: "00:15:00"

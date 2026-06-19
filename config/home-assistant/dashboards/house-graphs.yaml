@@ -5,10 +5,15 @@ views:
     cards:
       - type: vertical-stack
         cards:
-          - type: markdown
-            content: >-
-              **Miljödata** (D6210 uppfart + inne brandvarnare + SPL).
-              För detektioner och bilder → **Händelser** i sidomenyn.
+          - type: conditional
+            conditions:
+              - condition: screen
+                media_query: "(min-width: 1025px)"
+            card:
+              type: markdown
+              content: >-
+                **Miljödata** (D6210 uppfart + inne brandvarnare + SPL).
+                För detektioner och bilder → **Händelser** i sidomenyn.
           - type: conditional
             conditions:
               - condition: screen
@@ -16,7 +21,7 @@ views:
             card:
               type: iframe
               url: !secret environment_url
-              aspect_ratio: 75%
+              aspect_ratio: 125%
 
           - type: conditional
             conditions:

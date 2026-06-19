@@ -39,8 +39,9 @@ CAMERAS = [
 ]
 
 SCENARIO_TOPICS = {
-    "PersonOccupancy": "PersonOccupancy/Active",
-    "VehicleOcc":      "VehicleOcc/Active",
+    "PersonOccupancy": ("ScenarioOccupancy", "PersonOccupancy/Active"),
+    "VehicleOcc": ("ScenarioOccupancy", "VehicleOcc/Active"),
+    "Loitering": ("ScenarioLoitering", "Loitering/Active"),
 }
 
 POLL_INTERVAL = 10
@@ -91,12 +92,14 @@ def get_active(ip: str, scenario_id: int, scenario_name: str) -> bool:
     occ = data.get("data", {})
     if scenario_name == "PersonOccupancy":
         return int(occ.get("human", 0) or 0) > 0
+    if scenario_name == "Loitering":
+        return int(occ.get("total", 0) or 0) > 0
     return int(occ.get("total", 0) or 0) > 0
 
 
 def publish(client: mqtt.Client, zone: str, scenario_name: str, active: bool) -> None:
-    suffix = SCENARIO_TOPICS[scenario_name]
-    topic = f"axis/{zone}/event/ObjectAnalytics/ScenarioOccupancy/{suffix}"
+    group, suffix = SCENARIO_TOPICS[scenario_name]
+    topic = f"axis/{zone}/event/ObjectAnalytics/{group}/{suffix}"
     payload = json.dumps({"Data": {"active": active}})
     client.publish(topic, payload, qos=0, retain=True)
     log.info("%-14s %-18s  %s  -> %s", zone, scenario_name, "ON " if active else "off", topic)
