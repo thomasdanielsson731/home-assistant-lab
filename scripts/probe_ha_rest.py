@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Inspect HA config entries and error log for REST issues."""
+"""Inspect HA REST config entries (legacy) and MQTT insights entities."""
 import json
 import os
 import urllib.request
@@ -26,6 +26,6 @@ for url in (
             print(json.dumps(e, indent=2)[:800])
     else:
         lines = [ln for ln in data.splitlines() if "rest" in ln.lower() or "insights" in ln.lower()]
-        print("Error log (rest/insights):")
+        print("Error log (rest/insights/mqtt):")
         for ln in lines[-20:]:
             print(ln)

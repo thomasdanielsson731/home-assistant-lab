@@ -17,6 +17,7 @@ Du granskar **hur data upplevs i HA och Insights** — inte bara backend (se [an
 | Environment UI | Chart.js multi-series | Nattliga gap (bridge nere) — ska bryta linje |
 | Grafana | Influx `home_metrics` | Tom panel = Influx/auth |
 | Analytics | timeline metric lanes | door/behavior tomma perioder |
+| Teknik chips | `sensor.insights_*_24h_display` | MQTT via add-on; legacy `_2` fallback |
 
 Filer: `environment_page.py`, `home-metrics-7d.json`, `baseline_engine.py`, `scripts/health-check.py`
 
