@@ -77,6 +77,22 @@ views:
                 icon_color: blue
                 layout: vertical
                 fill_container: true
+              - type: custom:mushroom-template-card
+                primary: >-
+                  {% set aqi = states('sensor.driveway_env_aqi') | int(0) %}
+                  {% if states('sensor.driveway_env_aqi') in ['unknown', 'unavailable', ''] %}—
+                  {% elif aqi == 0 %}Uppstart
+                  {% else %}AQI {{ aqi }}{% endif %}
+                secondary: Ute luft
+                icon: mdi:air-filter
+                icon_color: >-
+                  {% set aqi = states('sensor.driveway_env_aqi') | int(0) %}
+                  {% if aqi == 0 %}grey
+                  {% elif aqi <= 50 %}green
+                  {% elif aqi <= 100 %}amber
+                  {% else %}red{% endif %}
+                layout: vertical
+                fill_container: true
 
       # ── Allt OK? — rök, vatten, sammanfattning ───────────────
       - title: SNABBT LÄGE

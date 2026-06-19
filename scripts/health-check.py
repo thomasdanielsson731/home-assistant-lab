@@ -345,8 +345,14 @@ def main() -> int:
         else:
             person_n = sum(1 for e in events if e.get("type") == "person")
             vehicle_n = sum(1 for e in events if e.get("type") == "vehicle")
+            arrival_n = sum(1 for e in events if e.get("type") == "arrival")
+            delivery_n = sum(1 for e in events if e.get("type") == "delivery")
+            bicycle_n = sum(1 for e in events if e.get("type") == "bicycle")
             print(f"  OK    {len(events)} events last 24 h (add-on API)")
-            print(f"        Frigate person: {person_n} · vehicle: {vehicle_n}")
+            print(
+                f"        person: {person_n} · vehicle: {vehicle_n} · "
+                f"arrival: {arrival_n} · delivery: {delivery_n} · bicycle: {bicycle_n}"
+            )
             if events:
                 last = events[0]
                 print(

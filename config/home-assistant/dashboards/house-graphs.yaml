@@ -19,6 +19,12 @@ views:
                 tap_action:
                   action: navigate
                   navigation_path: /lovelace/home-events/events
+              - type: action
+                icon: mdi:chip
+                content: Teknik
+                tap_action:
+                  action: navigate
+                  navigation_path: /lovelace/home-tech/live
               - type: template
                 icon: mdi:counter
                 content: >-
