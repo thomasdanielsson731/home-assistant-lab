@@ -70,6 +70,16 @@ views:
                 fill_container: true
               - type: custom:mushroom-template-card
                 primary: >-
+                  {% set d = states('sensor.house_indoor_outdoor_delta') %}
+                  {% if d in ['unknown', 'unavailable', ''] %}—
+                  {% else %}Δ {{ d }}°C{% endif %}
+                secondary: Inne/ute
+                icon: mdi:thermometer-lines
+                icon_color: blue
+                layout: vertical
+                fill_container: true
+              - type: custom:mushroom-template-card
+                primary: >-
                   {% if states('sensor.driveway_env_temperature') in ['unknown', 'unavailable', ''] %}—
                   {% else %}{{ states('sensor.driveway_env_temperature') }}°C{% endif %}
                 secondary: Ute · uppfart

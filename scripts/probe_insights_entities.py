@@ -7,5 +7,5 @@ h=os.environ["HA_HOST"]; t=os.environ["HA_TOKEN"]
 r=urllib.request.Request(f"http://{h}:8123/api/states", headers={"Authorization":f"Bearer {t}"})
 for s in json.loads(urllib.request.urlopen(r,timeout=30).read()):
     e=s["entity_id"]
-    if "24h" in e or "insights" in e.lower() or "events" in e and "sensor" in e:
+    if "24h" in e or "insights" in e.lower() or ("events" in e and "sensor" in e) or e.endswith("_display"):
         print(e, s["state"])

@@ -19,7 +19,8 @@ Du koordinerar en **panel-review** av Danielsson Home genom att köra (eller sim
 1. Läs [docs/current-focus.md](../docs/current-focus.md), [docs/scope.md](../docs/scope.md), [ADR-006](../docs/decisions/006-no-face-no-companion-presence.md)
 2. Granska `config/home-assistant/dashboards/home-*.yaml` och `home-tech.yaml` (+ `house-graphs.yaml`, `house-timeline.yaml`, `home-events.yaml`)
 3. Om möjligt: hämta live state via `python scripts/health-check.py` och `list-ha-entities.py`
-4. Valfritt: screenshots från användaren eller beskrivning av aktuella vyer
+4. Insights 24h chips: `sensor.insights_*_24h_display` (MQTT + legacy coalesce) — not REST
+5. Valfritt: screenshots från användaren eller beskrivning av aktuella vyer
 
 ## Körning i Cursor
 

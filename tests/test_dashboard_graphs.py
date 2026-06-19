@@ -226,6 +226,8 @@ def test_insights_display_coalesce_templates():
     ):
         assert key in text
     assert "insights_events_24h_2" in text
+    assert text.count("source:") >= 5
+    assert text.count("source:") >= 5
 
 
 def test_no_stale_rest_insights_yaml():
