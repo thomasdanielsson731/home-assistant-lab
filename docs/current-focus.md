@@ -120,6 +120,7 @@ ha apps logs 25d01a20_danielsson_insights
 
 | Doc | When to read |
 |---|---|
+| [top-30-proposal.md](top-30-proposal.md) | **Panel review Top 30** — prioriterad åtgärdslista (2026-06-20) |
 | [backlog.md](backlog.md) | Work queue |
 | [roadmap.md](roadmap.md) | Phase tasks |
 | [runbooks/remote-access-cloudflare.md](runbooks/remote-access-cloudflare.md) | HA + Insights remote access |

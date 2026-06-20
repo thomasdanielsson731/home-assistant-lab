@@ -293,9 +293,9 @@ ENVIRONMENT_HTML = """<!DOCTYPE html>
         if (!Array.isArray(rows)) throw new Error('unexpected API response');
       } catch (err) {
         document.getElementById('stats').textContent =
-          `Cannot load metrics — check Danielsson Insights add-on. ${err.message}`;
+          `Kan inte ladda metrics — kontrollera Danielsson Insights add-on. ${err.message}`;
         Object.values(CHART_SLOTS).forEach(({ wrap }) => {
-          showChartEmpty(wrap, 'No data — restart Danielsson Insights add-on on HA');
+          showChartEmpty(wrap, 'Ingen data — starta om Danielsson Insights add-on i HA');
         });
         return;
       }

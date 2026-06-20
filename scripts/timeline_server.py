@@ -971,18 +971,45 @@ class Handler(BaseHTTPRequestHandler):
     def log_message(self, fmt, *args):
         log.debug(fmt, *args)
 
+    def _common_headers(self) -> None:
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header(
+            "Content-Security-Policy",
+            "frame-ancestors 'self' https://ha.danielsson.cloud http://192.168.68.175:8123 "
+            "http://homeassistant.local:8123 https://homeassistant.local:8123",
+        )
+
     def _json_response(self, data, status: int = 200) -> None:
         body = json.dumps(data, ensure_ascii=False).encode()
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
-        self.send_header("Access-Control-Allow-Origin", "*")
+        self._common_headers()
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
 
+    def _html_response(self, page: bytes) -> None:
+        self.send_response(200)
+        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
+        self._common_headers()
+        self.send_header("Content-Length", str(len(page)))
+        self.end_headers()
+        self.wfile.write(page)
+
     def do_GET(self):
         parsed = urlparse(self.path)
         qs = parse_qs(parsed.query)
+
+        if parsed.path in ("/health", "/api/v1/health"):
+            self._json_response(
+                {
+                    "ok": True,
+                    "service": "danielsson-insights",
+                    "timeline": TIMELINE_JSONL.exists(),
+                }
+            )
+            return
 
         if parsed.path in ("/api/events", "/api/v1/events"):
             since, until, hours = _range_from_qs(qs)
@@ -1021,20 +1048,12 @@ class Handler(BaseHTTPRequestHandler):
 
         if parsed.path == "/timeline":
             page = _insights_page(TIMELINE_V1_HTML)
-            self.send_response(200)
-            self.send_header("Content-Type", "text/html; charset=utf-8")
-            self.send_header("Content-Length", str(len(page)))
-            self.end_headers()
-            self.wfile.write(page)
+            self._html_response(page)
             return
 
         if parsed.path == "/environment":
             page = _insights_page(ENVIRONMENT_HTML)
-            self.send_response(200)
-            self.send_header("Content-Type", "text/html; charset=utf-8")
-            self.send_header("Content-Length", str(len(page)))
-            self.end_headers()
-            self.wfile.write(page)
+            self._html_response(page)
             return
 
         # ── Story API ─────────────────────────────────────────────────
@@ -1087,11 +1106,7 @@ class Handler(BaseHTTPRequestHandler):
 
         if parsed.path in ("/story", "/story/"):
             page = _insights_page(STORY_HTML)
-            self.send_response(200)
-            self.send_header("Content-Type", "text/html; charset=utf-8")
-            self.send_header("Content-Length", str(len(page)))
-            self.end_headers()
-            self.wfile.write(page)
+            self._html_response(page)
             return
 
         if parsed.path.startswith("/static/"):
@@ -1180,11 +1195,7 @@ class Handler(BaseHTTPRequestHandler):
             )
         )
 
-        self.send_response(200)
-        self.send_header("Content-Type", "text/html; charset=utf-8")
-        self.send_header("Content-Length", str(len(page)))
-        self.end_headers()
-        self.wfile.write(page)
+        self._html_response(page)
 
 
 def main() -> None:

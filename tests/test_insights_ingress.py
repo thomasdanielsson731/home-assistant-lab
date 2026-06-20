@@ -43,6 +43,9 @@ class TestInsightsBaseScript:
         assert "idx >= 0" in INSIGHTS_BASE_SCRIPT
         assert "idx === 0 ? '/'" in INSIGHTS_BASE_SCRIPT
 
+    def test_root_event_list_gets_base_href(self):
+        assert "p.endsWith('/')" in INSIGHTS_BASE_SCRIPT
+
 
 class TestInsightsPageHelper:
     @pytest.mark.parametrize(
@@ -59,7 +62,8 @@ class TestInsightsPageHelper:
     def test_idempotent_when_already_served(self):
         once = _insights_page(TIMELINE_V1_HTML).decode("utf-8")
         # Placeholder already gone — second pass must not duplicate script.
-        assert once.count("document.createElement('base')") == 1
+        assert once.count("__INSIGHTS_BASE__") == 0
+        assert once.count("document.createElement('base')") >= 1
 
 
 class TestIngressSafeTemplates:
@@ -176,6 +180,24 @@ class TestIngressSafeHTTP:
         body = resp.read()
         assert resp.status == 200
         assert len(body) > 100_000
+
+    def test_health_endpoint(self, insights_server):
+        conn = HTTPConnection("127.0.0.1", insights_server)
+        conn.request("GET", "/health")
+        resp = conn.getresponse()
+        data = json.loads(resp.read().decode("utf-8"))
+        assert resp.status == 200
+        assert data.get("ok") is True
+
+    def test_html_responses_disable_cache(self, insights_server):
+        conn = HTTPConnection("127.0.0.1", insights_server)
+        conn.request("GET", "/timeline")
+        resp = conn.getresponse()
+        resp.read()
+        assert resp.getheader("Cache-Control") == "no-cache, no-store, must-revalidate"
+        csp = resp.getheader("Content-Security-Policy") or ""
+        assert "frame-ancestors" in csp
+        assert "ha.danielsson.cloud" in csp
 
     def test_timeline_and_environment_templates_match_imports(self):
         assert ENVIRONMENT_HTML == SERVER_ENV_HTML

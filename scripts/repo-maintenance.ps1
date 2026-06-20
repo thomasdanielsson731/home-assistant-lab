@@ -144,3 +144,13 @@ if ($Reload -and -not $DryRun) {
 }
 
 Write-Log "=== Maintenance done ==="
+
+# ── 4. Insights iframe health (Analytics / Environment) ─────────────────────
+
+if (-not $DryRun) {
+    Write-Log "Verifying Insights Analytics/Environment ..."
+    & "$PSScriptRoot\verify-insights-ha.ps1"
+    if ($LASTEXITCODE -ne 0) {
+        Write-Log "WARN: Insights check failed — run verify-insights-ha.ps1 -FixCloudflareUrls"
+    }
+}

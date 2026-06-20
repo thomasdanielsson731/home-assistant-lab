@@ -30,6 +30,40 @@ views:
                 content: >-
                   {{ states('sensor.insights_events_24h_display') | default('—', true) }} händelser (24 h)
                 icon_color: grey
+              - type: template
+                icon: mdi:server-network
+                content: >-
+                  {% if states('sensor.insights_server_ok') in ['unknown', 'unavailable', ''] %}Insights offline
+                  {% else %}Insights OK{% endif %}
+                icon_color: >-
+                  {% if states('sensor.insights_server_ok') in ['unknown', 'unavailable', ''] %}red
+                  {% else %}green{% endif %}
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.insights_server_ok
+                state:
+                  - unavailable
+                  - unknown
+            card:
+              type: markdown
+              content: >-
+                **Insights svarar inte** — Environment kan vara tomt.
+                Starta om add-on *Danielsson Insights* under Inställningar → Tillägg → Drift.
+          - type: conditional
+            conditions:
+              - condition: screen
+                media_query: "(min-width: 1025px)"
+            card:
+              type: custom:mushroom-template-card
+              primary: Öppna Environment i ny flik
+              secondary: Använd om iframe är tom (vanligt efter omstart eller cache)
+              icon: mdi:open-in-new
+              icon_color: blue
+              fill_container: true
+              tap_action:
+                action: url
+                url_path: !secret environment_url
           - type: conditional
             conditions:
               - condition: screen

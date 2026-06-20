@@ -15,7 +15,7 @@ class TestEnvironmentPageHtml:
         assert "front:spl" in ENVIRONMENT_HTML
 
     def test_includes_error_handling_and_nav(self):
-        assert "Cannot load metrics" in ENVIRONMENT_HTML
+        assert "Kan inte ladda metrics" in ENVIRONMENT_HTML
         assert "Danielsson Insights add-on" in ENVIRONMENT_HTML
         assert 'href="timeline"' in ENVIRONMENT_HTML
         assert "api/v1/metrics" in ENVIRONMENT_HTML

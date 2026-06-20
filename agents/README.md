@@ -19,7 +19,7 @@ Granska **sidebar panels** (`home-hem`, `home-cameras`, `home-security`, `home-e
 |---|---|---|
 | Thomas | [ha-reviewer-thomas.md](ha-reviewer-thomas.md) | Technörd — demo-värde, events, Axis/Insights |
 | Anna | [ha-reviewer-anna.md](ha-reviewer-anna.md) | Vardag — lampor, larm, enkel mobil |
-| Nils & Hugo | [ha-reviewer-youth.md](ha-reviewer-youth.md) | 20-åringar — mobil, rum, integritet |
+| Tester | [ha-reviewer-tester.md](ha-reviewer-tester.md) | QA — flows, regression, severity, pytest |
 | UX expert | [ha-reviewer-ux.md](ha-reviewer-ux.md) | Tasks, friktion, informationsarkitektur |
 | Visual | [ha-reviewer-visual.md](ha-reviewer-visual.md) | Utseende, färger, grid, Mushroom |
 | Security analytics | [ha-reviewer-security-analytics.md](ha-reviewer-security-analytics.md) | Multisensor, larm, unavailable-risk |

@@ -173,10 +173,33 @@ def test_insights_rest_includes_bicycle_counter():
     assert "counters_bridge_ok" in bridge
 
 
+def test_insights_iframe_panels_have_fallback_and_health():
+    for name in ("house-timeline.yaml", "house-graphs.yaml"):
+        text = (DASHBOARDS / name).read_text(encoding="utf-8")
+        assert "sensor.insights_server_ok" in text
+        assert "Öppna" in text and "ny flik" in text
+        assert "type: iframe" in text
+        assert "min-width: 1025px" in text
+
+
+def test_insights_mqtt_server_ok_sensor():
+    text = (HA / "mqtt_sensors" / "insights_counters.yaml").read_text(encoding="utf-8")
+    assert "insights_server_ok" in text
+    assert "danielsson/insights/server_ok" in text
+
+
+def test_recorder_excludes_insights_health_sensors():
+    text = (HA / "configuration.yaml").read_text(encoding="utf-8")
+    assert "sensor.insights_server_ok" in text
+
+
 def test_insights_mqtt_bridge_heartbeat_sensor():
     text = (HA / "mqtt_sensors" / "insights_counters.yaml").read_text(encoding="utf-8")
     assert "insights_counters_bridge_ok" in text
     assert "counters_bridge_ok" in text
+    bridge = (REPO / "scripts" / "insights_counters_bridge.py").read_text(encoding="utf-8")
+    assert "server_ok" in bridge
+    assert "/health" in bridge
 
 
 def test_insights_counters_offline_automation():

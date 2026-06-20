@@ -37,6 +37,9 @@ Complete the Axis analytics pipeline end-to-end.
 | P7-22 | Panel review batch 1 — MQTT counters, loitering bridge, timeline UX | ✅ 2026-06-14 |
 | P7-23 | Panel review batches 2–8 — coalesce display sensors, nav chips, alerts | ✅ 2026-06-14 |
 | P7-24 | Panel review batches 9–20 — delta chips, recorder, tests, docs | ✅ 2026-06-14 |
+| P7-25 | Panel review 2026-06-20 — [Top 30 proposal](top-30-proposal.md) | 📋 |
+| P7-26 | Event pipeline audit — 0 person/fordon i timeline / 24 h | ⬜ |
+| P7-27 | Händelser-vy — `insights_server_ok` + offline-banner (parity Analytics) | ⬜ |
 
 ---
 

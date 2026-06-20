@@ -41,3 +41,10 @@
   icon: mdi:check-network
   device_class: timestamp
   expire_after: 180
+
+- name: "Insights server ok"
+  unique_id: insights_server_ok
+  state_topic: "danielsson/insights/server_ok"
+  icon: mdi:server-network
+  device_class: timestamp
+  expire_after: 180

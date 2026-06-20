@@ -32,6 +32,7 @@ recorder:
       - binary_sensor.*_scene_object_present
       - sensor.insights_*_24h*
       - sensor.insights_counters_bridge_ok
+      - sensor.insights_server_ok
       - sensor.*_scene_persons
       - sensor.*_scene_vehicles
 

@@ -110,6 +110,7 @@ def test_recorder_excludes_insights_counters():
     text = (HA / "configuration.yaml").read_text(encoding="utf-8")
     assert "sensor.insights_*_24h*" in text
     assert "sensor.insights_counters_bridge_ok" in text
+    assert "sensor.insights_server_ok" in text
 
 
 def test_sidebar_script_hides_overview_and_applies_all_users():

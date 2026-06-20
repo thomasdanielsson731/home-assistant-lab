@@ -78,18 +78,36 @@ def counts() -> dict[str, int]:
     }
 
 
+def server_ok() -> bool:
+    for url in (
+        f"http://127.0.0.1:8765/health",
+        f"http://{MQTT_HOST}:8765/health",
+        f"http://127.0.0.1:8765/timeline",
+        f"http://{MQTT_HOST}:8765/timeline",
+    ):
+        try:
+            resp = requests.get(url, timeout=8)
+            if resp.status_code == 200:
+                return True
+        except requests.RequestException:
+            continue
+    return False
+
+
 def publish(client: mqtt.Client, values: dict[str, int]) -> None:
     for key, _ in COUNTERS:
         topic = f"danielsson/insights/{key}_24h"
         payload = str(values[key])
         client.publish(topic, payload, qos=0, retain=True)
         log.info("MQTT %s = %s", topic, payload)
-    client.publish(
-        "danielsson/insights/counters_bridge_ok",
-        str(int(time.time())),
-        qos=0,
-        retain=True,
-    )
+    now = str(int(time.time()))
+    client.publish("danielsson/insights/counters_bridge_ok", now, qos=0, retain=True)
+    if server_ok():
+        client.publish("danielsson/insights/server_ok", now, qos=0, retain=True)
+        log.info("MQTT danielsson/insights/server_ok = %s", now)
+    else:
+        client.publish("danielsson/insights/server_ok", "", qos=0, retain=True)
+        log.warning("Insights server not reachable on :8765")
 
 
 def main() -> None:
