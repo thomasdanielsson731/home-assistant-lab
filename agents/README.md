@@ -24,7 +24,7 @@ Granska **sidebar panels** (`home-hem`, `home-cameras`, `home-security`, `home-e
 | Visual | [ha-reviewer-visual.md](ha-reviewer-visual.md) | Utseende, färger, grid, Mushroom |
 | Security analytics | [ha-reviewer-security-analytics.md](ha-reviewer-security-analytics.md) | Multisensor, larm, unavailable-risk |
 | Data (HA UI) | [ha-reviewer-data.md](ha-reviewer-data.md) | Grafer, gaps, trust i siffror |
-| **Orkestrator** | [ha-review-panel.md](ha-review-panel.md) | Kör panel + syntes + top 5 |
+| **Orkestrator** | [ha-review-panel.md](ha-review-panel.md) | Kör panel + syntes → [review-board.md](../docs/review-board.md) |
 
 ### Snabbstart — full panel-review
 

@@ -40,6 +40,11 @@ Complete the Axis analytics pipeline end-to-end.
 | P7-25 | Panel review 2026-06-20 — [Top 30 proposal](top-30-proposal.md) | ✅ batch 21 |
 | P7-26 | Event pipeline audit — AOA person + diagnose script | ✅ 2026-06-20 |
 | P7-27 | Händelser-vy — `insights_server_ok` + offline-banner | ✅ 2026-06-20 |
+| P7-28 | Panel review board — [review-board.md](review-board.md) batch 22 prep | 📋 2026-06-20 |
+| P7-29 | Deploy batch 21 till HAOS (sync + insights add-on) | ⬜ |
+| P7-30 | Nils chip fix + push copy audit (svenska) | ⬜ |
+| P7-31 | Project setup review — deploy drift + test gap | ✅ [project-setup-review.md](project-setup-review.md) |
+| P7-32 | `verify-ha-deploy.ps1` i maintenance + CI | 📋 |
 
 ---
 

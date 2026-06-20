@@ -62,9 +62,12 @@ Dashboardarna är strukturellt mogna. Batch 21 levererade Händelser health-pari
 
 ---
 
-## Nästa steg
+## Nästa steg (batch 22)
+
+Se [review-board.md](review-board.md) — Top 5: deploy batch 21, kök ZHA 3/3, Nils-chip, grafana secrets, push copy.
 
 1. `.\scripts\sync-config.ps1` + `.\scripts\deploy-insights-to-ha.ps1` + add-on restart  
 2. Lägg `grafana_url` i host `secrets.yaml`  
 3. `python scripts/cleanup_stale_entities.py` → rensa i HA UI  
-4. ZHA re-pair kök brandvarnare
+4. ZHA re-pair kök brandvarnare  
+5. Fixa Nils rum-chip på Hem (`home-hem.yaml`)

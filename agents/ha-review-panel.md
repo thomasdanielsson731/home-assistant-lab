@@ -35,6 +35,8 @@ Starta en subagent per reviewer med respektive agent-fil + uppdrag: “Review si
 
 ## Syntes-output
 
+Skriv till **[docs/review-board.md](../docs/review-board.md)** (review board) och uppdatera [top-30-proposal.md](../docs/top-30-proposal.md) vid behov.
+
 ```markdown
 # Danielsson Home — Panel Review (datum)
 

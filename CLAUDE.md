@@ -115,6 +115,7 @@ Storage `PersonOccupancy` uses door-only AOA zones (not full frame). Scene entit
 ./scripts/repo-maintenance.sh --reload # + HA YAML reload
 
 # Windows (PowerShell)
+.\scripts\finish-dev.ps1                    # test + commit + push + deploy + verify
 .\scripts\sync-config.ps1
 .\scripts\repo-maintenance.ps1
 .\scripts\repo-maintenance.ps1 -Reload

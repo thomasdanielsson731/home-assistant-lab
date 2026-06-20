@@ -66,6 +66,7 @@ Event files on HA: `/share/danielsson-insights/events/`
 
 ```powershell
 python scripts/health-check.py          # probes HA :8765 + entities + Influx
+.\scripts\finish-dev.ps1                # end-of-dev: allt synkat till HAOS
 python scripts/verify-influxdb.py       # Influx auth + write probe
 .\scripts\verify-insights-ha.ps1        # add-on smoke test
 .\scripts\deploy-insights-to-ha.ps1     # sync scripts to /share
@@ -120,7 +121,8 @@ ha apps logs 25d01a20_danielsson_insights
 
 | Doc | When to read |
 |---|---|
-| [top-30-proposal.md](top-30-proposal.md) | **Panel review Top 30** — prioriterad åtgärdslista (2026-06-20) |
+| [review-board.md](review-board.md) | **Panel review board** — senaste findings + severity |
+| [top-30-proposal.md](top-30-proposal.md) | Prioriterad åtgärdslista (Top 30) |
 | [backlog.md](backlog.md) | Work queue |
 | [roadmap.md](roadmap.md) | Phase tasks |
 | [runbooks/remote-access-cloudflare.md](runbooks/remote-access-cloudflare.md) | HA + Insights remote access |

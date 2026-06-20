@@ -6,8 +6,10 @@ Automated commit, push, and config sync between the dev PC and HAOS.
 
 | Script | Purpose |
 |---|---|
-| `scripts/repo-maintenance.ps1` | Commit (if dirty) → push → sync to HAOS |
+| `scripts/finish-dev.ps1` | **Kör efter utveckling:** pytest, commit, push, sync, deploy, verify |
+| `scripts/repo-maintenance.ps1` | Schemalagd snapshot (commit + push + sync) |
 | `scripts/sync-config.ps1` | Sync only (no git) |
+| `scripts/verify-ha-deploy.ps1` | Compare repo dashboards vs HA host (drift check) |
 | `scripts/install-scheduled-tasks.ps1` | Register Windows scheduled tasks (run once) |
 
 Linux/macOS: `scripts/repo-maintenance.sh` (same logic).
@@ -15,7 +17,10 @@ Linux/macOS: `scripts/repo-maintenance.sh` (same logic).
 ## Manual Run
 
 ```powershell
-# Commit + push + sync
+# Efter utveckling - allt i ett svep
+.\scripts\finish-dev.ps1
+
+# Schemalagd / lättare (ingen Insights-deploy)
 .\scripts\repo-maintenance.ps1
 
 # Also reload HA YAML after sync
