@@ -1,4 +1,4 @@
-# Analytics — HAOS add-on iframe (desktop) or open-in-browser button (mobile/iPad)
+# Analytics — Insights via Ingress (in-app). Iframe blockeras i Windows HA-appen.
 views:
   - title: Analytics
     panel: true
@@ -32,10 +32,10 @@ views:
               - type: template
                 icon: mdi:server-network
                 content: >-
-                  {% if states('sensor.insights_server_ok') in ['unknown', 'unavailable', ''] %}Insights offline
+                  {% if states('sensor.insights_server_ok') == 'unavailable' %}Insights offline
                   {% else %}Insights OK{% endif %}
                 icon_color: >-
-                  {% if states('sensor.insights_server_ok') in ['unknown', 'unavailable', ''] %}red
+                  {% if states('sensor.insights_server_ok') == 'unavailable' %}red
                   {% else %}green{% endif %}
           - type: conditional
             conditions:
@@ -43,61 +43,31 @@ views:
                 entity: sensor.insights_server_ok
                 state:
                   - unavailable
-                  - unknown
             card:
               type: markdown
               content: >-
-                **Insights svarar inte** — Analytics/Environment kan vara tomma.
-                Starta om add-on *Danielsson Insights* under Inställningar → Tillägg → Drift.
-          - type: conditional
-            conditions:
-              - condition: screen
-                media_query: "(min-width: 1025px)"
-            card:
-              type: custom:mushroom-template-card
-              primary: Öppna Analytics i ny flik
-              secondary: Använd om iframe är tom (vanligt efter omstart eller cache)
-              icon: mdi:open-in-new
-              icon_color: blue
-              fill_container: true
-              tap_action:
-                action: url
-                url_path: !secret timeline_url
-          - type: conditional
-            conditions:
-              - condition: screen
-                media_query: "(min-width: 1025px)"
-            card:
-              type: markdown
-              content: >-
-                **Analytics** — tidslinje med korrelationer (ankomst, leverans, cykel).
-                Tomma spår = inga händelser av den typen i valt tidsintervall.
-          - type: conditional
-            conditions:
-              - condition: screen
-                media_query: "(min-width: 1025px)"
-            card:
-              type: iframe
-              url: !secret timeline_url
-              aspect_ratio: 125%
-
-          - type: conditional
-            conditions:
-              - condition: screen
-                media_query: "(max-width: 1024px)"
-            card:
-              type: vertical-stack
-              cards:
-                - type: markdown
-                  content: |
-                    ### Analytics på mobil/iPad
-                    Iframe blockeras ofta via HTTPS — öppna i Safari/Chrome.
-                - type: custom:mushroom-template-card
-                  primary: Öppna Analytics
-                  secondary: Tidslinje med zoom och korrelationer
-                  icon: mdi:timeline-clock
-                  icon_color: blue
-                  fill_container: true
-                  tap_action:
-                    action: url
-                    url_path: !secret timeline_url
+                **Insights svarar inte** — starta om add-on *Danielsson Insights*
+                under Inställningar → Tillägg → Drift.
+          - type: markdown
+            content: >-
+              **Analytics** — tidslinje med korrelationer (ankomst, leverans, cykel).
+              Windows-appen kan inte bädda in Insights (iframe blockeras). Tryck **Öppna Analytics**
+              — samma vy som i webbläsaren, via HA Ingress.
+          - type: custom:mushroom-template-card
+            primary: Öppna Analytics
+            secondary: Tidslinje med zoom och korrelationer (Ingress i appen)
+            icon: mdi:timeline-clock
+            icon_color: blue
+            fill_container: true
+            tap_action:
+              action: url
+              url_path: !secret timeline_url
+          - type: custom:mushroom-template-card
+            primary: Öppna i webbläsare
+            secondary: insights.danielsson.cloud — om Ingress-knappen inte fungerar
+            icon: mdi:open-in-new
+            icon_color: grey
+            fill_container: true
+            tap_action:
+              action: url
+              url_path: !secret timeline_external_url

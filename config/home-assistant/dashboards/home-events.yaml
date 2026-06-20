@@ -1,4 +1,4 @@
-# Händelser — event list with clickable rows (Danielsson Insights)
+# Händelser — event list (Danielsson Insights). Iframe blockeras i Windows HA-appen.
 title: Händelser
 views:
   - title: Händelser
@@ -42,69 +42,37 @@ views:
               - type: template
                 icon: mdi:server-network
                 content: >-
-                  {% if states('sensor.insights_server_ok') in ['unknown', 'unavailable', ''] %}Insights offline
+                  {% if states('sensor.insights_server_ok') == 'unavailable' %}Insights offline
                   {% else %}Insights OK{% endif %}
                 icon_color: >-
-                  {% if states('sensor.insights_server_ok') in ['unknown', 'unavailable', ''] %}red
+                  {% if states('sensor.insights_server_ok') == 'unavailable' %}red
                   {% else %}green{% endif %}
-              - type: action
-                icon: mdi:refresh
-                content: Öppna / uppdatera
-                tap_action:
-                  action: url
-                  url_path: !secret events_url
           - type: conditional
             conditions:
               - condition: state
                 entity: sensor.insights_server_ok
                 state:
                   - unavailable
-                  - unknown
             card:
               type: markdown
               content: >-
-                **Insights svarar inte** — händelselistan kan vara tom.
-                Starta om add-on *Danielsson Insights* under Inställningar → Tillägg → Drift.
-          - type: conditional
-            conditions:
-              - condition: screen
-                media_query: "(min-width: 1025px)"
-            card:
-              type: custom:mushroom-template-card
-              primary: Öppna händelselista i ny flik
-              secondary: Använd om iframe är tom (vanligt efter omstart eller cache)
-              icon: mdi:open-in-new
-              icon_color: blue
-              fill_container: true
-              tap_action:
-                action: url
-                url_path: !secret events_url
-          - type: conditional
-            conditions:
-              - condition: screen
-                media_query: "(min-width: 1025px)"
-            card:
-              type: iframe
-              url: !secret events_url
-              aspect_ratio: 150%
-
-          - type: conditional
-            conditions:
-              - condition: screen
-                media_query: "(max-width: 1024px)"
-            card:
-              type: vertical-stack
-              cards:
-                - type: markdown
-                  content: |
-                    ### Händelser på mobil
-                    Iframe kan blockeras via HTTPS — öppna i Safari/Chrome.
-                - type: custom:mushroom-template-card
-                  primary: Öppna händelselista
-                  secondary: Bilder och detaljer — fungerar bättre i Safari/Chrome
-                  icon: mdi:format-list-bulleted
-                  icon_color: blue
-                  fill_container: true
-                  tap_action:
-                    action: url
-                    url_path: !secret events_url
+                **Insights svarar inte** — starta om add-on *Danielsson Insights*
+                under Inställningar → Tillägg → Drift.
+          - type: custom:mushroom-template-card
+            primary: Öppna händelselista
+            secondary: Bilder och detaljer (Ingress i appen)
+            icon: mdi:format-list-bulleted
+            icon_color: blue
+            fill_container: true
+            tap_action:
+              action: url
+              url_path: !secret events_url
+          - type: custom:mushroom-template-card
+            primary: Öppna i webbläsare
+            secondary: insights.danielsson.cloud — om Ingress-knappen inte fungerar
+            icon: mdi:open-in-new
+            icon_color: grey
+            fill_container: true
+            tap_action:
+              action: url
+              url_path: !secret events_external_url

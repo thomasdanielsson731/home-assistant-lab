@@ -198,6 +198,7 @@ class TestIngressSafeHTTP:
         csp = resp.getheader("Content-Security-Policy") or ""
         assert "frame-ancestors" in csp
         assert "ha.danielsson.cloud" in csp
+        assert "https://192.168.68.175:8123" in csp
 
     def test_timeline_and_environment_templates_match_imports(self):
         assert ENVIRONMENT_HTML == SERVER_ENV_HTML

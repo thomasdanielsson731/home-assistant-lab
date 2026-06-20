@@ -11,11 +11,13 @@ from __future__ import annotations
 
 import json
 import logging
+import os
+import sys
+import threading
 from datetime import datetime, timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
-import sys
 
 sys.path.insert(0, str(Path(__file__).parent))
 from event_store import TZ  # noqa: E402
@@ -28,9 +30,11 @@ from timeline_api import (  # noqa: E402
 )
 from environment_page import ENVIRONMENT_HTML  # noqa: E402
 from insights_paths import INSIGHTS_BASE_SCRIPT  # noqa: E402
+from dotenv import load_dotenv  # noqa: E402
 from story_engine import generate_story  # noqa: E402
 
 REPO_ROOT = Path(__file__).parent.parent
+load_dotenv(REPO_ROOT / ".env")
 STATIC_DIR = Path(__file__).parent / "static"
 TIMELINE_JSONL = REPO_ROOT / "events" / "timeline.jsonl"
 EVENTS_ROOT = REPO_ROOT / "events"
@@ -45,6 +49,41 @@ STATIC_MIME = {
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 log = logging.getLogger("timeline")
+
+# Parent origins allowed to embed Insights in HA Lovelace iframe cards.
+FRAME_ANCESTORS = (
+    "'self' "
+    "https://ha.danielsson.cloud "
+    "http://192.168.68.175:8123 "
+    "https://192.168.68.175:8123 "
+    "http://homeassistant.local:8123 "
+    "https://homeassistant.local:8123 "
+    "http://127.0.0.1:8123 "
+    "https://127.0.0.1:8123 "
+    "http://localhost:8123 "
+    "https://localhost:8123"
+)
+
+
+def _ensure_counters_bridge() -> None:
+    """Run insights_counters_bridge in-process (add-on run.sh may omit it on older builds)."""
+    if not os.environ.get("MQTT_USER") or not os.environ.get("MQTT_PASS"):
+        return
+
+    def _run() -> None:
+        try:
+            import insights_counters_bridge as icb
+
+            icb.main()
+        except Exception as exc:
+            log.error("insights_counters_bridge failed: %s", exc)
+
+    threading.Thread(
+        target=_run,
+        name="insights_counters_bridge",
+        daemon=True,
+    ).start()
+    log.info("Started insights_counters_bridge thread (MQTT health chips)")
 
 TYPE_ICON = {
     "person": "👤",
@@ -975,8 +1014,7 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header(
             "Content-Security-Policy",
-            "frame-ancestors 'self' https://ha.danielsson.cloud http://192.168.68.175:8123 "
-            "http://homeassistant.local:8123 https://homeassistant.local:8123",
+            f"frame-ancestors {FRAME_ANCESTORS}",
         )
 
     def _json_response(self, data, status: int = 200) -> None:
@@ -1199,6 +1237,7 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main() -> None:
+    _ensure_counters_bridge()
     server = ThreadingHTTPServer(("0.0.0.0", PORT), Handler)
     log.info("Timeline → http://localhost:%d/timeline", PORT)
     server.serve_forever()

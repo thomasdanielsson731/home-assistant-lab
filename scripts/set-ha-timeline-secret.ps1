@@ -7,6 +7,7 @@ param(
     [switch]$UseDirectUrls,
     [switch]$UseIngressUrls,
     [switch]$UseCloudflareUrls,
+    [switch]$UseHybridUrls,
     [string]$InsightsHost = ""
 )
 
@@ -43,6 +44,33 @@ if ($UseCloudflareUrls -and -not $TimelineUrl) {
     $StoryUrl = "${base}/story"
 }
 
+if ($UseHybridUrls) {
+    $insightsHost = if ($InsightsHost) { $InsightsHost } elseif ($env:INSIGHTS_HOSTNAME) { $env:INSIGHTS_HOSTNAME } else { "insights.danielsson.cloud" }
+    $cfBase = "https://${insightsHost}"
+    $TimelineExternalUrl = "${cfBase}/timeline"
+    $EnvironmentExternalUrl = "${cfBase}/environment"
+    $EventsExternalUrl = "${cfBase}/"
+    $StoryExternalUrl = "${cfBase}/story"
+    $ingressBase = Get-InsightsIngressBase
+    if ($ingressBase) {
+        $TimelineUrl = "${ingressBase}/timeline"
+        $EnvironmentUrl = "${ingressBase}/environment"
+        $EventsUrl = "${ingressBase}/"
+        $StoryUrl = "${ingressBase}/story"
+        Write-Host "Hybrid: Ingress in-app + Cloudflare external"
+    } else {
+        Write-Warning 'Ingress unavailable - using Cloudflare for both primary and external URLs'
+        $TimelineUrl = $TimelineExternalUrl
+        $EnvironmentUrl = $EnvironmentExternalUrl
+        $EventsUrl = $EventsExternalUrl
+        $StoryUrl = $StoryExternalUrl
+        $TimelineExternalUrl = $TimelineUrl
+        $EnvironmentExternalUrl = $EnvironmentUrl
+        $EventsExternalUrl = $EventsUrl
+        $StoryExternalUrl = $StoryUrl
+    }
+}
+
 if ($UseIngressUrls -and -not $TimelineUrl) {
     $ingressBase = Get-InsightsIngressBase
     if (-not $ingressBase) {
@@ -59,7 +87,7 @@ if (-not $TimelineUrl) {
     if ($UseDirectUrls) {
         $TimelineUrl = "http://${host_}:8765/timeline"
     } else {
-        Write-Error "Set -UseCloudflareUrls, -UseDirectUrls (LAN only), -UseIngressUrls (401 in iframe), or pass -TimelineUrl"
+        Write-Error 'Set -UseHybridUrls, -UseCloudflareUrls, -UseDirectUrls, -UseIngressUrls, or pass -TimelineUrl'
         exit 1
     }
 }
@@ -91,20 +119,48 @@ if (-not $StoryUrl) {
     }
 }
 
+if ($UseHybridUrls -and -not $TimelineExternalUrl) {
+    $TimelineExternalUrl = $TimelineUrl
+    $EnvironmentExternalUrl = $EnvironmentUrl
+    $EventsExternalUrl = $EventsUrl
+    $StoryExternalUrl = $StoryUrl
+}
+if (-not $TimelineExternalUrl) {
+    $TimelineExternalUrl = $TimelineUrl
+    $EnvironmentExternalUrl = $EnvironmentUrl
+    $EventsExternalUrl = $EventsUrl
+    $StoryExternalUrl = $StoryUrl
+}
+
 Write-Host "Setting timeline_url on HA host: $TimelineUrl"
 Write-Host "Setting environment_url on HA host: $EnvironmentUrl"
 Write-Host "Setting events_url on HA host: $EventsUrl"
 Write-Host "Setting story_url on HA host: $StoryUrl"
+if ($TimelineExternalUrl) {
+    Write-Host "Setting timeline_external_url on HA host: $TimelineExternalUrl"
+    Write-Host "Setting environment_external_url on HA host: $EnvironmentExternalUrl"
+    Write-Host "Setting events_external_url on HA host: $EventsExternalUrl"
+    Write-Host "Setting story_external_url on HA host: $StoryExternalUrl"
+}
 
 $blockPath = Join-Path $env:TEMP "insights-secrets-block.yaml"
-@(
+$blockLines = @(
     "",
-    "# House Intelligence (Analytics / Environment / Events iframe)",
+    "# House Intelligence (Analytics / Environment / Events - Ingress in-app, Cloudflare external)",
     ('timeline_url: "{0}"' -f $TimelineUrl),
     ('environment_url: "{0}"' -f $EnvironmentUrl),
     ('events_url: "{0}"' -f $EventsUrl),
     ('story_url: "{0}"' -f $StoryUrl)
-) | Set-Content -Path $blockPath -Encoding utf8
+)
+if ($TimelineExternalUrl) {
+    $blockLines += @(
+        ('timeline_external_url: "{0}"' -f $TimelineExternalUrl),
+        ('environment_external_url: "{0}"' -f $EnvironmentExternalUrl),
+        ('events_external_url: "{0}"' -f $EventsExternalUrl),
+        ('story_external_url: "{0}"' -f $StoryExternalUrl)
+    )
+}
+$blockLines | Set-Content -Path $blockPath -Encoding utf8
 
 $remoteDest = "$target`:/tmp/insights-secrets-block.yaml"
 scp @("-P", $port, "-o", "StrictHostKeyChecking=no") $blockPath $remoteDest | Out-Null
@@ -115,10 +171,14 @@ grep -v '# House Intelligence' /config/secrets.yaml \
   | grep -v '^environment_url:' \
   | grep -v '^events_url:' \
   | grep -v '^story_url:' \
+  | grep -v '^timeline_external_url:' \
+  | grep -v '^environment_external_url:' \
+  | grep -v '^events_external_url:' \
+  | grep -v '^story_external_url:' \
   | sed '/^$/d' > /tmp/secrets_fix.yaml
 cat /tmp/insights-secrets-block.yaml >> /tmp/secrets_fix.yaml
 mv /tmp/secrets_fix.yaml /config/secrets.yaml
-tail -6 /config/secrets.yaml
+tail -12 /config/secrets.yaml
 ha core check
 '@
 

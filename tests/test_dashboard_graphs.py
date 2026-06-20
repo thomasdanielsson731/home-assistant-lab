@@ -175,13 +175,14 @@ def test_insights_rest_includes_bicycle_counter():
     assert "counters_bridge_ok" in bridge
 
 
-def test_insights_iframe_panels_have_fallback_and_health():
+def test_insights_panels_use_ingress_open_not_iframe():
     for name in ("house-timeline.yaml", "house-graphs.yaml"):
         text = (DASHBOARDS / name).read_text(encoding="utf-8")
         assert "sensor.insights_server_ok" in text
-        assert "Öppna" in text and "ny flik" in text
-        assert "type: iframe" in text
-        assert "min-width: 1025px" in text
+        assert "Öppna" in text
+        assert "type: iframe" not in text
+        assert "_external_url" in text
+        assert "action: url" in text
 
 
 def test_insights_mqtt_server_ok_sensor():
@@ -262,7 +263,8 @@ def test_home_events_insights_health_parity():
     text = (DASHBOARDS / "home-events.yaml").read_text(encoding="utf-8")
     assert "sensor.insights_server_ok" in text
     assert "Insights offline" in text
-    assert "Öppna händelselista i ny flik" in text
+    assert "Öppna händelselista" in text
+    assert "events_external_url" in text
 
 
 def test_home_hem_story_chip():
@@ -286,8 +288,8 @@ def test_home_events_embeds_clickable_list():
     assert "sensor.insights_persons_24h_display" in text
     assert "insights_bicycles_24h_display" in text
     assert "panel: true" in text
-    assert "type: iframe" in text
-    assert "min-width: 1025px" in text
+    assert "type: iframe" not in text
+    assert "events_url" in text
     assert "house-timeline" not in text
 
 
