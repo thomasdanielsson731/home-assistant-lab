@@ -1,6 +1,9 @@
 - id: "aoa_vehicle_detected_driveway"
-  alias: "AOA — vehicle detected in driveway"
+  alias: "AOA — fordon i uppfart"
   initial_state: false
+  description: >
+    Av som standard — många fordon i uppfart ger falsklarm.
+    Aktivera för demo eller tunna zoner.
   trigger:
     - platform: state
       entity_id:
@@ -11,7 +14,7 @@
   action:
     - service: notify.mobile_app_thomas_iphone_15
       data:
-        title: "Vehicle detected"
+        title: "Fordon detekterat"
         message: >
           {{ trigger.to_state.name | replace(' aoa vehicle', '') | title }}
-          — on-camera detection
+          — kamera AOA

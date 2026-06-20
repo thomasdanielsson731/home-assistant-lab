@@ -48,3 +48,10 @@
   icon: mdi:server-network
   device_class: timestamp
   expire_after: 180
+
+- name: "Insights anomalies 24h"
+  unique_id: insights_anomalies_24h
+  state_topic: "danielsson/insights/anomalies_24h"
+  icon: mdi:alert-decagram-outline
+  unit_of_measurement: events
+  expire_after: 120

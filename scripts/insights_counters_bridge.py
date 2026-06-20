@@ -37,6 +37,7 @@ COUNTERS = (
     ("arrivals", "arrival"),
     ("deliveries", "delivery"),
     ("bicycles", "bicycle"),
+    ("anomalies", "anomaly"),
 )
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
@@ -58,23 +59,29 @@ def counts() -> dict[str, int]:
                 continue
             log.info("Counters from %s", url)
             stats = event_summary_stats(events)
+            anomalies = sum(
+                1 for e in events if (e.get("metadata") or {}).get("anomaly")
+            )
             return {
                 "events": len(events),
                 "persons": stats.get("person", 0),
                 "arrivals": stats.get("arrival", 0),
                 "deliveries": stats.get("delivery", 0),
                 "bicycles": stats.get("bicycle", 0),
+                "anomalies": anomalies,
             }
         except (requests.RequestException, ValueError, TypeError):
             continue
     events = load_events(hours=24, timeline_path=TIMELINE_JSONL)
     stats = event_summary_stats(events)
+    anomalies = sum(1 for e in events if (e.get("metadata") or {}).get("anomaly"))
     return {
         "events": len(events),
         "persons": stats.get("person", 0),
         "arrivals": stats.get("arrival", 0),
         "deliveries": stats.get("delivery", 0),
         "bicycles": stats.get("bicycle", 0),
+        "anomalies": anomalies,
     }
 
 

@@ -394,6 +394,28 @@ def handle_aoa_occupancy(topic: str, payload: str) -> None:
                 started_at.isoformat(timespec="seconds"),
             )
         _emit_aoa_occupancy(zone, scenario, "end", ts_end, duration_seconds=duration)
+        if scenario == "PersonOccupancy" and duration >= MIN_OCCUPANCY_SECONDS:
+            _emit_aoa_person(zone, ts_end, duration)
+
+
+def _emit_aoa_person(zone: str, timestamp: str, duration_seconds: int) -> None:
+    """Person timeline event when AOA PersonOccupancy ends (Frigate may miss brief visits)."""
+    event = {
+        "timestamp": timestamp,
+        "type": "person",
+        "location": {"zone": zone, "camera": zone},
+        "metadata": {
+            "scenario": "PersonOccupancy",
+            "duration_seconds": duration_seconds,
+            "source_layer": "aoa",
+        },
+        "source": "axis_aoa",
+        "enriched": False,
+        "identity": {},
+    }
+    event["summary"] = make_summary(event)
+    eid = store.write(event)
+    _correlate(event, eid)
 
 
 def handle_scene_frame(topic: str, payload: str) -> None:

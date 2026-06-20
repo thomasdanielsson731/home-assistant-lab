@@ -1,9 +1,8 @@
 - id: frigate_person_detected
-  alias: "Frigate — Person detected at entry"
-  initial_state: false  # Push notifications off — see security/smart_notifications.yaml
+  alias: "Frigate — person vid entré (enkel)"
+  initial_state: false  # Av — använd notify_person_entry_multisensor i smart_notifications.yaml
   description: >
-    Notify when Frigate detects a new person event at an entry camera.
-    Uses frigate/events (not state topic) so the snapshot ID is available.
+    Enkel Frigate-push utan AOA/scene-bekräftelse. Multisensor-varianten är på som standard.
   trigger:
     - platform: mqtt
       topic: "frigate/events"

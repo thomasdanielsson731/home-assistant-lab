@@ -801,6 +801,13 @@ views:
                 icon_color: >-
                   {% if states('sensor.insights_events_24h_display') in ['unknown', 'unavailable', '—', ''] %}red
                   {% else %}green{% endif %}
+              - type: template
+                icon: mdi:alert-decagram-outline
+                content: >-
+                  Anomalier {{ states('sensor.insights_anomalies_24h_display') | default('0', true) }}
+                icon_color: >-
+                  {% set n = states('sensor.insights_anomalies_24h_display') | int(0) %}
+                  {{ 'amber' if n > 0 else 'grey' }}
               - type: action
                 icon: mdi:format-list-bulleted
                 content: Händelser

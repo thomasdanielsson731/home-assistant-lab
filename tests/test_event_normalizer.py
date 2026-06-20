@@ -167,12 +167,15 @@ class TestAoaAndScene:
             normalizer.handle_aoa_occupancy(topic, json.dumps({"Data": {"active": True}}))
             normalizer.handle_aoa_occupancy(topic, json.dumps({"Data": {"active": False}}))
         lines = store.timeline_jsonl.read_text().strip().splitlines()
-        assert len(lines) == 2
+        assert len(lines) == 3
         start = json.loads(lines[0])
         end = json.loads(lines[1])
+        person = json.loads(lines[2])
         assert start["metadata"]["phase"] == "start"
         assert end["metadata"]["phase"] == "end"
         assert end["metadata"]["duration_seconds"] == 150
+        assert person["type"] == "person"
+        assert person["source"] == "axis_aoa"
 
     def test_aoa_occupancy_skips_vehicle_scenario(self, normalizer, store):
         topic = "axis/front/event/ObjectAnalytics/ScenarioOccupancy/VehicleOcc/Active"
@@ -195,7 +198,7 @@ class TestAoaAndScene:
             normalizer.handle_aoa_occupancy(topic, json.dumps({"Data": {"active": False}}))
             normalizer.handle_aoa_occupancy(topic, json.dumps({"Data": {"active": True}}))
         lines = store.timeline_jsonl.read_text().strip().splitlines()
-        assert len(lines) == 2
+        assert len(lines) == 3
 
     def test_aoa_occupancy_confirms_start_while_still_active(self, normalizer, store):
         topic = "axis/storage_ext/event/ObjectAnalytics/ScenarioOccupancy/PersonOccupancy/Active"
@@ -208,7 +211,8 @@ class TestAoaAndScene:
             normalizer.handle_aoa_occupancy(topic, json.dumps({"Data": {"active": True}}))
             normalizer.handle_aoa_occupancy(topic, json.dumps({"Data": {"active": False}}))
         lines = store.timeline_jsonl.read_text().strip().splitlines()
-        assert len(lines) == 2
+        assert len(lines) == 3
+        assert json.loads(lines[2])["type"] == "person"
         start = json.loads(lines[0])
         end = json.loads(lines[1])
         assert start["timestamp"] == t0.isoformat(timespec="seconds")

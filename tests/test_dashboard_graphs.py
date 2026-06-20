@@ -166,9 +166,11 @@ def test_graph_sensors_template_exists():
 def test_insights_rest_includes_bicycle_counter():
     text = (HA / "mqtt_sensors" / "insights_counters.yaml").read_text(encoding="utf-8")
     assert "insights_bicycles_24h" in text
+    assert "insights_anomalies_24h" in text
     assert "danielsson/insights/bicycles_24h" in text
     bridge = (REPO / "scripts" / "insights_counters_bridge.py").read_text(encoding="utf-8")
     assert "bicycles" in bridge
+    assert "anomalies" in bridge
     assert "danielsson/insights/" in bridge
     assert "counters_bridge_ok" in bridge
 
@@ -249,11 +251,30 @@ def test_insights_display_coalesce_templates():
         "insights_events_24h_display",
         "insights_persons_24h_display",
         "insights_bicycles_24h_display",
+        "insights_anomalies_24h_display",
     ):
         assert key in text
-    assert "insights_events_24h_2" in text
+    assert "insights_events_24h_2" not in text
     assert text.count("source:") >= 5
-    assert text.count("source:") >= 5
+
+
+def test_home_events_insights_health_parity():
+    text = (DASHBOARDS / "home-events.yaml").read_text(encoding="utf-8")
+    assert "sensor.insights_server_ok" in text
+    assert "Insights offline" in text
+    assert "Öppna händelselista i ny flik" in text
+
+
+def test_home_hem_story_chip():
+    text = (DASHBOARDS / "home-hem.yaml").read_text(encoding="utf-8")
+    assert "story_url" in text
+    assert "Dagens story" in text
+
+
+def test_home_cameras_frigate_links():
+    text = (DASHBOARDS / "home-cameras.yaml").read_text(encoding="utf-8")
+    assert text.count("Frigate") >= 6
+    assert "cameras=front" in text
 
 
 def test_no_stale_rest_insights_yaml():

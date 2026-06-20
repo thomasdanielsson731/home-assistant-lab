@@ -360,6 +360,28 @@ def main() -> int:
                     f"{last.get('location', {}).get('zone')} — "
                     f"{last.get('timestamp', '')[:19]}"
                 )
+            frigate_url = os.environ.get("FRIGATE_URL", f"http://{HA_HOST}:5000")
+            try:
+                from datetime import timedelta
+
+                after = int((datetime.now(TZ) - timedelta(hours=24)).timestamp())
+                fr = requests.get(
+                    f"{frigate_url}/api/events",
+                    params={"after": after, "limit": 500},
+                    timeout=10,
+                )
+                if fr.status_code == 200:
+                    fg_events = fr.json()
+                    fg_person = sum(1 for e in fg_events if e.get("label") == "person")
+                    print(f"\nFrigate API (24 h): {len(fg_events)} events · person: {fg_person}")
+                    if fg_person > 0 and person_n == 0:
+                        print(
+                            "  WARN  Frigate has person tracks but timeline has none — "
+                            "run scripts/diagnose_event_pipeline.py"
+                        )
+                        issues.append("pipeline:frigate_vs_timeline")
+            except requests.RequestException:
+                print("\n  SKIP  Frigate API check failed")
     else:
         timeline = Path(__file__).parent.parent / "events" / "timeline.jsonl"
         if timeline.exists():

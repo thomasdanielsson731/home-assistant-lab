@@ -71,6 +71,12 @@ views:
                 tap_action:
                   action: navigate
                   navigation_path: /lovelace/home-events/events
+              - type: action
+                icon: mdi:filmstrip
+                content: Frigate
+                tap_action:
+                  action: url
+                  url_path: "http://192.168.68.175:5000/events?cameras=front"
 
       - title: UPPFART — BRETT
         cards:
@@ -98,6 +104,12 @@ views:
                      else 'blue' if is_state('binary_sensor.driveway_wide_aoa_vehicle', 'on')
                         or is_state('binary_sensor.driveway_wide_motion', 'on')
                      else 'green' }}
+              - type: action
+                icon: mdi:filmstrip
+                content: Frigate
+                tap_action:
+                  action: url
+                  url_path: "http://192.168.68.175:5000/events?cameras=driveway_wide"
 
       - title: UPPFART — ID
         cards:
@@ -123,6 +135,12 @@ views:
                      or is_state('binary_sensor.driveway_id_scene_object_present', 'on')
                      else 'blue' if is_state('binary_sensor.driveway_id_motion', 'on')
                      else 'green' }}
+              - type: action
+                icon: mdi:filmstrip
+                content: Frigate
+                tap_action:
+                  action: url
+                  url_path: "http://192.168.68.175:5000/events?cameras=driveway_id"
 
       - title: BAKGÅRD
         cards:
@@ -148,6 +166,12 @@ views:
                      or is_state('binary_sensor.backyard_scene_object_present', 'on')
                      else 'blue' if is_state('binary_sensor.backyard_motion', 'on')
                      else 'green' }}
+              - type: action
+                icon: mdi:filmstrip
+                content: Frigate
+                tap_action:
+                  action: url
+                  url_path: "http://192.168.68.175:5000/events?cameras=backyard"
 
       - title: FÖRRÅD — UTE
         cards:
@@ -173,6 +197,12 @@ views:
                      or is_state('binary_sensor.storage_ext_scene_object_present', 'on')
                      else 'blue' if is_state('binary_sensor.storage_ext_motion', 'on')
                      else 'green' }}
+              - type: action
+                icon: mdi:filmstrip
+                content: Frigate
+                tap_action:
+                  action: url
+                  url_path: "http://192.168.68.175:5000/events?cameras=storage_ext"
 
       - title: FÖRRÅD — INNE
         cards:
@@ -198,3 +228,9 @@ views:
                      or is_state('binary_sensor.storage_int_scene_object_present', 'on')
                      else 'blue' if is_state('binary_sensor.storage_int_motion', 'on')
                      else 'green' }}
+              - type: action
+                icon: mdi:filmstrip
+                content: Frigate
+                tap_action:
+                  action: url
+                  url_path: "http://192.168.68.175:5000/events?cameras=storage_int"

@@ -43,11 +43,10 @@ views:
                 primary: >-
                   {% if is_state('binary_sensor.house_outdoor_presence', 'on') %}Någon rör sig utomhus
                   {% else %}Inget utomhus just nu{% endif %}
-                secondary: Visar inte vem som är inne
-                icon: mdi:motion-sensor
-                tooltip: >-
+                secondary: >-
                   Sammanfattning från kameror vid entré och uppfart (AOA + Frigate).
-                  Visar om någon rör sig utomhus — inte vilka familjemedlemmar som är hemma.
+                  Visar rörelse utomhus — inte vem i familjen som är hemma (ADR-006).
+                icon: mdi:motion-sensor
                 icon_color: >-
                   {{ 'amber' if is_state('binary_sensor.house_outdoor_presence', 'on') else 'green' }}
                 layout: vertical
@@ -226,6 +225,12 @@ views:
                 tap_action:
                   action: navigate
                   navigation_path: /lovelace/home-events/events
+              - type: action
+                icon: mdi:book-open-page-variant
+                content: Dagens story
+                tap_action:
+                  action: url
+                  url_path: !secret story_url
               - type: action
                 icon: mdi:cctv
                 content: Kameror

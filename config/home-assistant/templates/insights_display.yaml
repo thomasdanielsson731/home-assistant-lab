@@ -1,61 +1,55 @@
-# Coalesce MQTT insight counters with legacy _2 duplicates (removed REST sensors).
+# Coalesce MQTT insight counters for dashboard chips (MQTT-only; legacy _2 removed).
 - sensor:
     - name: "Insights events 24h display"
       unique_id: insights_events_24h_display
       icon: mdi:chart-timeline-variant
       unit_of_measurement: events
-      state: >-
-        {% set v = states('sensor.insights_events_24h') %}
-        {{ v if v not in ['unknown', 'unavailable', ''] else states('sensor.insights_events_24h_2') | default('—') }}
+      state: "{{ states('sensor.insights_events_24h') | default('—') }}"
       attributes:
         source: >-
-          {% set v = states('sensor.insights_events_24h') %}
-          {{ 'mqtt' if v not in ['unknown', 'unavailable', ''] else 'legacy' if states('sensor.insights_events_24h_2') not in ['unknown', 'unavailable', ''] else 'none' }}
+          {{ 'mqtt' if states('sensor.insights_events_24h') not in ['unknown', 'unavailable', ''] else 'none' }}
 
     - name: "Insights persons 24h display"
       unique_id: insights_persons_24h_display
       icon: mdi:account
       unit_of_measurement: events
-      state: >-
-        {% set v = states('sensor.insights_persons_24h') %}
-        {{ v if v not in ['unknown', 'unavailable', ''] else states('sensor.insights_persons_24h_2') | default('—') }}
+      state: "{{ states('sensor.insights_persons_24h') | default('—') }}"
       attributes:
         source: >-
-          {% set v = states('sensor.insights_persons_24h') %}
-          {{ 'mqtt' if v not in ['unknown', 'unavailable', ''] else 'legacy' if states('sensor.insights_persons_24h_2') not in ['unknown', 'unavailable', ''] else 'none' }}
+          {{ 'mqtt' if states('sensor.insights_persons_24h') not in ['unknown', 'unavailable', ''] else 'none' }}
 
     - name: "Insights arrivals 24h display"
       unique_id: insights_arrivals_24h_display
       icon: mdi:home-import-outline
       unit_of_measurement: events
-      state: >-
-        {% set v = states('sensor.insights_arrivals_24h') %}
-        {{ v if v not in ['unknown', 'unavailable', ''] else states('sensor.insights_arrivals_24h_2') | default('—') }}
+      state: "{{ states('sensor.insights_arrivals_24h') | default('—') }}"
       attributes:
         source: >-
-          {% set v = states('sensor.insights_arrivals_24h') %}
-          {{ 'mqtt' if v not in ['unknown', 'unavailable', ''] else 'legacy' if states('sensor.insights_arrivals_24h_2') not in ['unknown', 'unavailable', ''] else 'none' }}
+          {{ 'mqtt' if states('sensor.insights_arrivals_24h') not in ['unknown', 'unavailable', ''] else 'none' }}
 
     - name: "Insights deliveries 24h display"
       unique_id: insights_deliveries_24h_display
       icon: mdi:package-variant-closed
       unit_of_measurement: events
-      state: >-
-        {% set v = states('sensor.insights_deliveries_24h') %}
-        {{ v if v not in ['unknown', 'unavailable', ''] else states('sensor.insights_deliveries_24h_2') | default('—') }}
+      state: "{{ states('sensor.insights_deliveries_24h') | default('—') }}"
       attributes:
         source: >-
-          {% set v = states('sensor.insights_deliveries_24h') %}
-          {{ 'mqtt' if v not in ['unknown', 'unavailable', ''] else 'legacy' if states('sensor.insights_deliveries_24h_2') not in ['unknown', 'unavailable', ''] else 'none' }}
+          {{ 'mqtt' if states('sensor.insights_deliveries_24h') not in ['unknown', 'unavailable', ''] else 'none' }}
 
     - name: "Insights bicycles 24h display"
       unique_id: insights_bicycles_24h_display
       icon: mdi:bike
       unit_of_measurement: events
-      state: >-
-        {% set v = states('sensor.insights_bicycles_24h') %}
-        {{ v if v not in ['unknown', 'unavailable', ''] else states('sensor.insights_bicycles_24h_2') | default('—') }}
+      state: "{{ states('sensor.insights_bicycles_24h') | default('—') }}"
       attributes:
         source: >-
-          {% set v = states('sensor.insights_bicycles_24h') %}
-          {{ 'mqtt' if v not in ['unknown', 'unavailable', ''] else 'legacy' if states('sensor.insights_bicycles_24h_2') not in ['unknown', 'unavailable', ''] else 'none' }}
+          {{ 'mqtt' if states('sensor.insights_bicycles_24h') not in ['unknown', 'unavailable', ''] else 'none' }}
+
+    - name: "Insights anomalies 24h display"
+      unique_id: insights_anomalies_24h_display
+      icon: mdi:alert-decagram-outline
+      unit_of_measurement: events
+      state: "{{ states('sensor.insights_anomalies_24h') | default('0') }}"
+      attributes:
+        source: >-
+          {{ 'mqtt' if states('sensor.insights_anomalies_24h') not in ['unknown', 'unavailable', ''] else 'none' }}

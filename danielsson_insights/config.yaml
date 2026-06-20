@@ -23,7 +23,7 @@ ports:
 map:
   - share:rw
 options:
-  mqtt_host: "192.168.68.175"
+  mqtt_host: "core-mosquitto"
   mqtt_user: frigate
   mqtt_password: ""
   cam_user: homeassistant
