@@ -113,10 +113,21 @@ def fetch_insights_json(path: str) -> list | None:
 
 
 def get_state(entity_id: str) -> dict | None:
-    r = requests.get(f"{BASE}/states/{entity_id}", headers=HEADERS, timeout=10)
+    try:
+        r = requests.get(f"{BASE}/states/{entity_id}", headers=HEADERS, timeout=10)
+    except requests.ConnectionError:
+        return None
     if r.status_code != 200:
         return None
     return r.json()
+
+
+def ha_api_reachable() -> bool:
+    try:
+        r = requests.get(f"{BASE}/", headers=HEADERS, timeout=10)
+        return r.status_code == 200
+    except requests.RequestException:
+        return False
 
 
 def ok_state(state: str) -> bool:
@@ -186,15 +197,20 @@ def main() -> int:
     issues: list[str] = []
     print("=== Danielsson Insights Health Check ===\n")
 
-    check_entity_group("Cameras (Frigate)", CAMERAS, issues)
+    ha_up = ha_api_reachable()
+    if not ha_up:
+        print("  WARN  HA API (8123) unreachable — entity checks skipped")
+        issues.append("ha_api_unreachable")
+    else:
+        check_entity_group("Cameras (Frigate)", CAMERAS, issues)
 
-    check_entity_group("Outdoor environment", ENV_SENSORS, issues)
+        check_entity_group("Outdoor environment", ENV_SENSORS, issues)
 
-    check_entity_group("AOA presence", AOA_SENSORS, issues, required=False)
+        check_entity_group("AOA presence", AOA_SENSORS, issues, required=False)
 
-    check_entity_group("Audio SPL", SPL_SENSORS, issues)
+        check_entity_group("Audio SPL", SPL_SENSORS, issues)
 
-    check_entity_group("Scene analytics", SCENE_SENSORS, issues, required=False)
+        check_entity_group("Scene analytics", SCENE_SENSORS, issues, required=False)
 
     addon_mode = insights_addon_running()
 

@@ -45,6 +45,22 @@ function Reload-HaYaml {
     }
 }
 
+function Wait-HaApi {
+    param([string]$HostAddr, [string]$Token, [int]$MaxSeconds = 120)
+    if (-not $Token) { return $false }
+    $headers = @{ Authorization = "Bearer $Token" }
+    $deadline = (Get-Date).AddSeconds($MaxSeconds)
+    while ((Get-Date) -lt $deadline) {
+        try {
+            Invoke-RestMethod -Method GET -Uri "http://${HostAddr}:8123/api/" -Headers $headers -TimeoutSec 5 | Out-Null
+            return $true
+        } catch {
+            Start-Sleep -Seconds 3
+        }
+    }
+    return $false
+}
+
 Set-Location $repoRoot
 Write-Log "=== finish-dev ==="
 
@@ -119,8 +135,16 @@ Write-Log "verify-insights-ha ..."
 & "$PSScriptRoot\verify-insights-ha.ps1"
 if ($LASTEXITCODE -ne 0) { throw "Insights verify failed" }
 
+Write-Log "vantar pa HA API ..."
+if (-not (Wait-HaApi -HostAddr $HA_HOST -Token $env:HA_TOKEN)) {
+    Write-Log "WARN: HA API svarar inte efter 120s - kor health-check anda"
+}
+
 Write-Log "health-check ..."
 python "$PSScriptRoot\health-check.py"
 if ($LASTEXITCODE -ne 0) { Write-Log "WARN: health-check reported issues" }
 
-Write-Log "done - ladda om HA-klienten (Ctrl+F5)"
+Write-Log "klart"
+Write-Host ""
+Write-Host "Avsluta med Ctrl+F5 i HA-klienten (eller starta om appen)." -ForegroundColor Cyan
+Write-Host ""
