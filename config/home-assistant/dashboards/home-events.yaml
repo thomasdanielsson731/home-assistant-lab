@@ -1,4 +1,4 @@
-# Händelser — event list (Danielsson Insights). Iframe blockeras i Windows HA-appen.
+# Händelser — öppnas i webbläsare (Windows HA-appen blockar iframe och Ingress-länkar)
 title: Händelser
 views:
   - title: Händelser
@@ -58,21 +58,17 @@ views:
               content: >-
                 **Insights svarar inte** — starta om add-on *Danielsson Insights*
                 under Inställningar → Tillägg → Drift.
-          - type: custom:mushroom-template-card
-            primary: Öppna händelselista
-            secondary: Bilder och detaljer (Ingress i appen)
+          - type: markdown
+            content: >-
+              Tryck länken nedan — händelselistan öppnas i webbläsaren.
+              På PC: använd Edge/Chrome (ha.danielsson.cloud) om Windows-appen inte reagerar.
+          - type: weblink
+            url: !secret events_url
+            name: Öppna händelselista
             icon: mdi:format-list-bulleted
-            icon_color: blue
-            fill_container: true
+          - type: button
+            name: Öppna händelselista (knapp)
+            icon: mdi:open-in-new
             tap_action:
               action: url
               url_path: !secret events_url
-          - type: custom:mushroom-template-card
-            primary: Öppna i webbläsare
-            secondary: insights.danielsson.cloud — om Ingress-knappen inte fungerar
-            icon: mdi:open-in-new
-            icon_color: grey
-            fill_container: true
-            tap_action:
-              action: url
-              url_path: !secret events_external_url

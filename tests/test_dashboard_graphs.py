@@ -175,13 +175,13 @@ def test_insights_rest_includes_bicycle_counter():
     assert "counters_bridge_ok" in bridge
 
 
-def test_insights_panels_use_ingress_open_not_iframe():
+def test_insights_panels_use_weblink_not_iframe():
     for name in ("house-timeline.yaml", "house-graphs.yaml"):
         text = (DASHBOARDS / name).read_text(encoding="utf-8")
         assert "sensor.insights_server_ok" in text
-        assert "Öppna" in text
+        assert "type: weblink" in text
         assert "type: iframe" not in text
-        assert "_external_url" in text
+        assert "timeline_url" in text or "environment_url" in text
         assert "action: url" in text
 
 
@@ -263,8 +263,8 @@ def test_home_events_insights_health_parity():
     text = (DASHBOARDS / "home-events.yaml").read_text(encoding="utf-8")
     assert "sensor.insights_server_ok" in text
     assert "Insights offline" in text
-    assert "Öppna händelselista" in text
-    assert "events_external_url" in text
+    assert "type: weblink" in text
+    assert "events_url" in text
 
 
 def test_home_hem_story_chip():

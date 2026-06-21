@@ -26,6 +26,7 @@ $port  = if ($env:HA_SSH_PORT) { $env:HA_SSH_PORT } else { "22222" }
 $user  = if ($env:HA_USER) { $env:HA_USER } else { "root" }
 $target = "${user}@${host_}"
 $ssh = @("-p", $port, "-o", "StrictHostKeyChecking=no")
+$GrafanaUrl = if ($env:GRAFANA_URL) { $env:GRAFANA_URL } else { "http://${host_}:3000/d/home-metrics-7d" }
 
 function Get-InsightsIngressBase {
     $line = ssh @ssh $target "ha apps info 25d01a20_danielsson_insights 2>/dev/null | grep '^ingress_entry:'"
@@ -136,6 +137,7 @@ Write-Host "Setting timeline_url on HA host: $TimelineUrl"
 Write-Host "Setting environment_url on HA host: $EnvironmentUrl"
 Write-Host "Setting events_url on HA host: $EventsUrl"
 Write-Host "Setting story_url on HA host: $StoryUrl"
+Write-Host "Setting grafana_url on HA host: $GrafanaUrl"
 if ($TimelineExternalUrl) {
     Write-Host "Setting timeline_external_url on HA host: $TimelineExternalUrl"
     Write-Host "Setting environment_external_url on HA host: $EnvironmentExternalUrl"
@@ -146,11 +148,12 @@ if ($TimelineExternalUrl) {
 $blockPath = Join-Path $env:TEMP "insights-secrets-block.yaml"
 $blockLines = @(
     "",
-    "# House Intelligence (Analytics / Environment / Events - Ingress in-app, Cloudflare external)",
+    "# House Intelligence (Analytics / Environment / Events - Cloudflare weblink)",
     ('timeline_url: "{0}"' -f $TimelineUrl),
     ('environment_url: "{0}"' -f $EnvironmentUrl),
     ('events_url: "{0}"' -f $EventsUrl),
-    ('story_url: "{0}"' -f $StoryUrl)
+    ('story_url: "{0}"' -f $StoryUrl),
+    ('grafana_url: "{0}"' -f $GrafanaUrl)
 )
 if ($TimelineExternalUrl) {
     $blockLines += @(
@@ -171,6 +174,7 @@ grep -v '# House Intelligence' /config/secrets.yaml \
   | grep -v '^environment_url:' \
   | grep -v '^events_url:' \
   | grep -v '^story_url:' \
+  | grep -v '^grafana_url:' \
   | grep -v '^timeline_external_url:' \
   | grep -v '^environment_external_url:' \
   | grep -v '^events_external_url:' \

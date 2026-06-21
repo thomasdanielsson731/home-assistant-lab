@@ -90,9 +90,9 @@ if ($UseIngressSecrets) {
     Write-Host "Setting direct HA URLs: http://${HA_HOST}:8765/timeline"
     & (Join-Path $PSScriptRoot "set-ha-timeline-secret.ps1") -UseDirectUrls
 } else {
-    # Default: Ingress in-app (Windows HA app) + Cloudflare for external browser fallback.
-    Write-Host "Setting hybrid Insights URLs (Ingress primary + Cloudflare external)"
-    & (Join-Path $PSScriptRoot "set-ha-timeline-secret.ps1") -UseHybridUrls
+    # Default: Cloudflare HTTPS — opens in browser (Windows HA app cannot embed Insights).
+    Write-Host "Setting Cloudflare Insights URLs (insights.danielsson.cloud)"
+    & (Join-Path $PSScriptRoot "set-ha-timeline-secret.ps1") -UseCloudflareUrls
 }
 
 Write-Host "Done."

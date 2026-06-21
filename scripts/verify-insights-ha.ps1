@@ -2,7 +2,8 @@
 param(
     [string]$HaHost = "",
     [switch]$FixCloudflareUrls,
-    [switch]$FixDirectUrls
+    [switch]$FixDirectUrls,
+    [switch]$FixHybridUrls
 )
 
 $repoRoot = Split-Path $PSScriptRoot -Parent
@@ -50,31 +51,50 @@ $ok = (Test-Url "Direct Environment" $directEnv) -and $ok
 $ok = (Test-Url "Cloudflare Analytics" $cfTimeline) -and $ok
 $ok = (Test-Url "Cloudflare Environment" $cfEnv) -and $ok
 
-$secretsLine = ssh -p $sshPort -o StrictHostKeyChecking=no "${sshUser}@${HA_HOST}" `
-    "grep -E '^timeline_url:|^environment_url:' /config/secrets.yaml 2>/dev/null" 2>$null
+$secretsBlock = ssh -p $sshPort -o StrictHostKeyChecking=no "${sshUser}@${HA_HOST}" `
+    "grep -E '^timeline_url:|^environment_url:|^timeline_external_url:|^environment_external_url:' /config/secrets.yaml 2>/dev/null" 2>$null
 $secretsBad = $false
-if ($secretsLine) {
+if ($secretsBlock) {
     Write-Host "`nsecrets.yaml:"
-    $secretsLine | ForEach-Object { Write-Host "  $_" }
-    if ($secretsLine -match 'hassio_ingress') {
-        Write-Host '  FAIL  Ingress URLs in iframe return 401 - use Cloudflare URLs'
+    $secretsBlock | ForEach-Object { Write-Host "  $_" }
+    $hasCloudflare = $secretsBlock -match 'insights\.danielsson\.cloud'
+    $hasIngressPrimary = ($secretsBlock -match '^timeline_url:.*hassio_ingress') -and -not ($secretsBlock -match '^timeline_url:.*insights\.danielsson\.cloud')
+    $hasIngressExternal = $secretsBlock -match 'timeline_external_url:.*insights\.danielsson\.cloud'
+    if ($hasIngressPrimary -and -not $hasCloudflare -and -not $hasIngressExternal) {
+        Write-Host '  FAIL  timeline_url is Ingress-only — Windows HA app cannot open Ingress tap links'
+        Write-Host '        Run: .\scripts\set-ha-timeline-secret.ps1 -UseCloudflareUrls'
         $secretsBad = $true
         $ok = $false
+    } elseif ($hasIngressPrimary -and ($hasCloudflare -or $hasIngressExternal)) {
+        Write-Host '  OK    Hybrid secrets (Ingress + Cloudflare external) — dashboards should use Cloudflare/weblink'
+    } elseif ($hasCloudflare) {
+        Write-Host '  OK    Cloudflare URLs for browser/weblink panels'
+    } elseif ($secretsBlock -match ':8765') {
+        Write-Host '  WARN  LAN :8765 URLs — OK at home only, breaks remote HTTPS panels'
     }
-    if ($secretsLine -match 'http://192\.168\.|http://127\.0\.0\.1|:8765') {
-        Write-Host '  WARN  LAN http URLs break remote HTTPS iframes - use Cloudflare'
+    $grafanaLine = ssh -p $sshPort -o StrictHostKeyChecking=no "${sshUser}@${HA_HOST}" `
+        "grep '^grafana_url:' /config/secrets.yaml 2>/dev/null" 2>$null
+    if (-not $grafanaLine) {
+        Write-Host '  FAIL  grafana_url missing — Environment dashboard will not load'
+        Write-Host '        Run: .\scripts\set-ha-timeline-secret.ps1 -UseCloudflareUrls'
         $secretsBad = $true
         $ok = $false
-    }
-    if ($secretsLine -notmatch 'insights\.danielsson\.cloud' -and -not $secretsBad) {
-        Write-Host "  WARN  Expected insights.danielsson.cloud for iframe panels"
     }
 } else {
     Write-Host "`n  WARN  Could not read secrets.yaml"
 }
 
-$addonState = ssh -p $sshPort -o StrictHostKeyChecking=no "${sshUser}@${HA_HOST}" `
-    "ha apps info 25d01a20_danielsson_insights 2>/dev/null | grep '^state:'" 2>$null
+$addonSlugs = @("local_danielsson_insights", "25d01a20_danielsson_insights")
+$addonState = $null
+foreach ($slug in $addonSlugs) {
+    $line = ssh -p $sshPort -o StrictHostKeyChecking=no "${sshUser}@${HA_HOST}" `
+        "ha apps info $slug 2>/dev/null | grep '^state:'" 2>$null
+    if ($line -match 'started') {
+        $addonState = "$line ($slug)"
+        break
+    }
+    if ($line) { $addonState = "$line ($slug)" }
+}
 if ($addonState) {
     Write-Host "`nAdd-on: $addonState"
     if ($addonState -notmatch 'started') { $ok = $false }
@@ -84,19 +104,24 @@ if ($addonState) {
 }
 
 if ($FixCloudflareUrls) {
-    Write-Host "`nApplying Cloudflare iframe URLs..."
+    Write-Host "`nApplying Cloudflare URLs..."
     & (Join-Path $PSScriptRoot "set-ha-timeline-secret.ps1") -UseCloudflareUrls
     Write-Host "Reload HA frontend (Ctrl+F5) after secrets change."
 } elseif ($FixDirectUrls) {
     Write-Host "`nApplying LAN :8765 URLs (home network only)..."
     & (Join-Path $PSScriptRoot "set-ha-timeline-secret.ps1") -UseDirectUrls
     Write-Host "Reload HA frontend (Ctrl+F5) after secrets change."
+} elseif ($FixHybridUrls) {
+    Write-Host "`nApplying hybrid Ingress + Cloudflare URLs..."
+    & (Join-Path $PSScriptRoot "set-ha-timeline-secret.ps1") -UseHybridUrls
+    Write-Host "Reload HA frontend (Ctrl+F5) after secrets change."
 }
 
 if (-not $ok) {
     Write-Host "`nFix:"
-    Write-Host "  .\scripts\verify-insights-ha.ps1 -FixCloudflareUrls"
-    Write-Host "  ha apps restart 25d01a20_danielsson_insights  (on HA)"
+    Write-Host "  .\scripts\set-ha-timeline-secret.ps1 -UseCloudflareUrls"
+    Write-Host "  .\scripts\sync-config.ps1"
+    Write-Host "  ha apps restart local_danielsson_insights  (on HA)"
     exit 1
 }
 Write-Host "`nAll checks passed."

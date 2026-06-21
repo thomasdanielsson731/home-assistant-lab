@@ -12,6 +12,8 @@ fi
 
 mkdir -p "${EVENTS_PATH}"
 
+INDOOR_TEMP_ENTITIES="$(bashio::config 'indoor_temp_entities')"
+
 ENV_FILE="${REPO_ROOT}/.env"
 cat > "${ENV_FILE}" <<EOF
 HA_HOST=$(bashio::config 'mqtt_host')
@@ -27,11 +29,8 @@ INFLUX_USER=$(bashio::config 'influx_user')
 INFLUX_PASSWORD=$(bashio::config 'influx_password')
 INFLUX_DB=$(bashio::config 'influx_db')
 INFLUX_V2=$(bashio::config 'influx_v2')
-INDOOR_TEMP_ENTITIES=$(bashio::config 'indoor_temp_entities')
+INDOOR_TEMP_ENTITIES=${INDOOR_TEMP_ENTITIES}
 EOF
-if [ -n "${INDOOR_TEMP_ENTITIES}" ]; then
-  echo "INDOOR_TEMP_ENTITIES=${INDOOR_TEMP_ENTITIES}" >> "${ENV_FILE}"
-fi
 chmod 600 "${ENV_FILE}"
 
 export PYTHONPATH="${SCRIPTS_PATH}${PYTHONPATH:+:${PYTHONPATH}}"
@@ -40,8 +39,9 @@ cd "${REPO_ROOT}" || exit 1
 start_bg() {
   local name="$1"
   local script="$2"
+  shift 2
   bashio::log.info "Starting ${name}"
-  python3 "${SCRIPTS_PATH}/${script}" &
+  python3 "${SCRIPTS_PATH}/${script}" "$@" &
 }
 
 if bashio::config 'enable_bridges'; then
@@ -54,7 +54,7 @@ if bashio::config 'enable_bridges'; then
   if bashio::config.has_value 'influx_url'; then
     start_bg "influx_metrics_bridge" "influx_metrics_bridge.py"
   fi
-  start_bg "baseline_engine" "baseline_engine.py --loop"
+  start_bg "baseline_engine" "baseline_engine.py" --loop
 fi
 
 bashio::log.info "Starting timeline_server on :8765"

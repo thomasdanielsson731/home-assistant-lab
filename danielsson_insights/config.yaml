@@ -1,5 +1,5 @@
 name: Danielsson Insights
-version: "0.2.5"
+version: "0.2.7"
 slug: danielsson_insights
 description: Analytics platform on HAOS — timeline, normalizer, bridges
 url: https://github.com/thomasdanielsson731/home-assistant-lab
