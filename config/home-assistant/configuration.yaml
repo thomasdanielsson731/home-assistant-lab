@@ -96,21 +96,21 @@ lovelace:
       title: Teknik
       icon: mdi:chip
       show_in_sidebar: true
-      require_admin: true
+      require_admin: false
     house-timeline:
       mode: yaml
       filename: dashboards/house-timeline.yaml
       title: Analytics
       icon: mdi:chart-timeline-variant
       show_in_sidebar: true
-      require_admin: true
+      require_admin: false
     house-graphs:
       mode: yaml
       filename: dashboards/house-graphs.yaml
       title: Environment
       icon: mdi:chart-areaspline
       show_in_sidebar: true
-      require_admin: true
+      require_admin: false
 
 # Automations, scripts, scenes split into separate files
 automation: !include_dir_merge_list automations/

@@ -61,7 +61,7 @@ def test_configuration_registers_split_dashboards():
         assert f"filename: dashboards/{filename}" in text
     assert "home-tech:" in text
     assert "filename: dashboards/home-tech.yaml" in text
-    assert "require_admin: true" in text
+    assert 'require_admin: false' in text
     assert "home-lab:" not in text
 
 
